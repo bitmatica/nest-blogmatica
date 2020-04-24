@@ -1,0 +1,17 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: blogmatica
+      POSTGRES_USER: blogmatica
+      POSTGRES_PASSWORD: blogmatica_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+    - '5432:5432'
+volumes:
+  postgres-data:
