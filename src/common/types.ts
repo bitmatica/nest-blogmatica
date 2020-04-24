@@ -10,7 +10,7 @@ export class DeletionResponse {
 }
 
 @ObjectType()
-export class MutationResponse {
+export abstract class MutationResponse {
   @Field()
   success: boolean
 
