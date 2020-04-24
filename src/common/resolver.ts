@@ -16,7 +16,7 @@ import { Repository } from 'typeorm';
 import { BaseModel } from './model';
 import { DeletionResponse, MutationResponse } from './types';
 
-interface ResourceResolver<TModel> {
+export interface ResourceResolver<TModel> {
   repo: Repository<TModel>
 
   get(id: string): Promise<TModel | undefined>
