@@ -15,8 +15,4 @@ export class Post {
   @Field()
   @Column()
   body: string
-
-  @Field()
-  @Column()
-  friend: string
 }

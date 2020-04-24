@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsModule } from './posts/post.module';
-import databaseConfig from './database/config'
+import * as databaseConfig from './database/config'
 
 @Module({
   imports: [
