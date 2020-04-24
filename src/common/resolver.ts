@@ -16,6 +16,8 @@ import { Repository } from 'typeorm';
 import { BaseModel } from './model';
 import { DeletionResponse, MutationResponse } from './types';
 
+export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
+
 export interface ResourceResolver<TModel> {
   repo: Repository<TModel>
 
@@ -23,9 +25,9 @@ export interface ResourceResolver<TModel> {
 
   list(): Promise<Array<TModel>>
 
-  create(input: Omit<TModel, 'id'>): Promise<MutationResponse<TModel>>
+  create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>
 
-  update(id: string, input: Partial<TModel>): Promise<MutationResponse<TModel>>
+  update(id: string, input: Partial<ICreateModelInput<TModel>>): Promise<MutationResponse<TModel>>
 
   delete(id: string): Promise<DeletionResponse>
 }
@@ -35,10 +37,10 @@ export function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResol
   const resourceNameLowerCase = resourceNameOriginal.toLocaleLowerCase();
 
   @InputType(`Create${resourceNameOriginal}Input`)
-  class CreateModelInput extends OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id' ], InputType) {}
+  class CreateModelInput extends OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id', 'createdAt', 'updatedAt' ], InputType) {}
 
   @InputType(`Update${resourceNameOriginal}Input`)
-  class UpdateModelInput extends PartialType(OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id' ]), InputType) {}
+  class UpdateModelInput extends PartialType(OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id', 'createdAt', 'updatedAt' ]), InputType) {}
 
   @ObjectType(`${resourceNameOriginal}MutationResponse`)
   class ModelMutationResponse extends MutationResponse<TModel> {
@@ -62,7 +64,7 @@ export function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResol
     }
 
     @Mutation(returns => ModelMutationResponse, { name: `create${resourceNameOriginal}` })
-    async create(@Args('input', { type: () => CreateModelInput }) input: Omit<TModel, 'id'>): Promise<MutationResponse<TModel>> {
+    async create(@Args('input', { type: () => CreateModelInput }) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
       try {
         const model = new ModelCls();
         Object.assign(model, { ...input });
@@ -84,7 +86,7 @@ export function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResol
     @Mutation(returns => ModelMutationResponse, { name: `update${resourceNameOriginal}` })
     async update(
       @Args('id', { type: () => ID }) id: string,
-      @Args('input', { type: () => UpdateModelInput }) input: Partial<TModel>,
+      @Args('input', { type: () => UpdateModelInput }) input: Partial<ICreateModelInput<TModel>>,
     ): Promise<MutationResponse<TModel>> {
       try {
         const model = await this.repo.findOne(id);
