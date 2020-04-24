@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, InterfaceType, ObjectType } from '@nestjs/graphql';
 import { CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @ObjectType()
@@ -6,13 +6,13 @@ import { CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } fr
 export abstract class BaseModel {
   @Field(type => ID)
   @PrimaryGeneratedColumn('uuid')
-  id: string
+  id: string;
 
   @Field()
   @CreateDateColumn()
-  createdAt: Date
+  createdAt: Date;
 
   @Field()
   @UpdateDateColumn()
-  updatedAt: Date
+  updatedAt: Date;
 }

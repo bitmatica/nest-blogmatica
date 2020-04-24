@@ -11,6 +11,7 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql';
+import { getFieldsAndDecoratorForType } from '@nestjs/graphql/dist/schema-builder/utils/get-fields-and-decorator.util';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseModel } from './model';
