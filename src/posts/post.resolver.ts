@@ -86,7 +86,7 @@ function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResolver<TMo
       }
     }
 
-    @Mutation(returns => ModelMutationResponse)
+    @Mutation(returns => ModelMutationResponse, { name: `update${resourceNameOriginal}` })
     async update(
       @Args('id', { type: () => ID }) id: string,
       @Args('input', { type: () => UpdateModelInput }) input: Partial<TModel>,
@@ -108,7 +108,7 @@ function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResolver<TMo
       }
     }
 
-    @Mutation(returns => DeletionResponse)
+    @Mutation(returns => DeletionResponse, { name: `delete${resourceNameOriginal}` })
     async delete(@Args('id', { type: () => ID }) id: string): Promise<DeletionResponse> {
       try {
         const post = await this.repo.findOne(id);
