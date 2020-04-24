@@ -5,7 +5,3 @@ import { Post } from './post.entity'
 @InputType()
 export class PostInput extends PartialType(OmitType(Post, ['id']), InputType) {}
 
-@ObjectType()
-export class PostMutationResponse extends MutationResponse {
-  post?: Post
-}

@@ -10,10 +10,12 @@ export class DeletionResponse {
 }
 
 @ObjectType()
-export abstract class MutationResponse {
+export abstract class MutationResponse<T> {
   @Field()
   success: boolean
 
   @Field()
   message: string
+
+  model?: T
 }
