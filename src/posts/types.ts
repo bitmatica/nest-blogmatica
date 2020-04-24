@@ -1,4 +1,5 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { MutationResponse } from '../common/types';
 import { Post } from './post.entity'
 
 @InputType()
@@ -11,22 +12,7 @@ export class PostInput implements Omit<Post, 'id'> {
 }
 
 @ObjectType()
-export class PostMutationResponse {
-  @Field()
-  success: boolean
-
-  @Field()
-  message: string
-
+export class PostMutationResponse extends MutationResponse {
   @Field({ nullable: true })
   post?: Post
-}
-
-@ObjectType()
-export class DeletionResponse {
-  @Field()
-  success: boolean
-
-  @Field()
-  message: string
 }
