@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeletionResponse } from '../common/types';
 import { Post } from './post.entity';
-import { PostInput, PostMutationResponse } from './types';
+import { PostInput, PostMutationResponse } from './post.input';
 
 @Resolver(of => Post)
 export class PostsResolver {
