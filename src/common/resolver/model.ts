@@ -12,11 +12,11 @@ export interface IBaseResolverOptions<T> {
   without?: Array<ResolverAction<T>>
 }
 
-export function BaseResolver<T>(objectType: Type<T>);
+export function BaseModelResolver<T>(objectType: Type<T>);
 
-export function BaseResolver<T>(objectType: Type<T>, options: IBaseResolverOptions<T>);
+export function BaseModelResolver<T>(objectType: Type<T>, options: IBaseResolverOptions<T>);
 
-export function BaseResolver<T>(objectType: Type<T>, options: IBaseResolverOptions<T> = {}) {
+export function BaseModelResolver<T>(objectType: Type<T>, options: IBaseResolverOptions<T> = {}) {
   const defaultResolvers: Array<ResolverAction<T>> = [ Get, List, Create, Update, Delete ]
   const allBaseResolvers = (options.with || defaultResolvers).filter(br => !options.without?.find(withoutRes => withoutRes === br))
 
