@@ -1,13 +1,13 @@
 import { Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BaseResolver } from '../common/resolver';
+import { BaseModelResolver } from '../common/resolver';
 import { User } from '../users/user.entity';
 import { Post } from './post.entity';
 
 
 @Resolver(of => Post)
-export class PostsResolver extends BaseResolver(Post) {
+export class PostsResolver extends BaseModelResolver(Post) {
 
   @InjectRepository(User)
   userRepo: Repository<User>

@@ -11,7 +11,6 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql';
-import { getFieldsAndDecoratorForType } from '@nestjs/graphql/dist/schema-builder/utils/get-fields-and-decorator.util';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseModel } from './model';
@@ -19,7 +18,7 @@ import { DeletionResponse, MutationResponse } from './types';
 
 export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
 
-export interface ResourceResolver<TModel> {
+export interface ModelResolver<TModel> {
   repo: Repository<TModel>
 
   get(id: string): Promise<TModel | undefined>
@@ -33,38 +32,38 @@ export interface ResourceResolver<TModel> {
   delete(id: string): Promise<DeletionResponse>
 }
 
-export function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResolver<TModel>> {
-  const resourceNameOriginal = ModelCls.name;
-  const resourceNameLowerCase = resourceNameOriginal.toLocaleLowerCase();
+export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelResolver<TModel>> {
+  const modelNameOriginal = ModelCls.name;
+  const modelNameLowerCase = modelNameOriginal.toLocaleLowerCase();
 
-  @InputType(`Create${resourceNameOriginal}Input`)
+  @InputType(`Create${modelNameOriginal}Input`)
   class CreateModelInput extends OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id', 'createdAt', 'updatedAt' ], InputType) {}
 
-  @InputType(`Update${resourceNameOriginal}Input`)
+  @InputType(`Update${modelNameOriginal}Input`)
   class UpdateModelInput extends PartialType(OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id', 'createdAt', 'updatedAt' ]), InputType) {}
 
-  @ObjectType(`${resourceNameOriginal}MutationResponse`)
+  @ObjectType(`${modelNameOriginal}MutationResponse`)
   class ModelMutationResponse extends MutationResponse<TModel> {
-    @Field(type => ModelCls, { name: resourceNameLowerCase, nullable: true })
+    @Field(type => ModelCls, { name: modelNameLowerCase, nullable: true })
     model?: TModel;
   }
 
   @Resolver(of => ModelCls, { isAbstract: true })
-  class ResourceResolverClass implements ResourceResolver<TModel> {
+  class ModelResolverClass implements ModelResolver<TModel> {
     @InjectRepository(ModelCls)
     repo: Repository<TModel>;
 
-    @Query(returns => ModelCls, { name: resourceNameLowerCase })
+    @Query(returns => ModelCls, { name: modelNameLowerCase })
     async get(@Args('id', { type: () => ID }) id: string): Promise<TModel | undefined> {
       return this.repo.findOne(id);
     }
 
-    @Query(returns => [ ModelCls ], { name: `${resourceNameLowerCase}s` })
+    @Query(returns => [ ModelCls ], { name: `${modelNameLowerCase}s` })
     async list(): Promise<Array<TModel>> {
       return this.repo.find();
     }
 
-    @Mutation(returns => ModelMutationResponse, { name: `create${resourceNameOriginal}` })
+    @Mutation(returns => ModelMutationResponse, { name: `create${modelNameOriginal}` })
     async create(@Args('input', { type: () => CreateModelInput }) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
       try {
         const model = new ModelCls();
@@ -73,18 +72,18 @@ export function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResol
 
         return {
           success: true,
-          message: `${resourceNameOriginal} created.`,
+          message: `${modelNameOriginal} created.`,
           model: saved,
-        };
+        }
       } catch (err) {
         return {
           success: false,
           message: err.message,
-        };
+        }
       }
     }
 
-    @Mutation(returns => ModelMutationResponse, { name: `update${resourceNameOriginal}` })
+    @Mutation(returns => ModelMutationResponse, { name: `update${modelNameOriginal}` })
     async update(
       @Args('id', { type: () => ID }) id: string,
       @Args('input', { type: () => UpdateModelInput }) input: Partial<ICreateModelInput<TModel>>,
@@ -94,7 +93,7 @@ export function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResol
         if (!model) {
           return {
             success: false,
-            message: `${resourceNameOriginal} with id ${id} does not exist.`
+            message: `${modelNameOriginal} with id ${id} does not exist.`
           }
         }
 
@@ -102,40 +101,40 @@ export function BaseResolver<TModel>(ModelCls: Type<TModel>): Type<ResourceResol
         await this.repo.save(model);
         return {
           success: true,
-          message: `${resourceNameOriginal} updated.`,
+          message: `${modelNameOriginal} updated.`,
           model,
-        };
+        }
       } catch (err) {
         return {
           success: false,
           message: err.message,
-        };
+        }
       }
     }
 
-    @Mutation(returns => DeletionResponse, { name: `delete${resourceNameOriginal}` })
+    @Mutation(returns => DeletionResponse, { name: `delete${modelNameOriginal}` })
     async delete(@Args('id', { type: () => ID }) id: string): Promise<DeletionResponse> {
       try {
         const model = await this.repo.findOne(id);
         if (!model) {
           return {
             success: false,
-            message: `${resourceNameOriginal} with id ${id} does not exist.`
+            message: `${modelNameOriginal} with id ${id} does not exist.`
           }
         }
         await this.repo.delete(model);
         return {
           success: true,
-          message: `${resourceNameOriginal} deleted.`,
-        };
+          message: `${modelNameOriginal} deleted.`,
+        }
       } catch (err) {
         return {
           success: false,
           message: err.message,
-        };
+        }
       }
     }
   }
 
-  return ResourceResolverClass;
+  return ModelResolverClass;
 }
