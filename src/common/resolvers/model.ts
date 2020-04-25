@@ -1,16 +1,7 @@
 import { Type } from '@nestjs/common'
 import { Resolver } from '@nestjs/graphql'
 import { Create, Delete, Get, List, Update } from './actions'
-
-export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
-export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
-
-export declare type ResolverAction<T> = ((modelClass: Type<T>, innerClass: Type<any>) => Type<any>)
-
-export interface IBaseResolverOptions<T> {
-  with?: Array<ResolverAction<T>>,
-  without?: Array<ResolverAction<T>>
-}
+import { IBaseResolverOptions, ResolverAction } from './types'
 
 export function BaseModelResolver<T>(objectType: Type<T>);
 

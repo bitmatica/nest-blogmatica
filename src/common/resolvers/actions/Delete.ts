@@ -2,8 +2,8 @@ import { Type } from '@nestjs/common'
 import { Args, ID, Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { DeletionResponse } from '../../types'
 import { deleteModelResolverName } from '../helpers/naming'
+import { DeletionResponse } from '../types'
 
 export interface IDelete<TModel> {
   delete(id: string): Promise<DeletionResponse>

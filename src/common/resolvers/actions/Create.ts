@@ -2,9 +2,8 @@ import { Type } from '@nestjs/common'
 import { Args, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { MutationResponse } from '../../types'
 import { createModelResolverName } from '../helpers/naming'
-import { ICreateModelInput } from '../model'
+import { ICreateModelInput, MutationResponse } from '../types'
 
 export interface ICreate<TModel> {
   create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>

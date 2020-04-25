@@ -2,9 +2,8 @@ import { Type } from '@nestjs/common'
 import { Args, Field, ID, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { MutationResponse } from '../../types'
 import { updateModelResolverName } from '../helpers/naming'
-import { IUpdateModelInput } from '../model'
+import { IUpdateModelInput, MutationResponse } from '../types'
 
 export interface IUpdate<TModel> {
   update(id: string, input: IUpdateModelInput<TModel>): Promise<MutationResponse<TModel>>
