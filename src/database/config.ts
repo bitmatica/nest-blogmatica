@@ -9,7 +9,7 @@ const databaseConfig: TypeOrmModuleOptions = {
   "database": "blogmatica",
   "synchronize": false,
   "migrationsRun":  false,
-  "logging": false,
+  "logging": true,
   "entities": [
     __dirname + '/../**/*.entity.{js,ts}'
   ],

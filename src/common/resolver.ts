@@ -1,23 +1,26 @@
-import { Type } from '@nestjs/common';
+import { Type } from '@nestjs/common'
 import {
   Args,
   Field,
   ID,
-  InputType, Int,
+  InputType,
   Mutation,
   ObjectType,
-  OmitType, Parent,
+  OmitType,
   PartialType,
-  Query, ResolveField,
+  Query,
   Resolver,
-} from '@nestjs/graphql';
-import { InjectRepository } from '@nestjs/typeorm';
-import { createConnection, getConnection, getMetadataArgsStorage, Repository } from 'typeorm';
-import { RelationMetadataArgs } from 'typeorm/metadata-args/RelationMetadataArgs';
-import { RelationTypeInFunction } from 'typeorm/metadata/types/RelationTypeInFunction';
-import * as databaseConfig from '../database/config';
-import { BaseModel } from './model';
-import { DeletionResponse, MutationResponse } from './types';
+} from '@nestjs/graphql'
+import { InjectRepository } from '@nestjs/typeorm'
+import { getMetadataArgsStorage, Repository } from 'typeorm'
+import {
+  createModelResolverName,
+  deleteModelResolverName,
+  findManyModelsResolverName,
+  findOneModelResolverName,
+  updateModelResolverName,
+} from './helpers/resolverNames'
+import { DeletionResponse, MutationResponse } from './types'
 
 export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
 
@@ -35,78 +38,53 @@ export interface ModelResolver<TModel> {
   delete(id: string): Promise<DeletionResponse>
 }
 
-function decorateMethod(classPrototype: any, propertyKey: string | symbol, decorator: MethodDecorator) {
-  const desc = Object.getOwnPropertyDescriptor(classPrototype, propertyKey)
-  const wrappedDesc = decorator(classPrototype, propertyKey, desc)
-  if (wrappedDesc) {
-    Object.defineProperty(classPrototype, propertyKey, wrappedDesc)
-  }
-}
 
-function addMethod(classPrototype: any, propertyKey: string | symbol, fn: Function) {
-  classPrototype[propertyKey] = fn
-}
-
-
-declare type TypeValue = ((type?: any) => Function) | Function | string
-function extractTypeName(relationType: TypeValue): string {
-  if (typeof relationType === "string") {
-    return relationType
-  }
-
-  if (relationType.name) {
-    return relationType.name
-  }
-
-  return relationType().name
-}
-
-export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelResolver<TModel>> {
-  const modelNameOriginal = ModelCls.name;
-  const modelNameLowerCase = modelNameOriginal.toLocaleLowerCase();
+export function BaseModelResolver<TModel>(modelClass: Type<TModel>): Type<ModelResolver<TModel>> {
+  const modelNameOriginal = modelClass.name
+  const modelNameLowerCase = modelNameOriginal.toLocaleLowerCase()
 
   const tormMetadata = getMetadataArgsStorage()
 
   const relations = tormMetadata.relations
-    .filter(r => r.target === ModelCls)
+    .filter(r => r.target === modelClass)
 
   const relationNames = relations
     .map(r => r.propertyName)
     .concat([ 'id', 'createdAt', 'updatedAt' ])
 
   @InputType(`Create${modelNameOriginal}Input`)
-  class CreateModelInput extends OmitType(ModelCls as unknown as Type<any>, relationNames, InputType) {}
+  class CreateModelInput extends OmitType(modelClass as unknown as Type<any>, relationNames, InputType) {}
 
   @InputType(`Update${modelNameOriginal}Input`)
-  class UpdateModelInput extends PartialType(OmitType(ModelCls as unknown as Type<any>, relationNames), InputType) {}
+  class UpdateModelInput extends PartialType(OmitType(modelClass as unknown as Type<any>, relationNames), InputType) {}
 
   @ObjectType(`${modelNameOriginal}MutationResponse`)
   class ModelMutationResponse extends MutationResponse<TModel> {
-    @Field(type => ModelCls, { name: modelNameLowerCase, nullable: true })
-    model?: TModel;
+    @Field(type => modelClass, { name: modelNameLowerCase, nullable: true })
+    model?: TModel
   }
 
-  @Resolver(of => ModelCls, { isAbstract: true })
+  @Resolver(of => modelClass, { isAbstract: true })
   class ModelResolverClass implements ModelResolver<TModel> {
-    @InjectRepository(ModelCls)
-    repo: Repository<TModel>;
+    @InjectRepository(modelClass)
+    repo: Repository<TModel>
 
-    @Query(returns => ModelCls, { name: modelNameLowerCase, nullable: true })
+    @Query(returns => modelClass, { name: findOneModelResolverName(modelClass), nullable: true })
     async get(@Args('id', { type: () => ID }) id: string): Promise<TModel | undefined> {
-      return this.repo.findOne(id);
+      return this.repo.findOne(id)
     }
 
-    @Query(returns => [ ModelCls ], { name: `${modelNameLowerCase}s` })
+    @Query(returns => [ modelClass ], { name: findManyModelsResolverName(modelClass) })
     async list(): Promise<Array<TModel>> {
-      return this.repo.find();
+      return this.repo.find()
     }
 
-    @Mutation(returns => ModelMutationResponse, { name: `create${modelNameOriginal}` })
+    @Mutation(returns => ModelMutationResponse, { name: createModelResolverName(modelClass) })
     async create(@Args('input', { type: () => CreateModelInput }) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
       try {
-        const model = new ModelCls();
-        Object.assign(model, { ...input });
-        const saved = await this.repo.save(model);
+        const model = new modelClass()
+        Object.assign(model, { ...input })
+        const saved = await this.repo.save(model)
 
         return {
           success: true,
@@ -121,22 +99,22 @@ export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelRes
       }
     }
 
-    @Mutation(returns => ModelMutationResponse, { name: `update${modelNameOriginal}` })
+    @Mutation(returns => ModelMutationResponse, { name: updateModelResolverName(modelClass) })
     async update(
       @Args('id', { type: () => ID }) id: string,
       @Args('input', { type: () => UpdateModelInput }) input: Partial<ICreateModelInput<TModel>>,
     ): Promise<MutationResponse<TModel>> {
       try {
-        const model = await this.repo.findOne(id);
+        const model = await this.repo.findOne(id)
         if (!model) {
           return {
             success: false,
-            message: `${modelNameOriginal} with id ${id} does not exist.`
+            message: `${modelNameOriginal} with id ${id} does not exist.`,
           }
         }
 
-        Object.assign(model, { ...input });
-        await this.repo.save(model);
+        Object.assign(model, { ...input })
+        await this.repo.save(model)
         return {
           success: true,
           message: `${modelNameOriginal} updated.`,
@@ -150,17 +128,17 @@ export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelRes
       }
     }
 
-    @Mutation(returns => DeletionResponse, { name: `delete${modelNameOriginal}` })
+    @Mutation(returns => DeletionResponse, { name: deleteModelResolverName(modelClass) })
     async delete(@Args('id', { type: () => ID }) id: string): Promise<DeletionResponse> {
       try {
-        const model = await this.repo.findOne(id);
+        const model = await this.repo.findOne(id)
         if (!model) {
           return {
             success: false,
-            message: `${modelNameOriginal} with id ${id} does not exist.`
+            message: `${modelNameOriginal} with id ${id} does not exist.`,
           }
         }
-        await this.repo.delete(model);
+        await this.repo.delete(model)
         return {
           success: true,
           message: `${modelNameOriginal} deleted.`,
@@ -203,5 +181,5 @@ export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelRes
   //   }
   // })
 
-  return ModelResolverClass;
+  return ModelResolverClass
 }
