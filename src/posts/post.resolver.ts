@@ -1,6 +1,6 @@
 import { Resolver } from '@nestjs/graphql'
-import { Delete } from '../common/resolver/actions'
-import { BaseModelResolver } from '../common/resolver/model'
+import { Delete } from '../common/resolvers/actions'
+import { BaseModelResolver } from '../common/resolvers/model'
 import { Post } from './post.entity'
 
 
