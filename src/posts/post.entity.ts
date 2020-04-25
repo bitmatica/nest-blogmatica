@@ -14,9 +14,12 @@ export class Post extends BaseModel {
   @Column()
   body: string;
 
-  @ManyToOne(type => User, { nullable: false })
-  author: User;
+  @Field(type => User)
+  @ManyToOne(type => User, { nullable: false, lazy: true })
+  author: Promise<User>;
 
   @Column()
   authorId: string;
+
+
 }

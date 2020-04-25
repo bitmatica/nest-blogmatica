@@ -174,25 +174,34 @@ export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelRes
     }
   }
 
-  relations.forEach(r => {
-    const methodName = r.propertyName
-    const relationTypeName = extractTypeName(r.type)
-    const relationTable = tormMetadata.tables.find(t => extractTypeName(t.target) === relationTypeName)
+  // Note: the following isn't actually needed because marking a relation field
+  //       with Promise<T> and either marking it with @Field(type => T) or
+  //       using the CLI plugin causes the relation to get added to the schema
+  //       and the default resolver just works because of how TypeORM handles
+  //       Promise based relations.
+  //       I have left this commented out because once we implement authorization
+  //       or just want more control over generating those relation resolvers we
+  //       will probably have to revisit this and this POC impl might be useful.
 
-    if (r.relationType === "many-to-one") {
-      const joinColumnName = tormMetadata.joinColumns.find(jc => jc.propertyName === methodName && jc.target === ModelCls)?.name || `${methodName}Id`
-
-      addMethod(ModelResolverClass.prototype, methodName, async function(parent: TModel) {
-        const conn = getConnection()
-        return conn.createQueryBuilder()
-          .select(methodName)
-          .from(relationTable.target, methodName)
-          .where(`${methodName}.id = :id`, { id: parent[joinColumnName] })
-          .getOne()
-      })
-      decorateMethod(ModelResolverClass.prototype, methodName, ResolveField(type => relationTable.target as Function))
-    }
-  })
+  // relations.forEach(r => {
+  //   const methodName = r.propertyName
+  //   const relationTypeName = extractTypeName(r.type)
+  //   const relationTable = tormMetadata.tables.find(t => extractTypeName(t.target) === relationTypeName)
+  //
+  //   if (r.relationType === "many-to-one") {
+  //     const joinColumnName = tormMetadata.joinColumns.find(jc => jc.propertyName === methodName && jc.target === ModelCls)?.name || `${methodName}Id`
+  //
+  //     addMethod(ModelResolverClass.prototype, methodName, async function(parent: TModel) {
+  //       const conn = getConnection()
+  //       return conn.createQueryBuilder()
+  //         .select(methodName)
+  //         .from(relationTable.target, methodName)
+  //         .where(`${methodName}.id = :id`, { id: parent[joinColumnName] })
+  //         .getOne()
+  //     })
+  //     decorateMethod(ModelResolverClass.prototype, methodName, ResolveField(type => relationTable.target as Function))
+  //   }
+  // })
 
   return ModelResolverClass;
 }

@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, HideField, ObjectType } from '@nestjs/graphql';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { BaseModel } from '../common/model';
 import { Post } from '../posts/post.entity';
@@ -10,6 +10,7 @@ export class User extends BaseModel {
   @Column()
   email: string;
 
-  @OneToMany(type => Post, post => post.author)
+  @Field(type => [Post])
+  @OneToMany(type => Post, post => post.author, { lazy: true })
   posts: Promise<Array<Post>>
 }
