@@ -15,6 +15,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm'
 import { FieldNode, GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
+import { RelationMetadataArgs } from 'typeorm/metadata-args/RelationMetadataArgs'
 import {
   createModelResolverName,
   deleteModelResolverName,
@@ -29,7 +30,7 @@ export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
 export interface ModelResolver<TModel> {
   repo: Repository<TModel>
 
-  get(id: string): Promise<TModel | undefined>
+  get(id: string, info: GraphQLResolveInfo): Promise<TModel | undefined>
 
   list(info: GraphQLResolveInfo): Promise<Array<TModel>>
 
@@ -40,6 +41,15 @@ export interface ModelResolver<TModel> {
   delete(id: string): Promise<DeletionResponse>
 }
 
+function getSelectedRelations(info: GraphQLResolveInfo, relations: Array<RelationMetadataArgs>): Array<string> {
+  const selectedMembers = info.fieldNodes[0].selectionSet
+    .selections
+    .filter(node => node.kind === 'Field') as Array<FieldNode>
+
+  return selectedMembers
+    .filter(member => !!member.selectionSet && relations.find(rel => rel.propertyName === member.name.value))
+    .map(member => member.name.value)
+}
 
 export function BaseModelResolver<TModel>(modelClass: Type<TModel>): Type<ModelResolver<TModel>> {
   const modelNameOriginal = modelClass.name
@@ -72,21 +82,16 @@ export function BaseModelResolver<TModel>(modelClass: Type<TModel>): Type<ModelR
     repo: Repository<TModel>
 
     @Query(returns => modelClass, { name: findOneModelResolverName(modelClass), nullable: true })
-    async get(@Args('id', { type: () => ID }) id: string): Promise<TModel | undefined> {
-      return this.repo.findOne(id)
+    async get(
+      @Args('id', { type: () => ID }) id: string,
+      @Info() info: GraphQLResolveInfo,
+    ): Promise<TModel | undefined> {
+      return this.repo.findOne({ relations: getSelectedRelations(info, relations) })
     }
 
     @Query(returns => [ modelClass ], { name: findManyModelsResolverName(modelClass) })
     async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
-      const selectedMembers = info.fieldNodes[0].selectionSet
-        .selections
-        .filter(node => node.kind === 'Field') as Array<FieldNode>
-
-      const selectedRelationNames = selectedMembers
-        .filter(member => !!member.selectionSet && relations.find(rel => rel.propertyName === member.name.value))
-        .map(member => member.name.value)
-
-      return this.repo.find({ relations: selectedRelationNames })
+      return this.repo.find({ relations: getSelectedRelations(info, relations) })
     }
 
     @Mutation(returns => ModelMutationResponse, { name: createModelResolverName(modelClass) })
