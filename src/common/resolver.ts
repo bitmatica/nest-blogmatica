@@ -3,6 +3,7 @@ import {
   Args,
   Field,
   ID,
+  Info,
   InputType,
   Mutation,
   ObjectType,
@@ -12,6 +13,7 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
+import { FieldNode, GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import {
   createModelResolverName,
@@ -29,7 +31,7 @@ export interface ModelResolver<TModel> {
 
   get(id: string): Promise<TModel | undefined>
 
-  list(): Promise<Array<TModel>>
+  list(info: GraphQLResolveInfo): Promise<Array<TModel>>
 
   create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>
 
@@ -75,8 +77,16 @@ export function BaseModelResolver<TModel>(modelClass: Type<TModel>): Type<ModelR
     }
 
     @Query(returns => [ modelClass ], { name: findManyModelsResolverName(modelClass) })
-    async list(): Promise<Array<TModel>> {
-      return this.repo.find()
+    async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
+      const selectedMembers = info.fieldNodes[0].selectionSet
+        .selections
+        .filter(node => node.kind === 'Field') as Array<FieldNode>
+
+      const selectedRelationNames = selectedMembers
+        .filter(member => !!member.selectionSet && relations.find(rel => rel.propertyName === member.name.value))
+        .map(member => member.name.value)
+
+      return this.repo.find({ relations: selectedRelationNames })
     }
 
     @Mutation(returns => ModelMutationResponse, { name: createModelResolverName(modelClass) })
