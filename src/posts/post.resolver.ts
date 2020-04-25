@@ -1,6 +1,6 @@
-import { Resolver } from '@nestjs/graphql';
-import { BaseModelResolver } from '../common/resolver';
-import { Post } from './post.entity';
+import { Resolver } from '@nestjs/graphql'
+import { BaseModelResolver } from '../common/resolver'
+import { Post } from './post.entity'
 
 
 @Resolver(of => Post)
