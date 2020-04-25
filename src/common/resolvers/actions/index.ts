@@ -1,5 +1,0 @@
-export * from './Get'
-export * from './List'
-export * from './Create'
-export * from './Update'
-export * from './Delete'
