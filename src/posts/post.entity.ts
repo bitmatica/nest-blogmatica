@@ -14,7 +14,6 @@ export class Post extends BaseModel {
   @Column()
   body: string;
 
-  @HideField() // This is required so that the input types dont try to include this field
   @ManyToOne(type => User, { nullable: false })
   author: User
 

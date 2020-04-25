@@ -3,16 +3,16 @@ import {
   Args,
   Field,
   ID,
-  InputType,
+  InputType, Int,
   Mutation,
   ObjectType,
-  OmitType,
+  OmitType, Parent,
   PartialType,
-  Query,
+  Query, ResolveField,
   Resolver,
 } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { getConnection, getMetadataArgsStorage, Repository } from 'typeorm';
 import { BaseModel } from './model';
 import { DeletionResponse, MutationResponse } from './types';
 
@@ -32,15 +32,33 @@ export interface ModelResolver<TModel> {
   delete(id: string): Promise<DeletionResponse>
 }
 
+function decorateMethod(classPrototype: any, propertyKey: string | symbol, decorator: MethodDecorator) {
+  const desc = Object.getOwnPropertyDescriptor(classPrototype, propertyKey)
+  const wrappedDesc = decorator(classPrototype, propertyKey, desc)
+  if (wrappedDesc) {
+    Object.defineProperty(classPrototype, propertyKey, wrappedDesc)
+  }
+}
+
+function addMethod(classPrototype: any, propertyKey: string | symbol, fn: Function) {
+  classPrototype[propertyKey] = fn
+}
+
 export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelResolver<TModel>> {
   const modelNameOriginal = ModelCls.name;
   const modelNameLowerCase = modelNameOriginal.toLocaleLowerCase();
 
+  const tormMetadata = getMetadataArgsStorage()
+  const relationNames = tormMetadata.relations
+    .filter(r => r.target === ModelCls)
+    .map(r => r.propertyName)
+    .concat([ 'id', 'createdAt', 'updatedAt' ])
+
   @InputType(`Create${modelNameOriginal}Input`)
-  class CreateModelInput extends OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id', 'createdAt', 'updatedAt' ], InputType) {}
+  class CreateModelInput extends OmitType(ModelCls as unknown as Type<any>, relationNames, InputType) {}
 
   @InputType(`Update${modelNameOriginal}Input`)
-  class UpdateModelInput extends PartialType(OmitType(ModelCls as unknown as Type<BaseModel>, [ 'id', 'createdAt', 'updatedAt' ]), InputType) {}
+  class UpdateModelInput extends PartialType(OmitType(ModelCls as unknown as Type<any>, relationNames), InputType) {}
 
   @ObjectType(`${modelNameOriginal}MutationResponse`)
   class ModelMutationResponse extends MutationResponse<TModel> {
@@ -53,7 +71,7 @@ export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelRes
     @InjectRepository(ModelCls)
     repo: Repository<TModel>;
 
-    @Query(returns => ModelCls, { name: modelNameLowerCase })
+    @Query(returns => ModelCls, { name: modelNameLowerCase, nullable: true })
     async get(@Args('id', { type: () => ID }) id: string): Promise<TModel | undefined> {
       return this.repo.findOne(id);
     }
