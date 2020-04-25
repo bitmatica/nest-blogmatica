@@ -1,4 +1,4 @@
-import { Field, HideField, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseModel } from '../common/model';
 import { User } from '../users/user.entity';
@@ -15,8 +15,8 @@ export class Post extends BaseModel {
   body: string;
 
   @ManyToOne(type => User, { nullable: false })
-  author: User
+  author: User;
 
   @Column()
-  authorId: string
+  authorId: string;
 }

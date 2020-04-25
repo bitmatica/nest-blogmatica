@@ -12,7 +12,10 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getConnection, getMetadataArgsStorage, Repository } from 'typeorm';
+import { createConnection, getConnection, getMetadataArgsStorage, Repository } from 'typeorm';
+import { RelationMetadataArgs } from 'typeorm/metadata-args/RelationMetadataArgs';
+import { RelationTypeInFunction } from 'typeorm/metadata/types/RelationTypeInFunction';
+import * as databaseConfig from '../database/config';
 import { BaseModel } from './model';
 import { DeletionResponse, MutationResponse } from './types';
 
@@ -44,13 +47,30 @@ function addMethod(classPrototype: any, propertyKey: string | symbol, fn: Functi
   classPrototype[propertyKey] = fn
 }
 
+
+declare type TypeValue = ((type?: any) => Function) | Function | string
+function extractTypeName(relationType: TypeValue): string {
+  if (typeof relationType === "string") {
+    return relationType
+  }
+
+  if (relationType.name) {
+    return relationType.name
+  }
+
+  return relationType().name
+}
+
 export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelResolver<TModel>> {
   const modelNameOriginal = ModelCls.name;
   const modelNameLowerCase = modelNameOriginal.toLocaleLowerCase();
 
   const tormMetadata = getMetadataArgsStorage()
-  const relationNames = tormMetadata.relations
+
+  const relations = tormMetadata.relations
     .filter(r => r.target === ModelCls)
+
+  const relationNames = relations
     .map(r => r.propertyName)
     .concat([ 'id', 'createdAt', 'updatedAt' ])
 
@@ -153,6 +173,26 @@ export function BaseModelResolver<TModel>(ModelCls: Type<TModel>): Type<ModelRes
       }
     }
   }
+
+  relations.forEach(r => {
+    const methodName = r.propertyName
+    const relationTypeName = extractTypeName(r.type)
+    const relationTable = tormMetadata.tables.find(t => extractTypeName(t.target) === relationTypeName)
+
+    if (r.relationType === "many-to-one") {
+      const joinColumnName = tormMetadata.joinColumns.find(jc => jc.propertyName === methodName && jc.target === ModelCls)?.name || `${methodName}Id`
+
+      addMethod(ModelResolverClass.prototype, methodName, async function(parent: TModel) {
+        const conn = getConnection()
+        return conn.createQueryBuilder()
+          .select(methodName)
+          .from(relationTable.target, methodName)
+          .where(`${methodName}.id = :id`, { id: parent[joinColumnName] })
+          .getOne()
+      })
+      decorateMethod(ModelResolverClass.prototype, methodName, ResolveField(type => relationTable.target as Function))
+    }
+  })
 
   return ModelResolverClass;
 }
