@@ -110,6 +110,13 @@ export function getOwnershipField(to: ManagedEntity): string {
   return entityConfig.ownershipField || 'userId'
 }
 
+const allActionScopes = [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
+
+interface IAllScopesOptions {
+  except?: Array<ActionScope>
+}
+
+
 export const Can = {
   do(actionOrList: ActionScope | Array<ActionScope>, ...actions: Array<ActionScope>): Permission {
     const allActions = Array.isArray(actionOrList) ? actionOrList.concat(actions) : [ actionOrList ].concat(actions)
@@ -118,5 +125,8 @@ export const Can = {
   register: registerPermissions,
   check: checkPermissions,
   ownedBy: getOwnershipField,
-  everything: [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ],
+  everything(options?: IAllScopesOptions): Array<ActionScope> {
+    const except = options?.except || []
+    return allActionScopes.filter(scope => except.indexOf(scope) < 0)
+  },
 }
