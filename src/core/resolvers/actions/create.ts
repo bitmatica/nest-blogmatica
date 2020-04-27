@@ -52,7 +52,7 @@ export async function defaultCreateModelMutation<TModel>(
 
     const model = new modelClass()
     Object.assign(model, { ...input })
-    const saved = await this.repo.save(model)
+    const saved = await repo.save(model)
 
     return {
       success: true,
