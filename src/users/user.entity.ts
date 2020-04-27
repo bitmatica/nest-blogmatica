@@ -9,8 +9,8 @@ import { Post } from '../posts/post.entity'
 @Can.register({
   ownershipField: 'id',
   permissions: [
-    Can.do(ActionScope.Read).as(UserScope.Everyone).toRecords(RecordScope.Owned),
-    Can.do(Can.everything).as(UserScope.Admin),
+    Can.do(ActionScope.Read).as(UserScope.Anyone).toRecords(RecordScope.Owned),
+    Can.do(Can.everything).as(UserScope.Authenticated).withRole('admin'),
   ],
 })
 export class User extends BaseModel {

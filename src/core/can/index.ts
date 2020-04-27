@@ -6,9 +6,8 @@ export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
 type ManagedEntity = Type<any> | Function
 
 export enum UserScope {
-  Everyone,
-  User,
-  Admin,
+  Anyone,
+  Authenticated,
 }
 
 export enum RecordScope {
@@ -28,7 +27,7 @@ export enum ActionScope {
 export class Permission {
   actions: Array<ActionScope> = []
   recordScope = RecordScope.All
-  userScope = UserScope.Everyone
+  userScope = UserScope.Anyone
   role = ''
 
   do(...actions: Array<ActionScope>): Permission {
@@ -72,23 +71,18 @@ export const getRegisteredPermissions = (target: ManagedEntity): RegisterPermiss
 export interface IUser {
   id: string
   roles: Array<string>
-  isAdmin: boolean
 }
 
 export function getUserScopes(user: IUser | undefined): Array<UserScope> {
   if (!user) {
-    return [ UserScope.Everyone ]
+    return [ UserScope.Anyone ]
   }
-  if (!user.isAdmin) {
-    return [ UserScope.Everyone, UserScope.User ]
-  }
-  return [ UserScope.Everyone, UserScope.User, UserScope.Admin ]
+  return [ UserScope.Anyone, UserScope.Authenticated ]
 }
 
 export const FAKE_CURRENT_USER: IUser | undefined = {
   id: '5742eba7-194f-4f37-95fe-fc22adb163b2',
-  roles: [ 'postWriter' ],
-  isAdmin: false,
+  roles: [ 'postWriter', 'admin' ],
 }
 
 export function checkPermissions(user: IUser | undefined, action: ActionScope, to: ManagedEntity): RecordScope {
