@@ -1,7 +1,8 @@
-import { Type } from '@nestjs/common'
+import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, Field, ID, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
+import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { updateModelResolverName } from '../helpers/naming'
 import { IUpdateModelInput, MutationResponse } from '../types'
 
@@ -41,6 +42,17 @@ export function Update<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     ): Promise<MutationResponse<TModel>> {
       try {
         const model = await this.repo.findOne(id)
+
+        const user = FAKE_CURRENT_USER
+        const recordScope = Can.check(user, ActionScope.Update, modelClass)
+        if (recordScope === RecordScope.None) throw new ForbiddenException()
+        if (recordScope === RecordScope.Owned) {
+          const ownershipField = Can.ownedBy(modelClass)
+          if (model[ownershipField] && model[ownershipField] !== user.id) {
+            throw new ForbiddenException(`Can not update ${modelClass.name} for other users.`)
+          }
+        }
+
         if (!model) {
           return {
             success: false,

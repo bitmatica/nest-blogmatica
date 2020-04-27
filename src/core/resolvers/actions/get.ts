@@ -1,8 +1,9 @@
-import { Type } from '@nestjs/common'
+import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, ID, Info, Query, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
+import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { findOneModelResolverName } from '../helpers/naming'
 import { getSelectedRelations } from '../helpers/relations'
 
@@ -24,7 +25,18 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
       @Args('id', { type: () => ID }) id: string,
       @Info() info: GraphQLResolveInfo,
     ): Promise<TModel | undefined> {
-      return this.repo.findOne({ relations: getSelectedRelations(info, relations) })
+      const user = FAKE_CURRENT_USER
+
+      const recordScope = Can.check(user, ActionScope.Read, modelClass)
+      if (recordScope === RecordScope.None) throw new ForbiddenException()
+
+      const filters: Record<string, string> = {}
+      if (recordScope === RecordScope.Owned) {
+        const ownershipField = Can.ownedBy(modelClass)
+        filters[ownershipField] = user.id
+      }
+
+      return this.repo.findOne({ relations: getSelectedRelations(info, relations), where: filters })
     }
   }
 

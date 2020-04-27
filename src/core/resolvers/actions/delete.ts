@@ -1,7 +1,8 @@
-import { Type } from '@nestjs/common'
+import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, ID, Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
+import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { deleteModelResolverName } from '../helpers/naming'
 import { DeletionResponse } from '../types'
 
@@ -21,6 +22,17 @@ export function Delete<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     async delete(@Args('id', { type: () => ID }) id: string): Promise<DeletionResponse> {
       try {
         const model = await this.repo.findOne(id)
+
+        const user = FAKE_CURRENT_USER
+        const recordScope = Can.check(user, ActionScope.Delete, modelClass)
+        if (recordScope === RecordScope.None) throw new ForbiddenException()
+        if (recordScope === RecordScope.Owned) {
+          const ownershipField = Can.ownedBy(modelClass)
+          if (model[ownershipField] && model[ownershipField] !== user.id) {
+            throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
+          }
+        }
+
         if (!model) {
           return {
             success: false,
