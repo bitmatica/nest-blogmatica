@@ -68,21 +68,25 @@ export async function defaultCreateModelMutation<TModel>(
 }
 
 export interface ICreateResolverOptions<T> {
+  returns?: Type<any>
   name?: string,
 }
 
-export function CreateModelResolver<TModel>(modelClass: Type<TModel>, returns: Type<any>, opts?: ICreateResolverOptions<any>) {
+export function CreateModelResolver<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverOptions<any>) {
+  const returns = opts?.returns || defaultModelCreationResponse(modelClass)
   return Mutation(
     ret => returns,
     { name: opts?.name || createModelResolverName(modelClass) },
   )
 }
 
-export interface ICreateResolverOptions<T> {
+export interface ICreateResolverArgsOptions<T> {
+  type?: Type<any>,
   name?: string,
 }
 
-export function CreateModelArgs<TModel>(modelClass: Type<TModel>, argType: Type<any>, opts?: ICreateResolverOptions<any>) {
+export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverArgsOptions<any>) {
+  const argType = opts?.type || defaultCreateModelInput(modelClass)
   return Args(
     opts?.name || 'input',
     {
