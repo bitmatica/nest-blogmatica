@@ -35,7 +35,7 @@ export class Permission {
     return this
   }
 
-  toRecords(recordScope: RecordScope): Permission {
+  to(recordScope: RecordScope): Permission {
     this.recordScope = recordScope
     return this
   }

@@ -9,8 +9,8 @@ import { User } from '../users/user.entity'
 @Can.register({
   ownershipField: 'authorId',
   permissions: [
-    Can.do(ActionScope.Read).as(UserScope.Anyone).toRecords(RecordScope.All),
-    Can.do(ActionScope.Create).as(UserScope.Authenticated).toRecords(RecordScope.Owned).withRole('postWriter'),
+    Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.All),
+    Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned).withRole('postWriter'),
   ],
 })
 export class Post extends BaseModel {
@@ -28,6 +28,4 @@ export class Post extends BaseModel {
 
   @Column()
   authorId: string
-
-
 }
