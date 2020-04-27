@@ -87,7 +87,7 @@ export function getUserScopes(user: IUser | undefined): Array<UserScope> {
 
 export const FAKE_CURRENT_USER: IUser | undefined = {
   id: '5742eba7-194f-4f37-95fe-fc22adb163b2',
-  roles: [],
+  roles: [ 'postWriter' ],
   isAdmin: false,
 }
 

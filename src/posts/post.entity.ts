@@ -10,7 +10,7 @@ import { User } from '../users/user.entity'
   ownershipField: 'authorId',
   permissions: [
     Can.do(ActionScope.Read).as(UserScope.Everyone).toRecords(RecordScope.All),
-    Can.do(ActionScope.Create).as(UserScope.User).toRecords(RecordScope.Owned),
+    Can.do(ActionScope.Create).as(UserScope.User).toRecords(RecordScope.Owned).withRole('postWriter'),
   ],
 })
 export class Post extends BaseModel {
