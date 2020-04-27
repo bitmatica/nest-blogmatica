@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { updateModelResolverName } from '../helpers/naming'
-import { IUpdateModelInput, MutationResponse } from '../types'
+import { IMutationResponse, IUpdateModelInput, MutationResponse } from '../types'
 
 export interface IUpdate<TModel> {
   update(id: string, input: IUpdateModelInput<TModel>): Promise<MutationResponse<TModel>>
@@ -39,7 +39,7 @@ export function Update<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     async update(
       @Args('id', { type: () => ID }) id: string,
       @Args('input', { type: () => UpdateModelInput }) input: IUpdateModelInput<TModel>,
-    ): Promise<MutationResponse<TModel>> {
+    ): Promise<IMutationResponse<TModel>> {
       try {
         const model = await this.repo.findOne(id)
 

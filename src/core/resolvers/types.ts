@@ -10,8 +10,16 @@ export class DeletionResponse {
   message: string
 }
 
+export interface IMutationResponse<T> {
+  success: boolean
+
+  message: string
+
+  model?: T
+}
+
 @ObjectType()
-export abstract class MutationResponse<T> {
+export abstract class MutationResponse<T> implements IMutationResponse<T> {
   @Field()
   success: boolean
 
@@ -20,6 +28,7 @@ export abstract class MutationResponse<T> {
 
   model?: T
 }
+
 
 export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
 export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
