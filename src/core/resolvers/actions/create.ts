@@ -1,4 +1,4 @@
-import { applyDecorators, ForbiddenException, Type } from '@nestjs/common'
+import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
@@ -13,7 +13,6 @@ export interface ICreate<TModel> {
 export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, without?: Array<keyof TModel>): Type<ICreateModelInput<TModel>> {
   const tormMetadata = getMetadataArgsStorage()
   const relations = tormMetadata.relations.filter(r => r.target === modelClass)
-  console.log(relations)
   const relationNames = relations
     .map(r => r.propertyName)
     .concat(without as Array<string> || [ 'id', 'createdAt', 'updatedAt' ])
@@ -25,7 +24,7 @@ export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, withou
 }
 
 export function defaultModelCreationResponse<TModel>(modelClass: Type<TModel>): Type<MutationResponse<TModel>> {
-  @ObjectType(`${modelClass.name}CreationResponse`)
+  @ObjectType(`${modelClass.name}CreationResponse`, { implements: MutationResponse })
   class ModelCreationResponse extends MutationResponse<TModel> {
     @Field(type => modelClass, { name: modelClass.name.toLocaleLowerCase(), nullable: true })
     model?: TModel
@@ -70,40 +69,39 @@ export async function defaultCreateModelMutation<TModel>(
 
 export interface ICreateResolverOptions<T> {
   name?: string,
-  returns?: Type<T>
 }
 
-export function CreateModelResolver<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverOptions<any>) {
-  return applyDecorators(
-    Mutation(
-      returns => opts?.returns || defaultModelCreationResponse(modelClass),
-      { name: opts?.name || createModelResolverName(modelClass) },
-    ),
+export function CreateModelResolver<TModel>(modelClass: Type<TModel>, returns: Type<any>, opts?: ICreateResolverOptions<any>) {
+  return Mutation(
+    ret => returns,
+    { name: opts?.name || createModelResolverName(modelClass) },
   )
 }
 
 export interface ICreateResolverOptions<T> {
   name?: string,
-  type?: Type<T>
 }
 
-export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverOptions<any>) {
+export function CreateModelArgs<TModel>(modelClass: Type<TModel>, argType: Type<any>, opts?: ICreateResolverOptions<any>) {
   return Args(
     opts?.name || 'input',
     {
-      type: () => opts?.returns || defaultModelCreationResponse(modelClass),
+      type: () => argType,
     },
   )
 }
 
 export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
+  const creationResponse = defaultModelCreationResponse(modelClass)
+  const inputType = defaultCreateModelInput(modelClass)
+
   @Resolver(of => modelClass, { isAbstract: true })
   class CreateModelResolverClass extends innerClass implements ICreate<TModel> {
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @CreateModelResolver(modelClass)
-    async create(@Args('input', { type: () => defaultCreateModelInput(modelClass) }) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
+    @CreateModelResolver(modelClass, creationResponse)
+    async create(@CreateModelArgs(modelClass, inputType) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
       return defaultCreateModelMutation(modelClass, this.repo, input)
     }
   }

@@ -1,5 +1,5 @@
 import { Type } from '@nestjs/common'
-import { Field, ObjectType } from '@nestjs/graphql'
+import { Field, InterfaceType, ObjectType } from '@nestjs/graphql'
 
 @ObjectType()
 export class DeletionResponse {
@@ -18,7 +18,7 @@ export interface IMutationResponse<T> {
   model?: T
 }
 
-@ObjectType()
+@InterfaceType()
 export abstract class MutationResponse<T> implements IMutationResponse<T> {
   @Field()
   success: boolean
