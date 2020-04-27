@@ -28,7 +28,7 @@ export class Permission {
   actions: Array<ActionScope> = []
   recordScope = RecordScope.All
   userScope = UserScope.Anyone
-  role = ''
+  role?: string
 
   do(...actions: Array<ActionScope>): Permission {
     this.actions = actions
