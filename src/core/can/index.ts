@@ -1,4 +1,5 @@
 import { SetMetadata, Type } from '@nestjs/common'
+import { CustomDecorator } from '@nestjs/common/decorators/core/set-metadata.decorator'
 import { Reflector } from '@nestjs/core'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
@@ -56,9 +57,9 @@ export interface RegisterPermissionsOptions {
   ownershipField?: string
 }
 
-export function registerPermissions(options: RegisterPermissionsOptions)
-export function registerPermissions(...permissions: Array<Permission>)
-export function registerPermissions(permissionsOrOptions: RegisterPermissionsOptions | Permission, ...permissions: Array<Permission>) {
+export function registerPermissions(options: RegisterPermissionsOptions): CustomDecorator
+export function registerPermissions(...permissions: Array<Permission>): CustomDecorator
+export function registerPermissions(permissionsOrOptions: RegisterPermissionsOptions | Permission, ...permissions: Array<Permission>): CustomDecorator {
   const options = permissionsOrOptions instanceof Permission ? { permissions: [ permissionsOrOptions ].concat(...permissions) } : permissionsOrOptions
   return SetMetadata(PERMISSION_METADATA_KEY, options)
 }
@@ -95,7 +96,7 @@ export function checkPermissions(user: IUser | undefined, action: ActionScope, t
   const relevantPermissions = entityConfig.permissions
     .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0)
     .filter(perm => perm.actions.indexOf(action) >= 0)
-    .filter(perm => perm.role ? user.roles.indexOf(perm.role) >= 0 : true)
+    .filter(perm => perm.role ? user && user.roles.indexOf(perm.role) >= 0 : true)
 
   const scope = relevantPermissions.reduce((prev: RecordScope, perm: Permission) => {
     return perm.recordScope > prev ? perm.recordScope : prev
@@ -107,7 +108,7 @@ export function checkPermissions(user: IUser | undefined, action: ActionScope, t
 
 export function getOwnershipField(to: ManagedEntity): string {
   const entityConfig = getRegisteredPermissions(to)
-  return entityConfig.ownershipField || 'userId'
+  return entityConfig?.ownershipField || 'userId'
 }
 
 const allActionScopes = [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
