@@ -3,7 +3,7 @@ import { Query, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getConnection, Repository } from 'typeorm'
 import { Comment } from '../comments/comment.entity'
-import { FAKE_CURRENT_USER } from '../core/can'
+import { FAKE_CURRENT_USER, UserScope } from '../core/can';
 import { BASE_MODEL_FIELDS } from '../core/model'
 import {
   Create,
@@ -15,6 +15,7 @@ import {
 import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
+import { User } from '../users/user.entity';
 
 const CreatePostInput = defaultCreateModelInput(Post, [ 'authorId', ...BASE_MODEL_FIELDS ])
 
@@ -48,6 +49,28 @@ function canAccess<TModel>(className: Type<TModel>, where: Record<keyof TModel, 
   return ''
 }
 
+const f = function prop<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key];
+}
+
+
+class CanAccess<T, U extends keyof T> {
+
+  constructor(classType: Type<T>, where: Record<U, string> | undefined = undefined) {
+  }
+
+  where<V extends T[U], W extends keyof V>(access: CanAccess<V, W>): string {
+    return ""
+  }
+}
+
+const access = new CanAccess(Comment).where(new CanAccess(User, {
+  "id": "id"
+}))
+
+
+
+
 @Resolver(() => Post)
 export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ] }) {
   @InjectRepository(Post)
@@ -70,10 +93,6 @@ export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ]
   @Query()
   async testPostQuery(): Promise<Array<Post>> {
     const conn = getConnection()
-
-    canAccess(Comment,{
-      authorId: ''
-    })
 
     const postsAlias = 'posts'
     return conn.createQueryBuilder()
