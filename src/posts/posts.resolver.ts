@@ -71,8 +71,13 @@ class Relation<T, U extends keyof T> {
   }
 
   where<V extends T[U], W extends keyof V>(key: U, op: Operation<V> | Relation<V, W>): Relation<T, U> {
-    this.operations.push(op as Operation<V>)
-    //this.operations.concat((op as Relation<V, W>).operations)
+
+    if(op instanceof Operation) {
+      this.operations.push(op)
+    } else if(op instanceof Relation) {
+      this.operations.concat(op.operations)
+    }
+    
     return this
   }
 
