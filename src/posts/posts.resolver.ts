@@ -83,9 +83,6 @@ class CanAccess<T, U extends keyof T> extends Relation<T, U> {
   
 }
 
-
-
-
 abstract class Operation<T> {
 
   abstract compute(context: UserContext, alias: string): string
@@ -116,14 +113,66 @@ class CurrentUserId extends Value<string> {
   }
 }
 
+class ComparisonOperation<T> extends Operation<T> {
 
-class Equals<T> extends Operation<T> {
-  constructor(private value: Value<T>) {
+  constructor(private value: Value<T>, private op: string) {
     super()
   }
 
   compute(context: UserContext, alias: string): string {
-    return alias + " = " + this.value.value(context);
+    return alias + " " + this.op + " " + this.value.value(context);
+  }
+}
+
+class Equals<T> extends ComparisonOperation<T> {
+  constructor(value: Value<T>) {
+    super(value, "=");
+  }
+}
+
+class GreaterThan<T> extends ComparisonOperation<T> {
+  constructor(value: Value<T>) {
+    super(value, ">");
+  }
+}
+
+class GreaterThanOrEquals<T> extends ComparisonOperation<T> {
+  constructor(value: Value<T>) {
+    super(value, ">=");
+  }
+}
+
+class LessThan<T> extends ComparisonOperation<T> {
+  constructor(value: Value<T>) {
+    super(value, "<");
+  }
+}
+
+class LessThanOrEquals<T> extends ComparisonOperation<T> {
+  constructor(value: Value<T>) {
+    super(value, "<=");
+  }
+}
+
+class BooleanOperation<T> extends Operation<T> {
+  constructor(private one: Operation<T>, private two: Operation<T>, private op: string) {
+    super()
+  }
+
+  compute(context: UserContext, alias: string): string {
+    return this.one.compute(context, alias) + " " + this.op + " " + this.two.compute(context, alias);
+  }
+}
+
+class And<T> extends BooleanOperation<T> {
+  constructor(one: Operation<T>, two: Operation<T>) {
+    super(one, two, "AND");
+  }
+}
+
+class Or<T> extends BooleanOperation<T> {
+  constructor(one: Operation<T>, two: Operation<T>) {
+    super(one, two, "OR");
   }
 }
 
