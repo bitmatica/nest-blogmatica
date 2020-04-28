@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql'
 import { Column, Entity, ManyToOne } from 'typeorm'
-import { BaseModel } from '../common/model'
+import { BaseModel } from '../core/model'
 import { User } from '../users/user.entity'
 
 @ObjectType()

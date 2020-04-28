@@ -1,6 +1,6 @@
 import { Resolver } from '@nestjs/graphql'
-import { BaseModelResolver } from '../common/resolver'
+import { BaseModelResolver } from '../core/resolvers/model'
 import { User } from './user.entity'
 
-@Resolver(of => User)
+@Resolver()
 export class UsersResolver extends BaseModelResolver(User) {}
