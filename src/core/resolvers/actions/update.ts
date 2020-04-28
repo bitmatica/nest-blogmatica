@@ -2,6 +2,7 @@ import { Type } from '@nestjs/common'
 import { Args, Field, ID, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
+import { BASE_MODEL_FIELDS } from '../../model'
 import { updateModelResolverName } from '../helpers/naming'
 import { IUpdateModelInput, MutationResponse } from '../types'
 
@@ -16,12 +17,12 @@ export function Update<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
   const tormMetadata = getMetadataArgsStorage()
   const relations = tormMetadata.relations.filter(r => r.target === modelClass)
 
-  const relationNames = relations
+  const fieldsToOmit = relations
     .map(r => r.propertyName)
-    .concat([ 'id', 'createdAt', 'updatedAt' ])
+    .concat(BASE_MODEL_FIELDS)
 
   @InputType(`Update${modelNameOriginal}Input`)
-  class UpdateModelInput extends PartialType(OmitType(modelClass as unknown as Type<any>, relationNames), InputType) {}
+  class UpdateModelInput extends PartialType(OmitType(modelClass as unknown as Type<any>, fieldsToOmit), InputType) {}
 
   @ObjectType(`${modelNameOriginal}UpdateResponse`)
   class ModelUpdateResponse extends MutationResponse<TModel> {
