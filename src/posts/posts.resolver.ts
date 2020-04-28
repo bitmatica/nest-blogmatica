@@ -2,6 +2,7 @@ import { InputType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { FAKE_CURRENT_USER } from '../core/can'
+import { BASE_MODEL_FIELDS } from '../core/model'
 import {
   Create,
   CreateModelArgs,
@@ -13,7 +14,7 @@ import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
 
-const CreatePostInput = defaultCreateModelInput(Post, [ 'authorId' ])
+const CreatePostInput = defaultCreateModelInput(Post, [ 'authorId', ...BASE_MODEL_FIELDS ])
 
 @Resolver(of => Post)
 export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ] }) {
