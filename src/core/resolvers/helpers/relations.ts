@@ -6,13 +6,11 @@ function addNestedRelations<TModel>(queryBuilder: SelectQueryBuilder<TModel>, en
   return selections.reduce((prevBuilder: SelectQueryBuilder<TModel>, field: FieldNode) => {
     const selections = field.selectionSet?.selections.filter(selection => selection.kind === 'Field') as Array<FieldNode> | undefined
     if (!selections) {
-      console.log(field.name.value, 'on', parentAlias, 'has no selectionSet')
       return prevBuilder
     }
 
     const relation = entityMetadata.relations.find(rel => rel.propertyName === field.name.value)
     if (!relation) {
-      console.log(field.name.value, 'on', parentAlias, 'has no relation')
       return prevBuilder
     }
 
