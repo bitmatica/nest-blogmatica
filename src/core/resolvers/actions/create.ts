@@ -1,7 +1,8 @@
-import { Type } from '@nestjs/common'
+import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
+import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
 import { ICreateModelInput, MutationResponse } from '../types'
@@ -38,6 +39,17 @@ export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     @Mutation(returns => ModelCreationResponse, { name: createModelResolverName(modelClass) })
     async create(@Args('input', { type: () => CreateModelInput }) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
       try {
+        const user = FAKE_CURRENT_USER
+
+        const recordScope = Can.check(user, ActionScope.Create, modelClass)
+        if (recordScope === RecordScope.None) throw new ForbiddenException()
+        if (recordScope === RecordScope.Owned) {
+          const ownershipField = Can.ownedBy(modelClass)
+          if (input[ownershipField] && input[ownershipField] !== user.id) {
+            throw new ForbiddenException(`Can not create ${modelClass.name} for other users.`)
+          }
+        }
+
         const model = new modelClass()
         Object.assign(model, { ...input })
         const saved = await this.repo.save(model)
