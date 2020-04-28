@@ -17,12 +17,13 @@ export enum RecordScope {
   All,
 }
 
-export enum ActionScope {
-  Create,
-  Read,
-  Update,
-  Delete,
-  Other,
+export class ActionScope {
+  static Create: ActionScope = new ActionScope('Create')
+  static Read: ActionScope = new ActionScope('Read')
+  static Update: ActionScope = new ActionScope('Update')
+  static Delete: ActionScope = new ActionScope('Delete')
+
+  constructor(public name: string) {}
 }
 
 export class Permission {
@@ -116,7 +117,6 @@ const allActionScopes = [ ActionScope.Create, ActionScope.Read, ActionScope.Upda
 interface IAllScopesOptions {
   except?: Array<ActionScope>
 }
-
 
 export const Can = {
   do(actionOrList: ActionScope | Array<ActionScope>, ...actions: Array<ActionScope>): Permission {
