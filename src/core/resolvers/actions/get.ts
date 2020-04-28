@@ -24,9 +24,7 @@ export function defaultGetModelQuery<TModel>(modelClass: Type<TModel>, id: strin
   const recordScope = Can.check(user, ActionScope.Read, modelClass)
   if (recordScope === RecordScope.None) throw new ForbiddenException()
 
-  const filters: Record<string, string> = {
-    id
-  }
+  const filters: Record<string, string> = { id }
   if (recordScope === RecordScope.Owned) {
     const ownershipField = Can.ownedBy(modelClass)
     filters[ownershipField] = user.id
