@@ -6,9 +6,22 @@ import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { listModelsResolverName } from '../helpers/naming'
 import { getSelectedRelations } from '../helpers/relations'
+import { IActionResolverOptions } from '../types'
 
 export interface IList<TModel> {
   list(info: GraphQLResolveInfo): Promise<Array<TModel>>
+}
+
+export function defaultListModelResponse<TModel>(modelClass: Type<TModel>) {
+  return [ modelClass ]
+}
+
+export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
+  const returns = opts?.returns || defaultListModelResponse(modelClass)
+  return Query(
+    ret => returns,
+    { name: listModelsResolverName(modelClass) },
+  )
 }
 
 export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IList<TModel>> {
@@ -20,7 +33,7 @@ export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): T
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @Query(returns => [ modelClass ], { name: listModelsResolverName(modelClass) })
+    @ListModelQuery(modelClass)
     async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
       const user = FAKE_CURRENT_USER
 

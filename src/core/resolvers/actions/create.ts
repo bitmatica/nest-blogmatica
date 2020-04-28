@@ -5,7 +5,7 @@ import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
-import { ICreateModelInput, MutationResponse } from '../types'
+import { IActionResolverArgsOptions, IActionResolverOptions, ICreateModelInput, MutationResponse } from '../types'
 
 export interface ICreate<TModel> {
   create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>
@@ -24,7 +24,7 @@ export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, withou
   return CreateModelInput as Type<ICreateModelInput<TModel>>
 }
 
-export function defaultModelCreationResponse<TModel>(modelClass: Type<TModel>): Type<MutationResponse<TModel>> {
+export function defaultCreateModelResponse<TModel>(modelClass: Type<TModel>): Type<MutationResponse<TModel>> {
   @ObjectType(`${modelClass.name}CreationResponse`, { implements: MutationResponse })
   class ModelCreationResponse extends MutationResponse<TModel> {
     @Field(type => modelClass, { name: modelClass.name.toLocaleLowerCase(), nullable: true })
@@ -68,25 +68,15 @@ export async function defaultCreateModelMutation<TModel>(
   }
 }
 
-export interface ICreateResolverOptions<T> {
-  returns?: Type<any>
-  name?: string,
-}
-
-export function CreateModelMutation<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverOptions<any>) {
-  const returns = opts?.returns || defaultModelCreationResponse(modelClass)
+export function CreateModelMutation<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
+  const returns = opts?.returns || defaultCreateModelResponse(modelClass)
   return Mutation(
     ret => returns,
     { name: opts?.name || createModelResolverName(modelClass) },
   )
 }
 
-export interface ICreateMutationArgsOptions<T> {
-  type?: Type<T>,
-  name?: string,
-}
-
-export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: ICreateMutationArgsOptions<any>) {
+export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: IActionResolverArgsOptions) {
   const argType = opts?.type || defaultCreateModelInput(modelClass)
   return Args(
     opts?.name || 'input',
@@ -97,16 +87,13 @@ export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: ICreate
 }
 
 export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
-  const creationResponse = defaultModelCreationResponse(modelClass)
-  const inputType = defaultCreateModelInput(modelClass)
-
   @Resolver(of => modelClass, { isAbstract: true })
   class CreateModelResolverClass extends innerClass implements ICreate<TModel> {
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @CreateModelMutation(modelClass, creationResponse)
-    async create(@CreateModelArgs(modelClass, inputType) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
+    @CreateModelMutation(modelClass)
+    async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
       return defaultCreateModelMutation(modelClass, this.repo, input)
     }
   }

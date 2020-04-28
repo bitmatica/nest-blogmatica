@@ -41,6 +41,16 @@ export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
 
 export declare type ResolverAction<T> = ((modelClass: Type<T>, innerClass: Type<any>) => Type<any>)
 
+export interface IActionResolverOptions<T = any> {
+  returns?: Type<any>
+  name?: string,
+}
+
+export interface IActionResolverArgsOptions<T = any> {
+  type?: Type<T>,
+  name?: string,
+}
+
 export interface IBaseResolverOptions<T> {
   with?: Array<ResolverAction<T>>,
   without?: Array<ResolverAction<T>>

@@ -1,14 +1,31 @@
 import { ForbiddenException, Type } from '@nestjs/common'
-import { Args, ID, Info, Query, Resolver } from '@nestjs/graphql'
+import { Info, Query, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
 import { getSelectedRelations } from '../helpers/relations'
+import { IActionResolverOptions } from '../types'
 
 export interface IGet<TModel> {
   get(id: string, info: GraphQLResolveInfo): Promise<TModel | undefined>
+}
+
+export function defaultGetModelResponse(modelClass) {
+  return modelClass
+}
+
+export function GetModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
+  const returns = opts?.returns || defaultGetModelResponse(modelClass)
+  return Query(
+    ret => returns,
+    {
+      name: opts?.name || getModelResolverName(modelClass),
+      nullable: true,
+    },
+  )
 }
 
 export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IGet<TModel>> {
@@ -20,11 +37,8 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @Query(returns => modelClass, { name: getModelResolverName(modelClass), nullable: true })
-    async get(
-      @Args('id', { type: () => ID }) id: string,
-      @Info() info: GraphQLResolveInfo,
-    ): Promise<TModel | undefined> {
+    @GetModelQuery(modelClass)
+    async get(@IdInput id: string, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
       const user = FAKE_CURRENT_USER
 
       const recordScope = Can.check(user, ActionScope.Read, modelClass)
