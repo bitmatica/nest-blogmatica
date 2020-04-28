@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { getConnection } from 'typeorm';
 import { User } from './users/user.entity';
 import { getTokenFromRequest, getUserIdFromToken } from './users/authentication';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { getTokenFromRequest, getUserIdFromToken } from './users/authentication'
         }
       },
     }),
+    CommentsModule,
   ],
 })
 export class AppModule {}

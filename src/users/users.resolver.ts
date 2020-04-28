@@ -10,7 +10,7 @@ import { IContext } from '../common/context';
 import { CurrentUser } from '../decorators/currentUser';
 
 @ObjectType()
-export class UserMutationResponse extends MutationResponse<User> {
+export class UserCreationResponse extends MutationResponse<User> {
   @Field({nullable: true})
   user?: User
 }
@@ -34,17 +34,20 @@ export class UserLoginArgs {
 }
 
 @ObjectType()
-export class UserLoginResponse extends UserMutationResponse {
+export class UserLoginResponse extends MutationResponse<User> {
+  @Field({nullable: true})
+  user?: User
+
   @Field({nullable: true})
   token?: string
 }
 
-@Resolver()
+@Resolver(() => User)
 export class UsersResolver extends BaseModelResolver(User, { without: [ Create ] }) {
   @InjectRepository(User)
   protected repo: Repository<User>
 
-  @Mutation(returns => UserMutationResponse)
+  @Mutation(returns => UserCreationResponse)
   async createUser(
     @Args('input', { type: () => CreateUserInput }) input: CreateUserInput
   ) {
@@ -102,7 +105,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     }
   }
 
-  @Mutation(returns => UserMutationResponse!)
+  @Mutation(returns => MutationResponse!)
   async logout(
     @Context() context: IContext
   ) {

@@ -16,4 +16,4 @@ export abstract class BaseModel {
   updatedAt: Date
 }
 
-export const BASE_MODEL_FIELDS = [ 'id', 'createdAt', 'updatedAt' ]
+export const BASE_MODEL_FIELDS: Array<keyof BaseModel> = [ 'id', 'createdAt', 'updatedAt' ]
