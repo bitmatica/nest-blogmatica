@@ -1,9 +1,9 @@
 import { Field, ObjectType } from '@nestjs/graphql'
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm'
+import { Column, Entity, ManyToOne } from 'typeorm'
 import { ActionScope, Can, RecordScope, UserScope } from '../core/can'
 import { BaseModel } from '../core/model'
+import { Post } from '../posts/post.entity'
 import { User } from '../users/user.entity'
-import { Comment } from '../comments/comment.entity'
 
 @ObjectType()
 @Entity()
@@ -11,14 +11,10 @@ import { Comment } from '../comments/comment.entity'
   ownershipField: 'authorId',
   permissions: [
     Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.All),
-    Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned).withRole('postWriter'),
+    Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned),
   ],
 })
-export class Post extends BaseModel {
-  @Field()
-  @Column()
-  title: string
-
+export class Comment extends BaseModel {
   @Field()
   @Column()
   body: string
@@ -30,7 +26,10 @@ export class Post extends BaseModel {
   @Column()
   authorId: string
 
-  @Field(type => [ Comment ])
-  @OneToMany(type => Comment, comment => comment.post, { lazy: true })
-  comments: Promise<Array<Comment>>
+  @Field(type => Post)
+  @ManyToOne(type => Post, post => post.comments, { nullable: false, lazy: true })
+  post: Promise<Post>
+
+  @Column()
+  postId: string
 }

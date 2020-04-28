@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import * as databaseConfig from './database/config'
 import { PostsModule } from './posts/posts.module'
 import { UsersModule } from './users/users.module'
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UsersModule } from './users/users.module'
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
     }),
+    CommentsModule,
   ],
 })
 export class AppModule {}
