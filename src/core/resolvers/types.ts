@@ -1,13 +1,18 @@
-import { Type } from '@nestjs/common'
-import { Field, InterfaceType, ObjectType } from '@nestjs/graphql'
+import { Type } from '@nestjs/common';
+import { Field, InterfaceType, ObjectType } from '@nestjs/graphql';
+
+export interface IDeletionResponse {
+  success: boolean
+  message: string
+}
 
 @ObjectType()
-export class DeletionResponse {
+export class DeletionResponse implements IDeletionResponse {
   @Field()
-  success: boolean
+  success: boolean;
 
   @Field()
-  message: string
+  message: string;
 }
 
 export interface IMutationResponse<T> {
@@ -21,17 +26,19 @@ export interface IMutationResponse<T> {
 @InterfaceType()
 export abstract class MutationResponse<T> implements IMutationResponse<T> {
   @Field()
-  success: boolean
+  success: boolean;
 
   @Field()
-  message: string
+  message: string;
 
-  model?: T
+  model?: T;
 }
 
 
 export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
+
 export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
+
 export declare type ResolverAction<T> = ((modelClass: Type<T>, innerClass: Type<any>) => Type<any>)
 
 export interface IBaseResolverOptions<T> {

@@ -20,7 +20,7 @@ export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, withou
 
   @InputType(`Create${modelClass.name}Input`)
   class CreateModelInput extends OmitType(modelClass as Type<any>, fieldsToOmit, InputType) {}
-  
+
   return CreateModelInput as Type<ICreateModelInput<TModel>>
 }
 
@@ -73,7 +73,7 @@ export interface ICreateResolverOptions<T> {
   name?: string,
 }
 
-export function CreateModelResolver<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverOptions<any>) {
+export function CreateModelMutation<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverOptions<any>) {
   const returns = opts?.returns || defaultModelCreationResponse(modelClass)
   return Mutation(
     ret => returns,
@@ -81,12 +81,12 @@ export function CreateModelResolver<TModel>(modelClass: Type<TModel>, opts?: ICr
   )
 }
 
-export interface ICreateResolverArgsOptions<T> {
-  type?: Type<any>,
+export interface ICreateMutationArgsOptions<T> {
+  type?: Type<T>,
   name?: string,
 }
 
-export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: ICreateResolverArgsOptions<any>) {
+export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: ICreateMutationArgsOptions<any>) {
   const argType = opts?.type || defaultCreateModelInput(modelClass)
   return Args(
     opts?.name || 'input',
@@ -105,7 +105,7 @@ export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @CreateModelResolver(modelClass, creationResponse)
+    @CreateModelMutation(modelClass, creationResponse)
     async create(@CreateModelArgs(modelClass, inputType) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
       return defaultCreateModelMutation(modelClass, this.repo, input)
     }
