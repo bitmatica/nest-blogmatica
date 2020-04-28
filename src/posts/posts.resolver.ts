@@ -61,15 +61,29 @@ const f = function prop<T, K extends keyof T>(obj: T, key: K): T[K] {
 //   }
 // }
 
-class CanAccess<T, U extends keyof T> {
+
+class Relation<T, U extends keyof T> {
+
+  public operations: Array<Operation<any>> = []
+
   constructor(classType: Type<T>, private query: Record<U, string> | undefined = undefined) {
 
   }
 
-  where<V extends T[U], W extends keyof V>(condition: Record<U, Equals<V>>): string {
-    return 'op.compute()'
+  where<V extends T[U], W extends keyof V>(key: U, op: Operation<V> | Relation<V, W>): Relation<T, U> {
+    this.operations.push(op as Operation<V>)
+    //this.operations.concat((op as Relation<V, W>).operations)
+    return this
   }
+
+
 }
+
+class CanAccess<T, U extends keyof T> extends Relation<T, U> {
+  
+}
+
+
 
 
 abstract class Operation<T> {
@@ -96,7 +110,7 @@ class StaticValue<T> extends Value<T> {
   }
 }
 
-class CurrentUser extends Value<string> {
+class CurrentUserId extends Value<string> {
   value(context: UserContext): string {
     return 'user id';
   }
@@ -113,19 +127,13 @@ class Equals<T> extends Operation<T> {
   }
 }
 
-new CanAccess(Comment).where({
-  'authorId': new Equals(new StaticValue("asdf"))
-})
 
-// new CanAccess(Comment).where({
-//   'authorId': Equals(CurrentUser('id'))
-// })
-//
-// new CanAccess(Comment).where({
-//   'post': Relation(Post).where({
-//     'authorId': Equals(CurrentUser('id'))
-//   })
-// })
+
+new CanAccess(Comment).where('authorId', new Equals(new StaticValue("asdf")))
+
+new CanAccess(Comment).where('authorId', new Equals(new CurrentUserId()))
+
+new CanAccess(Comment).where('post', new Relation(Post).where('authorId', new Equals(new CurrentUserId())))
 
 
 
