@@ -23,7 +23,7 @@ export interface IMutationResponse<T> {
   model?: T
 }
 
-@InterfaceType()
+@ObjectType({ isAbstract: true })
 export abstract class MutationResponse<T> implements IMutationResponse<T> {
   @Field()
   success: boolean;
