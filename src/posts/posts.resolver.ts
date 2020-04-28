@@ -55,18 +55,43 @@ const f = function prop<T, K extends keyof T>(obj: T, key: K): T[K] {
 
 
 class CanAccess<T, U extends keyof T> {
+  constructor(classType: Type<T>, private query: Record<U, string> | undefined = undefined) {
 
-  constructor(classType: Type<T>, where: Record<U, string> | undefined = undefined) {
   }
 
-  where<V extends T[U], W extends keyof V>(access: CanAccess<V, W>): string {
-    return ""
+  where<V extends T[U], W extends keyof V>(op: Operation<V, W>): string {
+    return op.compute()
   }
 }
 
-const access = new CanAccess(Comment).where(new CanAccess(User, {
-  "id": "id"
+abstract class Operation<T, U extends keyof T> {
+
+  abstract compute(): string
+
+}
+
+class DBField<T>
+
+class Equals<T, U extends keyof T> extends Operation<T, U> {
+  constructor(private classType: Type<T>, private where: Record<U, string>) {
+    super()
+  }
+
+  compute(): string {
+    return Object.keys(this.where).map( (key) => {
+      // @ts-ignore
+      return this.classType.name + "." + key + " = " + this.where[key];
+    }).join(" AND ")
+
+  }
+}
+
+const access = new CanAccess(Comment).where(new Equals(User, {
+  id: "id",
+  email: "stuff"
 }))
+
+console.log(access)
 
 
 
