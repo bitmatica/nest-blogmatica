@@ -1,10 +1,10 @@
 import { Type } from '@nestjs/common';
 
-export function findOneModelResolverName<TModel>(ModelCls: Type<TModel>): string {
+export function getModelResolverName<TModel>(ModelCls: Type<TModel>): string {
   return ModelCls.name.toLocaleLowerCase()
 }
 
-export function findManyModelsResolverName<TModel>(ModelCls: Type<TModel>): string {
+export function listModelsResolverName<TModel>(ModelCls: Type<TModel>): string {
   return `${ModelCls.name.toLocaleLowerCase()}s`
 }
 

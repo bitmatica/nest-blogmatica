@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
-import { findManyModelsResolverName } from '../helpers/naming'
+import { listModelsResolverName } from '../helpers/naming'
 import { getSelectedRelations } from '../helpers/relations'
 
 export interface IList<TModel> {
@@ -20,7 +20,7 @@ export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): T
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @Query(returns => [ modelClass ], { name: findManyModelsResolverName(modelClass) })
+    @Query(returns => [ modelClass ], { name: listModelsResolverName(modelClass) })
     async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
       const user = FAKE_CURRENT_USER
 

@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
-import { findOneModelResolverName } from '../helpers/naming'
+import { getModelResolverName } from '../helpers/naming'
 import { getSelectedRelations } from '../helpers/relations'
 
 export interface IGet<TModel> {
@@ -20,7 +20,7 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @Query(returns => modelClass, { name: findOneModelResolverName(modelClass), nullable: true })
+    @Query(returns => modelClass, { name: getModelResolverName(modelClass), nullable: true })
     async get(
       @Args('id', { type: () => ID }) id: string,
       @Info() info: GraphQLResolveInfo,
