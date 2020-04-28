@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql'
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { ActionScope, Can, RecordScope, UserScope } from '../core/can'
 import { BaseModel } from '../core/model'
 import { User } from '../users/user.entity'

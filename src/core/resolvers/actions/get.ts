@@ -6,7 +6,7 @@ import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
-import { getSelectedRelations } from '../helpers/relations'
+import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
 
 export interface IGet<TModel> {
@@ -50,7 +50,7 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
         filters[ownershipField] = user.id
       }
 
-      return this.repo.findOne({ relations: getSelectedRelations(info, relations), where: filters })
+      return constructQueryWithRelations(modelClass, info).where(filters).getOne()
     }
   }
 

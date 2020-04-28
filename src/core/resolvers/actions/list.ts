@@ -5,7 +5,7 @@ import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { listModelsResolverName } from '../helpers/naming'
-import { getSelectedRelations } from '../helpers/relations'
+import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
 
 export interface IList<TModel> {
@@ -46,7 +46,7 @@ export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): T
         filters[ownershipField] = user.id
       }
 
-      return this.repo.find({ relations: getSelectedRelations(info, relations), where: filters })
+      return constructQueryWithRelations(modelClass, info).where(filters).getMany()
     }
   }
 
