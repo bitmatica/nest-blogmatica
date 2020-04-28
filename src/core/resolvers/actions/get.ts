@@ -1,8 +1,6 @@
 import { ForbiddenException, Type } from '@nestjs/common'
 import { Info, Query, Resolver } from '@nestjs/graphql'
-import { InjectRepository } from '@nestjs/typeorm'
 import { GraphQLResolveInfo } from 'graphql'
-import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
@@ -30,7 +28,7 @@ export function defaultGetModelQuery<TModel>(modelClass: Type<TModel>, id: strin
     filters[ownershipField] = user.id
   }
 
-  return constructQueryWithRelations(modelClass, info).where(filters).getOne()
+  return constructQueryWithRelations(modelClass, info, user).where(filters).getOne()
 }
 
 export function GetModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {

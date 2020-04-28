@@ -27,7 +27,7 @@ export function defaultListModelQuery<TModel>(modelClass: Type<TModel>, info: Gr
     filters[ownershipField] = user.id
   }
 
-  return constructQueryWithRelations(modelClass, info).where(filters).getMany()
+  return constructQueryWithRelations(modelClass, info, user).where(filters).getMany()
 }
 
 export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
