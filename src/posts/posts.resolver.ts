@@ -53,67 +53,79 @@ const f = function prop<T, K extends keyof T>(obj: T, key: K): T[K] {
   return obj[key];
 }
 
-class Relation<T, U extends keyof T> {
-  constructor(private classType: Type<T>) {}
-
-  where<V extends T[U], W extends keyof V>(op: Operation<V, W>): string {
-    return op.compute()
-  }
-}
+// class Relation<T, U extends keyof T> {
+//   constructor(private classType: Type<T>) {}
+//
+//   where<V extends T[U], W extends keyof V>(op: Operation<V, W>): string {
+//     return op.compute()
+//   }
+// }
 
 class CanAccess<T, U extends keyof T> {
   constructor(classType: Type<T>, private query: Record<U, string> | undefined = undefined) {
 
   }
 
-  where<V extends T[U], W extends keyof V>(condition: Record<U, Operation>): string {
+  where<V extends T[U], W extends keyof V>(condition: Record<U, Equals<V>>): string {
     return 'op.compute()'
   }
 }
 
-new CanAccess(Comment).where({
-  'authorId': Equals('asdf')
-})
 
-new CanAccess(Comment).where({
-  'authorId': Equals(CurrentUser('id'))
-})
+abstract class Operation<T> {
 
-new CanAccess(Comment).where({
-  'post': Relation(Post).where({
-    'authorId': Equals(CurrentUser('id'))
-  })
-})
-
-abstract class Operation {
-
-  abstract compute(): string
+  abstract compute(context: UserContext, alias: string): string
 
 }
 
-// class DBField<T>
+class UserContext {
 
-class Equals<T, U extends keyof T> extends Operation<T, U> {
-  constructor(private classType: Type<T>, private where: Record<U, string>) {
+}
+
+abstract class Value<T> {
+  abstract value(context: UserContext): T
+}
+
+class StaticValue<T> extends Value<T> {
+  constructor(public v: T) {
     super()
   }
 
-  compute(): string {
-    return Object.keys(this.where).map( (key) => {
-      // @ts-ignore
-      return this.classType.name + "." + key + " = " + this.where[key];
-    }).join(" AND ")
-
+  value(context: UserContext): T {
+    return this.v;
   }
 }
 
-const access = new CanAccess(Comment).where(new Equals(User, {
-  id: "id",
-  email: "stuff"
-}))
+class CurrentUser extends Value<string> {
+  value(context: UserContext): string {
+    return 'user id';
+  }
+}
 
-console.log(access)
 
+class Equals<T> extends Operation<T> {
+  constructor(private value: Value<T>) {
+    super()
+  }
+
+  compute(context: UserContext, alias: string): string {
+    return alias + " = " + this.value.value(context);
+  }
+}
+
+new CanAccess(Comment).where({
+  'authorId': new Equals(new StaticValue("asdf"))
+})
+
+// new CanAccess(Comment).where({
+//   'authorId': Equals(CurrentUser('id'))
+// })
+//
+// new CanAccess(Comment).where({
+//   'post': Relation(Post).where({
+//     'authorId': Equals(CurrentUser('id'))
+//   })
+// })
 
 
 
