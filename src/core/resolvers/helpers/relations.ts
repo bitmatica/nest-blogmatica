@@ -1,10 +1,14 @@
 import { Type } from '@nestjs/common'
-import { FieldNode, GraphQLResolveInfo } from 'graphql'
+import { FieldNode, GraphQLResolveInfo, SelectionSetNode } from 'graphql'
 import { EntityMetadata, getConnection, SelectQueryBuilder } from 'typeorm'
+
+function getFieldNodes(selectionSet: SelectionSetNode | undefined): Array<FieldNode> | undefined {
+  return selectionSet?.selections.filter(selection => selection.kind === 'Field') as Array<FieldNode> | undefined
+}
 
 function addNestedRelations<TModel>(queryBuilder: SelectQueryBuilder<TModel>, entityMetadata: EntityMetadata, parentAlias: string, selections: Array<FieldNode>): SelectQueryBuilder<TModel> {
   return selections.reduce((prevBuilder: SelectQueryBuilder<TModel>, field: FieldNode) => {
-    const selections = field.selectionSet?.selections.filter(selection => selection.kind === 'Field') as Array<FieldNode> | undefined
+    const selections = getFieldNodes(field.selectionSet)
     if (!selections) {
       return prevBuilder
     }
@@ -26,7 +30,10 @@ export function constructQueryWithRelations<TModel>(rootClass: Type<TModel>, inf
 
   const rootAlias = rootClass.name.toLocaleLowerCase()
 
-  const rootSelections: Array<FieldNode> = info.fieldNodes[0].selectionSet?.selections.filter(selection => selection.kind === 'Field') as Array<FieldNode>
+  const rootSelections = getFieldNodes(info.fieldNodes[0].selectionSet)
+  if (!rootSelections) {
+    throw new Error("No selection set found in query")
+  }
 
   const rootMetadata = conn.entityMetadatas.find(metadata => metadata.target === rootClass)
   if (!rootMetadata) {
