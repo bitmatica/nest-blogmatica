@@ -53,24 +53,45 @@ const f = function prop<T, K extends keyof T>(obj: T, key: K): T[K] {
   return obj[key];
 }
 
-
-class CanAccess<T, U extends keyof T> {
-  constructor(classType: Type<T>, private query: Record<U, string> | undefined = undefined) {
-
-  }
+class Relation<T, U extends keyof T> {
+  constructor(private classType: Type<T>) {}
 
   where<V extends T[U], W extends keyof V>(op: Operation<V, W>): string {
     return op.compute()
   }
 }
 
-abstract class Operation<T, U extends keyof T> {
+class CanAccess<T, U extends keyof T> {
+  constructor(classType: Type<T>, private query: Record<U, string> | undefined = undefined) {
+
+  }
+
+  where<V extends T[U], W extends keyof V>(condition: Record<U, Operation>): string {
+    return 'op.compute()'
+  }
+}
+
+new CanAccess(Comment).where({
+  'authorId': Equals('asdf')
+})
+
+new CanAccess(Comment).where({
+  'authorId': Equals(CurrentUser('id'))
+})
+
+new CanAccess(Comment).where({
+  'post': Relation(Post).where({
+    'authorId': Equals(CurrentUser('id'))
+  })
+})
+
+abstract class Operation {
 
   abstract compute(): string
 
 }
 
-class DBField<T>
+// class DBField<T>
 
 class Equals<T, U extends keyof T> extends Operation<T, U> {
   constructor(private classType: Type<T>, private where: Record<U, string>) {
