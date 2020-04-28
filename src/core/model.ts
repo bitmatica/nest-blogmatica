@@ -15,3 +15,5 @@ export abstract class BaseModel {
   @UpdateDateColumn()
   updatedAt: Date
 }
+
+export const BASE_MODEL_FIELDS = [ 'id', 'createdAt', 'updatedAt' ]
