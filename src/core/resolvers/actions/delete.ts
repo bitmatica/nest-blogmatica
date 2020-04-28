@@ -17,24 +17,28 @@ export async function defaultDeleteModelMutation<TModel>(
   id: string,
 ): Promise<DeletionResponse> {
   try {
-    const model = await repo.findOne(id)
-
     const user = FAKE_CURRENT_USER
-    const recordScope = Can.check(user, ActionScope.Delete, modelClass)
-    if (recordScope === RecordScope.None) throw new ForbiddenException()
-    if (recordScope === RecordScope.Owned) {
-      const ownershipField = Can.ownedBy(modelClass)
-      if (model[ownershipField] && model[ownershipField] !== user.id) {
-        throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
-      }
-    }
+    if (!user) throw new ForbiddenException()
 
+    const model = await repo.findOne(id)
     if (!model) {
       return {
         success: false,
         message: `${modelClass.name} with id ${id} does not exist.`,
       }
     }
+
+    const recordScope = Can.check(user, ActionScope.Delete, modelClass)
+    if (recordScope === RecordScope.None) throw new ForbiddenException()
+    if (recordScope === RecordScope.Owned) {
+      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
+      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
+      if (ownershipField !== user.id) {
+        throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
+      }
+    }
+
+
     await repo.delete(model)
     return {
       success: true,
@@ -58,7 +62,7 @@ export function DeleteModelMutation<TModel>(modelClass: Type<TModel>, opts?: IAc
 
 export function Delete<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IDelete<TModel>> {
 
-  @Resolver(of => modelClass, { isAbstract: true })
+  @Resolver(() => modelClass, { isAbstract: true })
   class DeleteModelResolverClass extends innerClass implements IDelete<TModel> {
     @InjectRepository(modelClass)
     repo: Repository<TModel>

@@ -41,18 +41,22 @@ export async function defaultCreateModelMutation<TModel>(
 ): Promise<MutationResponse<TModel>> {
   try {
     const user = FAKE_CURRENT_USER
+    if (!user) throw new ForbiddenException()
+
+    const model = new modelClass()
+    Object.assign(model, { ...input })
 
     const recordScope = Can.check(user, ActionScope.Create, modelClass)
     if (recordScope === RecordScope.None) throw new ForbiddenException()
     if (recordScope === RecordScope.Owned) {
-      const ownershipField = Can.ownedBy(modelClass)
-      if (input[ownershipField] && input[ownershipField] !== user.id) {
-        throw new ForbiddenException(`Can not create ${modelClass.name} for other users.`)
+      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
+      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
+      if (ownershipField !== user.id) {
+        throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
       }
     }
 
-    const model = new modelClass()
-    Object.assign(model, { ...input })
+
     const saved = await repo.save(model)
 
     return {
@@ -87,7 +91,7 @@ export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: IAction
 }
 
 export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
-  @Resolver(of => modelClass, { isAbstract: true })
+  @Resolver(() => modelClass, { isAbstract: true })
   class CreateModelResolverClass extends innerClass implements ICreate<TModel> {
     @InjectRepository(modelClass)
     repo: Repository<TModel>

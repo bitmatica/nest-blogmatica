@@ -13,7 +13,7 @@ export interface IGet<TModel> {
   get(id: string, info: GraphQLResolveInfo): Promise<TModel | undefined>
 }
 
-export function defaultGetModelResponse(modelClass) {
+export function defaultGetModelResponse<TModel>(modelClass: Type<TModel>) {
   return modelClass
 }
 
@@ -29,17 +29,13 @@ export function GetModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionRe
 }
 
 export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IGet<TModel>> {
-  const tormMetadata = getMetadataArgsStorage()
-  const relations = tormMetadata.relations.filter(r => r.target === modelClass)
-
-  @Resolver(of => modelClass, { isAbstract: true })
+  @Resolver(() => modelClass, { isAbstract: true })
   class GetModelResolverClass extends innerClass implements IGet<TModel> {
-    @InjectRepository(modelClass)
-    repo: Repository<TModel>
 
     @GetModelQuery(modelClass)
     async get(@IdInput id: string, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
       const user = FAKE_CURRENT_USER
+      if (!user) throw new ForbiddenException()
 
       const recordScope = Can.check(user, ActionScope.Read, modelClass)
       if (recordScope === RecordScope.None) throw new ForbiddenException()
