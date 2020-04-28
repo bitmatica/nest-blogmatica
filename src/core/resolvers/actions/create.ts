@@ -3,6 +3,7 @@ import { Args, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
 import { ICreateModelInput, MutationResponse } from '../types'
 
@@ -17,12 +18,12 @@ export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
   const tormMetadata = getMetadataArgsStorage()
   const relations = tormMetadata.relations.filter(r => r.target === modelClass)
 
-  const relationNames = relations
+  const fieldsToOmit = relations
     .map(r => r.propertyName)
-    .concat([ 'id', 'createdAt', 'updatedAt' ])
+    .concat(BASE_MODEL_FIELDS)
 
   @InputType(`Create${modelNameOriginal}Input`)
-  class CreateModelInput extends OmitType(modelClass as unknown as Type<any>, relationNames, InputType) {}
+  class CreateModelInput extends OmitType(modelClass as unknown as Type<any>, fieldsToOmit, InputType) {}
 
   @ObjectType(`${modelNameOriginal}CreationResponse`)
   class ModelCreationResponse extends MutationResponse<TModel> {
