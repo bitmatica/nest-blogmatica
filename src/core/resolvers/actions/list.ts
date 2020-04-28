@@ -14,6 +14,22 @@ export function defaultListModelResponse<TModel>(modelClass: Type<TModel>) {
   return [ modelClass ]
 }
 
+export function defaultListModelQuery<TModel>(modelClass: Type<TModel>, info: GraphQLResolveInfo): Promise<Array<TModel>> {
+  const user = FAKE_CURRENT_USER
+  if (!user) throw new ForbiddenException()
+
+  const recordScope = Can.check(user, ActionScope.Read, modelClass)
+  if (recordScope === RecordScope.None) throw new ForbiddenException()
+
+  const filters: Record<string, string> = {}
+  if (recordScope === RecordScope.Owned) {
+    const ownershipField = Can.ownedBy(modelClass)
+    filters[ownershipField] = user.id
+  }
+
+  return constructQueryWithRelations(modelClass, info).where(filters).getMany()
+}
+
 export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
   const returns = opts?.returns || defaultListModelResponse(modelClass)
   return Query(
@@ -27,19 +43,7 @@ export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): T
   class ListModelResolverClass extends innerClass implements IList<TModel> {
     @ListModelQuery(modelClass)
     async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
-      const user = FAKE_CURRENT_USER
-      if (!user) throw new ForbiddenException()
-
-      const recordScope = Can.check(user, ActionScope.Read, modelClass)
-      if (recordScope === RecordScope.None) throw new ForbiddenException()
-
-      const filters: Record<string, string> = {}
-      if (recordScope === RecordScope.Owned) {
-        const ownershipField = Can.ownedBy(modelClass)
-        filters[ownershipField] = user.id
-      }
-
-      return constructQueryWithRelations(modelClass, info).where(filters).getMany()
+      return defaultListModelQuery(modelClass, info)
     }
   }
 

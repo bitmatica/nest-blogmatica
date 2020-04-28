@@ -17,6 +17,24 @@ export function defaultGetModelResponse<TModel>(modelClass: Type<TModel>) {
   return modelClass
 }
 
+export function defaultGetModelQuery<TModel>(modelClass: Type<TModel>, id: string, info: GraphQLResolveInfo): Promise<TModel | undefined> {
+  const user = FAKE_CURRENT_USER
+  if (!user) throw new ForbiddenException()
+
+  const recordScope = Can.check(user, ActionScope.Read, modelClass)
+  if (recordScope === RecordScope.None) throw new ForbiddenException()
+
+  const filters: Record<string, string> = {
+    id
+  }
+  if (recordScope === RecordScope.Owned) {
+    const ownershipField = Can.ownedBy(modelClass)
+    filters[ownershipField] = user.id
+  }
+
+  return constructQueryWithRelations(modelClass, info).where(filters).getOne()
+}
+
 export function GetModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
   const returns = opts?.returns || defaultGetModelResponse(modelClass)
   return Query(
@@ -34,19 +52,7 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
 
     @GetModelQuery(modelClass)
     async get(@IdInput id: string, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
-      const user = FAKE_CURRENT_USER
-      if (!user) throw new ForbiddenException()
-
-      const recordScope = Can.check(user, ActionScope.Read, modelClass)
-      if (recordScope === RecordScope.None) throw new ForbiddenException()
-
-      const filters: Record<string, string> = {}
-      if (recordScope === RecordScope.Owned) {
-        const ownershipField = Can.ownedBy(modelClass)
-        filters[ownershipField] = user.id
-      }
-
-      return constructQueryWithRelations(modelClass, info).where(filters).getOne()
+      return defaultGetModelQuery(modelClass, id, info)
     }
   }
 
