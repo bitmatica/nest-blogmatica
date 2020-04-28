@@ -5,66 +5,100 @@ import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
-import { ICreateModelInput, MutationResponse } from '../types'
+import { IActionResolverArgsOptions, IActionResolverOptions, ICreateModelInput, MutationResponse } from '../types'
 
 export interface ICreate<TModel> {
   create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>
 }
 
-export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
-  const modelNameOriginal = modelClass.name
-  const modelNameLowerCase = modelNameOriginal.toLocaleLowerCase()
-
+export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, without?: Array<keyof TModel>): Type<ICreateModelInput<TModel>> {
   const tormMetadata = getMetadataArgsStorage()
   const relations = tormMetadata.relations.filter(r => r.target === modelClass)
-
   const fieldsToOmit = relations
     .map(r => r.propertyName)
-    .concat(BASE_MODEL_FIELDS)
+    .concat(without as Array<string> || BASE_MODEL_FIELDS)
 
-  @InputType(`Create${modelNameOriginal}Input`)
-  class CreateModelInput extends OmitType(modelClass as unknown as Type<any>, fieldsToOmit, InputType) {}
+  @InputType(`Create${modelClass.name}Input`)
+  class CreateModelInput extends OmitType(modelClass as Type<any>, fieldsToOmit, InputType) {}
 
-  @ObjectType(`${modelNameOriginal}CreationResponse`)
+  return CreateModelInput as Type<ICreateModelInput<TModel>>
+}
+
+export function defaultCreateModelResponse<TModel>(modelClass: Type<TModel>): Type<MutationResponse<TModel>> {
+  @ObjectType(`${modelClass.name}CreationResponse`, { implements: MutationResponse })
   class ModelCreationResponse extends MutationResponse<TModel> {
-    @Field(type => modelClass, { name: modelNameLowerCase, nullable: true })
+    @Field(type => modelClass, { name: modelClass.name.toLocaleLowerCase(), nullable: true })
     model?: TModel
   }
 
-  @Resolver(of => modelClass, { isAbstract: true })
+  return ModelCreationResponse
+}
+
+export async function defaultCreateModelMutation<TModel>(
+  modelClass: Type<TModel>,
+  repo: Repository<TModel>,
+  input: ICreateModelInput<TModel>,
+): Promise<MutationResponse<TModel>> {
+  try {
+    const user = FAKE_CURRENT_USER
+    if (!user) throw new ForbiddenException()
+
+    const model = new modelClass()
+    Object.assign(model, { ...input })
+
+    const recordScope = Can.check(user, ActionScope.Create, modelClass)
+    if (recordScope === RecordScope.None) throw new ForbiddenException()
+    if (recordScope === RecordScope.Owned) {
+      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
+      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
+      if (ownershipField !== user.id) {
+        throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
+      }
+    }
+
+
+    const saved = await repo.save(model)
+
+    return {
+      success: true,
+      message: `${modelClass.name} created.`,
+      model: saved,
+    }
+  } catch (err) {
+    return {
+      success: false,
+      message: err.message,
+    }
+  }
+}
+
+export function CreateModelMutation<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
+  const returns = opts?.returns || defaultCreateModelResponse(modelClass)
+  return Mutation(
+    ret => returns,
+    { name: opts?.name || createModelResolverName(modelClass) },
+  )
+}
+
+export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: IActionResolverArgsOptions) {
+  const argType = opts?.type || defaultCreateModelInput(modelClass)
+  return Args(
+    opts?.name || 'input',
+    {
+      type: () => argType,
+    },
+  )
+}
+
+export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
+  @Resolver(() => modelClass, { isAbstract: true })
   class CreateModelResolverClass extends innerClass implements ICreate<TModel> {
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @Mutation(returns => ModelCreationResponse, { name: createModelResolverName(modelClass) })
-    async create(@Args('input', { type: () => CreateModelInput }) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
-      try {
-        const user = FAKE_CURRENT_USER
-
-        const recordScope = Can.check(user, ActionScope.Create, modelClass)
-        if (recordScope === RecordScope.None) throw new ForbiddenException()
-        if (recordScope === RecordScope.Owned) {
-          const ownershipField = Can.ownedBy(modelClass)
-          if (input[ownershipField] && input[ownershipField] !== user.id) {
-            throw new ForbiddenException(`Can not create ${modelClass.name} for other users.`)
-          }
-        }
-
-        const model = new modelClass()
-        Object.assign(model, { ...input })
-        const saved = await this.repo.save(model)
-
-        return {
-          success: true,
-          message: `${modelNameOriginal} created.`,
-          model: saved,
-        }
-      } catch (err) {
-        return {
-          success: false,
-          message: err.message,
-        }
-      }
+    @CreateModelMutation(modelClass)
+    async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
+      return defaultCreateModelMutation(modelClass, this.repo, input)
     }
   }
 

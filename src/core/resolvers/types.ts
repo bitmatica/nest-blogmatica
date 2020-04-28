@@ -1,29 +1,55 @@
-import { Type } from '@nestjs/common'
-import { Field, ObjectType } from '@nestjs/graphql'
+import { Type } from '@nestjs/common';
+import { Field, InterfaceType, ObjectType } from '@nestjs/graphql';
 
-@ObjectType()
-export class DeletionResponse {
-  @Field()
+export interface IDeletionResponse {
   success: boolean
-
-  @Field()
   message: string
 }
 
 @ObjectType()
-export abstract class MutationResponse<T> {
+export class DeletionResponse implements IDeletionResponse {
   @Field()
-  success: boolean
+  success: boolean;
 
   @Field()
+  message: string;
+}
+
+export interface IMutationResponse<T> {
+  success: boolean
+
   message: string
 
   model?: T
 }
 
+@InterfaceType()
+export abstract class MutationResponse<T> implements IMutationResponse<T> {
+  @Field()
+  success: boolean;
+
+  @Field()
+  message: string;
+
+  model?: T;
+}
+
+
 export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
+
 export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
+
 export declare type ResolverAction<T> = ((modelClass: Type<T>, innerClass: Type<any>) => Type<any>)
+
+export interface IActionResolverOptions<T = any> {
+  returns?: Type<any>
+  name?: string,
+}
+
+export interface IActionResolverArgsOptions<T = any> {
+  type?: Type<T>,
+  name?: string,
+}
 
 export interface IBaseResolverOptions<T> {
   with?: Array<ResolverAction<T>>,
