@@ -99,12 +99,12 @@ export function checkPermissions(user: IUser | undefined, action: ActionScope, t
     .filter(perm => perm.actions.indexOf(action) >= 0)
     .filter(perm => perm.role ? user && user.roles.indexOf(perm.role) >= 0 : true)
 
-  const scope = relevantPermissions.reduce((prev: RecordScope, perm: Permission) => {
+  const recordScope = relevantPermissions.reduce((prev: RecordScope, perm: Permission) => {
     return perm.recordScope > prev ? perm.recordScope : prev
   }, RecordScope.None)
 
   // If there is no user, trying to query for owned records will fail
-  return (!user && scope === RecordScope.Owned) ? RecordScope.None : scope
+  return (!user && recordScope === RecordScope.Owned) ? RecordScope.None : recordScope
 }
 
 export function getOwnershipField(to: ManagedEntity): string {
