@@ -25,7 +25,6 @@
 // type CanAccessFunction<TModel, K extends keyof TModel> = (className: Type<TModel>, where: Record<K, string>) => string
 
 import { Type } from '@nestjs/common'
-import { getFileInfo } from 'prettier'
 
 type Role = {
   id: string
@@ -45,9 +44,7 @@ type User = {
   id: string
   roles: Array<Role>
   profile: Profile
-  organizations: Array<Organization>
-  mainOrganization: Organization
-  inviter: User
+  organization: Organization
 }
 
 type Post = {
@@ -241,13 +238,23 @@ type GreaterThanOrEqualsComparator<T> = {
 }
 
 
-type GenericComparitor<T> = EqualityComparator<T> | InComparator<T>
+type GenericComparitor<T> = T | EqualityComparator<T> | InComparator<T>
 type ArrayComparator<T> = ContainsComparator<T>
 type StringComparator<T> = GenericComparitor<T> | ContainsComparator<T>
-type NumberComparator<T> = GenericComparitor<T> | LessThanComparator<T> | LessThanOrEqualsComparator<T> | GreaterThanComparator<T> | GreaterThanOrEqualsComparator<T>
+type NumberComparator<T> =
+  GenericComparitor<T>
+  | LessThanComparator<T>
+  | LessThanOrEqualsComparator<T>
+  | GreaterThanComparator<T>
+  | GreaterThanOrEqualsComparator<T>
 type BooleanComparator<T> = GenericComparitor<T>
 
-type Comparator<T> = ArrayComparator<T> | StringComparator<T> | BooleanComparator<T> | NumberComparator<T> | ExistsComparator<T>
+type Comparator<T> =
+  ArrayComparator<T>
+  | StringComparator<T>
+  | BooleanComparator<T>
+  | NumberComparator<T>
+  | ExistsComparator<T>
 
 type Maybe<T> = T | undefined
 
@@ -279,11 +286,15 @@ type ArrayOperation<T> = {
   all?: Array<QueryFilter<T>>
 }
 
+type Model = { id: string }
+
 type QueryFilter<T> = {
-  [P in keyof T]?: T[P] extends { id: string }
+  [P in keyof T]?: T[P] extends Model
     ? QueryFilter<ThenArg<T[P]>>
     : T[P] extends Array<infer U>
-      ? ArrayOperation<U>
+      ? U extends Model
+        ? ArrayOperation<U>
+        : DynamicComparator<U>
       : DynamicComparator<UnpackedArg<T[P]>>
 }
 
@@ -302,15 +313,15 @@ function currentUser<T extends keyof User>(filter: T | QueryFilter<ThenArg<User[
 
 RecordScopeCustom<Post>({
   createdAt: {
-    gte: new Date()
-  }
+    gte: new Date(),
+  },
 })
 
 RecordScopeCustom<Post>({
   or: [
     {
       title: {
-        eq: ''
+        eq: '',
       },
     },
     {
@@ -327,15 +338,11 @@ RecordScopeCustom<Post>({
 
 RecordScopeCustom<Post>({
   author: {
-    organizations: {
-      any: [
-        {
-          id: {
-            eq: 'asdf'
-          },
-        },
-      ],
-    },
+    roles: {
+      all: [{
+        id: 'asdf'
+      }]
+    }
   },
 })
 
