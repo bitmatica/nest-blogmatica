@@ -11,7 +11,7 @@ import { User } from '../users/user.entity'
   ownershipField: 'authorId',
   permissions: [
     Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.All),
-    Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned).withRole('postWriter'),
+    Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned),
   ],
 })
 export class Post extends BaseModel {

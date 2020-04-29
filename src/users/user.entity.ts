@@ -10,7 +10,7 @@ import { Post } from '../posts/post.entity'
 @Can.register({
   ownershipField: 'id',
   permissions: [
-    Can.do(ActionScope.Read).as(UserScope.Authenticated).to(RecordScope.Owned),
+    Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.All),
     Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All).withRole('admin'),
   ],
 })
