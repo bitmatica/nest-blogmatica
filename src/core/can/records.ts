@@ -231,6 +231,7 @@ type UnpackedArg<T> = ArrayArg<ThenArg<T>>
 
 type ArrayOperation<T> = {
   any?: Array<QueryFilter<T>>
+  all?: Array<QueryFilter<T>>
 }
 
 type QueryFilter<T> = {
