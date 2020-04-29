@@ -210,16 +210,4 @@ export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ]
     }
     return defaultCreateModelMutation(Post, this.repo, modifiedInput)
   }
-
-  @Query()
-  async testPostQuery(): Promise<Array<Post>> {
-    const conn = getConnection()
-
-    const postsAlias = 'posts'
-    return conn.createQueryBuilder()
-      .select(postsAlias)
-      .from(Post, postsAlias)
-      .where({ authorId: '' })
-      .getMany()
-  }
 }
