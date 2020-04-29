@@ -3,17 +3,11 @@ import { BaseModelResolver } from '../core/resolvers/model';
 import { User } from './user.entity';
 import { MutationResponse } from '../core/resolvers/types';
 import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './authentication';
-import { Create } from '../core/resolvers/actions';
+import { Create, CreateModelMutation } from '../core/resolvers/actions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IContext } from '../common/context';
 import { CurrentUser } from '../decorators/currentUser';
-
-@ObjectType()
-export class UserCreationResponse extends MutationResponse<User> {
-  @Field({nullable: true})
-  user?: User
-}
 
 @InputType()
 export class CreateUserInput {
@@ -35,8 +29,8 @@ export class UserLoginArgs {
 
 @ObjectType()
 export class UserLoginResponse extends MutationResponse<User> {
-  @Field({nullable: true})
-  user?: User
+  @Field({nullable: true, name: 'user'})
+  model?: User
 
   @Field({nullable: true})
   token?: string
@@ -47,8 +41,8 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
   @InjectRepository(User)
   protected repo: Repository<User>
 
-  @Mutation(returns => UserCreationResponse)
-  async createUser(
+  @CreateModelMutation(User)
+  async create(
     @Args('input', { type: () => CreateUserInput }) input: CreateUserInput
   ) {
     try {
@@ -59,7 +53,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
       return {
         success: true,
         message: `User created.`,
-        user: saved,
+        model: saved,
       }
     } catch (err) {
       return {
@@ -94,7 +88,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
       return {
         success: true,
         message: 'Login successful!',
-        user,
+        model: user,
         token: token
       }
     } catch(err) {
