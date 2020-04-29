@@ -348,3 +348,19 @@ RecordScopeCustom<Post>({
   },
 })
 
+RecordScopeCustom<Post>({
+  or: [
+    {
+      author: {
+        id: {
+          eq: CurrentUser.get('id')
+        }
+      }
+    },
+    {
+      createdAt: {
+        gte: CurrentUser.get('profile').get('createdAt')
+      }
+    }
+  ]
+})
