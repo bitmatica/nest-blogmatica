@@ -1,4 +1,3 @@
-
 // can edit comments where comment.authorId == userId OR comment.post.authorId == userId
 /*
   user => {
@@ -26,6 +25,7 @@
 // type CanAccessFunction<TModel, K extends keyof TModel> = (className: Type<TModel>, where: Record<K, string>) => string
 
 import { Type } from '@nestjs/common'
+import { getFileInfo } from 'prettier'
 
 type Role = {
   id: string
@@ -205,16 +205,60 @@ type ComputedValue<T> = {
   value(context: UserContext): T
 }
 
-type Comparator<T> = {
-  eq?: T | ComputedValue<T>
-  ne?: T | ComputedValue<T>
-  lt?: T | ComputedValue<T>
-  lte?: T | ComputedValue<T>
-  gt?: T | ComputedValue<T>
-  gte?: T | ComputedValue<T>
-  in?: [T | ComputedValue<T>]
-  exists?: boolean
+type ComparitorValue<T> = T | ComputedValue<T>
+
+type EqualityComparitor<T> = {
+  eq: ComparitorValue<T>
 }
+
+type InComparitor<T> = {
+  in: [ ComparitorValue<T> ]
+}
+
+type ContainsComparitor<T> = {
+  contains: ComparitorValue<T>
+}
+
+type ExistsComparitor<T> = {
+  exists: boolean
+}
+
+type LessThanComparitor<T> = {
+  lt: ComputedValue<T>
+}
+
+type LessThanOrEqualsComparitor<T> = {
+  lte: ComputedValue<T>
+}
+
+type GreaterThanComparitor<T> = {
+  gt: ComputedValue<T>
+}
+
+type GreaterThanOrEqualsComparitor<T> = {
+  gte: ComputedValue<T>
+}
+
+type ArrayComparitor<T> = InComparitor<T> | ContainsComparitor<T>
+type StringComparitor<T> = EqualityComparitor<T> | ContainsComparitor<T>
+type NumberComparitor<T> = LessThanComparitor<T> | LessThanOrEqualsComparitor<T> | GreaterThanComparitor<T> | GreaterThanOrEqualsComparitor<T>
+type BooleanComparitor<T> = EqualityComparitor<T>
+
+type Comparator<T> = ArrayComparitor<T> | StringComparitor<T> | BooleanComparitor<T> | NumberComparitor<T> | ExistsComparitor<T>
+
+type Maybe<T> = T | undefined
+
+type DynamicComparitor<T> = T extends number
+  ? NumberComparitor<T>
+  : T extends string
+    ? StringComparitor<T>
+    : T extends boolean
+      ? BooleanComparitor<T>
+      : T extends Maybe<infer U>
+        ? U extends Maybe<infer V>
+          ? ExistsComparitor<V>
+          : Comparator<T>
+        : Comparator<T>
 
 type BooleanOperator<T> = {
   or?: Array<QueryFilter<T>>
@@ -237,11 +281,11 @@ type QueryFilter<T> = {
     ? QueryFilter<ThenArg<T[P]>>
     : T[P] extends Array<infer U>
       ? ArrayOperation<U>
-      : Comparator<UnpackedArg<T[P]>> | QueryFilter<UnpackedArg<T[P]>>
+      : DynamicComparitor<UnpackedArg<T[P]>> | QueryFilter<UnpackedArg<T[P]>>
 }
 
 type UserFilter<T> = {
-  [P in keyof T]?: T[P] extends { id: string } ? UserFilter<ThenArg<T[P]>> | keyof T[P]: UserFilter<UnpackedArg<T[P]>>
+  [P in keyof T]?: T[P] extends { id: string } ? UserFilter<ThenArg<T[P]>> | keyof T[P] : UserFilter<UnpackedArg<T[P]>>
 }
 
 const RecordScopeCustom = <T>(filter: BooleanOperator<T> | QueryFilter<T>) => {
@@ -256,28 +300,28 @@ function currentUser<T extends keyof User>(filter: T | QueryFilter<ThenArg<User[
 RecordScopeCustom<Post>({
   author: {
     id: {
-      eq: currentUser('id')
-    }
-  }
+      eq: currentUser('id'),
+    },
+  },
 })
 
 RecordScopeCustom<Post>({
   or: [
     {
       title: {
-        eq: 'asdf'
-      }
+        eq: ''
+      },
     },
     {
       author: {
         profile: {
           picture: {
-            exists: true
-          }
-        }
-      }
-    }
-  ]
+            exists: true,
+          },
+        },
+      },
+    },
+  ],
 })
 
 RecordScopeCustom<Post>({
@@ -286,11 +330,11 @@ RecordScopeCustom<Post>({
       any: [
         {
           id: {
-            eq: currentUser('id')
-          }
-        }
-      ]
-    }
-  }
+            eq: undefined
+          },
+        },
+      ],
+    },
+  },
 })
 
