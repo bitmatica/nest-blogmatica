@@ -1,9 +1,9 @@
 import { ForbiddenException, Type } from '@nestjs/common'
-import { Query, Resolver } from '@nestjs/graphql'
+import { Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
-import { getConnection, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { Comment } from '../comments/comment.entity'
-import { FAKE_CURRENT_USER, UserScope } from '../core/can';
+import { FAKE_CURRENT_USER, RecordScope } from '../core/can'
 import { BASE_MODEL_FIELDS } from '../core/model'
 import {
   Create,
@@ -15,7 +15,6 @@ import {
 import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
-import { User } from '../users/user.entity';
 
 const CreatePostInput = defaultCreateModelInput(Post, [ 'authorId', ...BASE_MODEL_FIELDS ])
 
@@ -50,7 +49,7 @@ function canAccess<TModel>(className: Type<TModel>, where: Record<keyof TModel, 
 }
 
 const f = function prop<T, K extends keyof T>(obj: T, key: K): T[K] {
-  return obj[key];
+  return obj[key]
 }
 
 // class Relation<T, U extends keyof T> {
@@ -78,12 +77,12 @@ class Relation<T, U extends keyof T> {
 
   where<V extends T[U], W extends keyof V>(key: U, op: Operation<V> | Relation<V, W>): Relation<T, U> {
 
-    if(op instanceof Operation) {
+    if (op instanceof Operation) {
       this.operations.push(op)
-    } else if(op instanceof Relation) {
+    } else if (op instanceof Relation) {
       this.operations.concat(op.operations)
     }
-    
+
     return this
   }
 
@@ -91,7 +90,7 @@ class Relation<T, U extends keyof T> {
 }
 
 class CanAccess<T, U extends keyof T> extends Relation<T, U> {
-  
+
 }
 
 
@@ -109,13 +108,13 @@ class StaticValue<T> extends Value<T> {
   }
 
   value(context: UserContext): T {
-    return this.v;
+    return this.v
   }
 }
 
 class CurrentUserId extends Value<string> {
   value(context: UserContext): string {
-    return 'user id';
+    return 'user id'
   }
 }
 
@@ -126,37 +125,37 @@ class ComparisonOperation<T> extends Operation<T> {
   }
 
   compute(context: UserContext, alias: string): string {
-    return alias + " " + this.op + " " + this.value.value(context);
+    return alias + ' ' + this.op + ' ' + this.value.value(context)
   }
 }
 
 class Equals<T> extends ComparisonOperation<T> {
   constructor(value: Value<T>) {
-    super(value, "=");
+    super(value, '=')
   }
 }
 
 class GreaterThan<T> extends ComparisonOperation<T> {
   constructor(value: Value<T>) {
-    super(value, ">");
+    super(value, '>')
   }
 }
 
 class GreaterThanOrEquals<T> extends ComparisonOperation<T> {
   constructor(value: Value<T>) {
-    super(value, ">=");
+    super(value, '>=')
   }
 }
 
 class LessThan<T> extends ComparisonOperation<T> {
   constructor(value: Value<T>) {
-    super(value, "<");
+    super(value, '<')
   }
 }
 
 class LessThanOrEquals<T> extends ComparisonOperation<T> {
   constructor(value: Value<T>) {
-    super(value, "<=");
+    super(value, '<=')
   }
 }
 
@@ -166,30 +165,62 @@ class BooleanOperation<T> extends Operation<T> {
   }
 
   compute(context: UserContext, alias: string): string {
-    return this.one.compute(context, alias) + " " + this.op + " " + this.two.compute(context, alias);
+    return this.one.compute(context, alias) + ' ' + this.op + ' ' + this.two.compute(context, alias)
   }
 }
 
 class And<T> extends BooleanOperation<T> {
   constructor(one: Operation<T>, two: Operation<T>) {
-    super(one, two, "AND");
+    super(one, two, 'AND')
   }
 }
 
 class Or<T> extends BooleanOperation<T> {
   constructor(one: Operation<T>, two: Operation<T>) {
-    super(one, two, "OR");
+    super(one, two, 'OR')
   }
 }
 
 
-
-new CanAccess(Comment).where('authorId', new Equals(new StaticValue("asdf")))
+new CanAccess(Comment).where('authorId', new Equals(new StaticValue('asdf')))
 
 new CanAccess(Comment).where('authorId', new Equals(new CurrentUserId()))
 
-new CanAccess(Comment).where('post', new Relation(Post).where('authorId', new Equals(new CurrentUserId())))
+const perm = new CanAccess(Comment).where('post', new Relation(Post).where('authorId', new Equals(new StaticValue('asdf'))))
 
+type ComputedValue<T> = {
+  value(context: UserContext): T
+}
+
+type Comparator<T> = {
+  eq?: T | ComputedValue<T>
+  ne?: T | ComputedValue<T>
+  lt?: T | ComputedValue<T>
+  lte?: T | ComputedValue<T>
+  gt?: T | ComputedValue<T>
+  gte?: T | ComputedValue<T>
+  in?: [T | ComputedValue<T>]
+}
+
+type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
+
+type Filter<T> = {
+  [P in keyof T]?: Comparator<ThenArg<T[P]>> | Filter<ThenArg<T[P]>>
+}
+
+const RecordScopeCustom = <T>(classType: Type<T>, filter: Filter<T>) => {
+  return
+}
+
+RecordScopeCustom(Comment,{
+  post: {
+    author: {
+      id: {
+        in: ['asdf']
+      }
+    }
+  }
+})
 
 
 @Resolver(() => Post)
@@ -208,6 +239,7 @@ export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ]
       ...input,
       authorId: user.id,
     }
+
     return defaultCreateModelMutation(Post, this.repo, modifiedInput)
   }
 }
