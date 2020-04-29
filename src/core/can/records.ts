@@ -29,15 +29,21 @@ import { Type } from '@nestjs/common'
 type Role = {
   id: string
   name: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 type Organization = {
   id: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 type Profile = {
   id: string
   picture?: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 type User = {
@@ -45,6 +51,8 @@ type User = {
   roles: Array<Role>
   profile: Profile
   organization: Organization
+  createdAt: Date
+  updatedAt: Date
 }
 
 type Post = {
@@ -52,6 +60,7 @@ type Post = {
   author: User
   title: string
   createdAt: Date
+  updatedAt: Date
 }
 
 
@@ -294,53 +303,55 @@ type QueryFilter<T> = {
     : T[P] extends Array<infer U>
       ? U extends Model
         ? ArrayOperation<U>
-        : DynamicComparator<U>
-      : DynamicComparator<UnpackedArg<T[P]>>
+        : DynamicComparator<U> | ComparatorValue<T>
+      : DynamicComparator<UnpackedArg<T[P]>> | ComparatorValue<T>
 }
 
 type UserFilter<T> = {
-  [P in keyof T]?: T[P] extends { id: string } ? UserFilter<ThenArg<T[P]>> | keyof T[P] : UserFilter<UnpackedArg<T[P]>>
+  [P in keyof T]?: T[P] extends Model
+    ? keyof T[P]
+    : UserFilter<T[P]>
 }
 
 const RecordScopeCustom = <T>(filter: BooleanOperator<T> | QueryFilter<T>) => {
   return
 }
 
-function currentUser<T extends keyof User>(filter: T | QueryFilter<ThenArg<User[T]>>): ComputedValue<T> {
+function currentUser<T extends (keyof User) | UserFilter<User>>(filter: T): T extends keyof User ? ComputedValue<User[T]> : T {
   return {} as any
 }
 
-
 RecordScopeCustom<Post>({
   createdAt: {
-    gte: new Date(),
+    gte: currentUser('createdAt'),
   },
 })
 
 RecordScopeCustom<Post>({
-  or: [
-    {
-      title: {
-        eq: '',
-      },
-    },
-    {
-      author: {
-        profile: {
-          picture: {
-            exists: true,
-          },
-        },
-      },
-    },
-  ],
+  createdAt: {
+    gte: currentUser({
+      profile: 'createdAt'
+    }),
+  },
+})
+
+RecordScopeCustom<Post>({
+  author: {
+    profile: {
+      createdAt: {
+        gte: currentUser('createdAt')
+      }
+    }
+  }
 })
 
 RecordScopeCustom<Post>({
   author: {
     roles: {
       all: [{
-        id: 'asdf'
+        id: {
+          eq: currentUser('id')
+        }
       }]
     }
   },
