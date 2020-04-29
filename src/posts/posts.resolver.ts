@@ -62,6 +62,12 @@ const f = function prop<T, K extends keyof T>(obj: T, key: K): T[K] {
 // }
 
 
+abstract class Operation<T> {
+
+  abstract compute(context: UserContext, alias: string): string
+
+}
+
 class Relation<T, U extends keyof T> {
 
   public operations: Array<Operation<any>> = []
@@ -88,11 +94,6 @@ class CanAccess<T, U extends keyof T> extends Relation<T, U> {
   
 }
 
-abstract class Operation<T> {
-
-  abstract compute(context: UserContext, alias: string): string
-
-}
 
 class UserContext {
 
