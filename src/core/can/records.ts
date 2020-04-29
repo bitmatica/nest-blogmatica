@@ -210,6 +210,7 @@ class Or<T> extends BooleanOperation<T> {
 
 type ComputedValue<T> = {
   value(context: UserContext): T
+  get<U extends keyof T>(key: U): ComputedValue<T[U]>
 }
 
 type ComparatorValue<T> = T | ComputedValue<T>
@@ -307,31 +308,21 @@ type QueryFilter<T> = {
       : DynamicComparator<UnpackedArg<T[P]>> | ComparatorValue<T>
 }
 
-type UserFilter<T> = {
-  [P in keyof T]?: T[P] extends Model
-    ? keyof T[P]
-    : UserFilter<T[P]>
-}
-
 const RecordScopeCustom = <T>(filter: BooleanOperator<T> | QueryFilter<T>) => {
   return
 }
 
-function currentUser<T extends (keyof User) | UserFilter<User>>(filter: T): T extends keyof User ? ComputedValue<User[T]> : T {
-  return {} as any
-}
+const CurrentUser: ComputedValue<User> = {} as any
 
 RecordScopeCustom<Post>({
   createdAt: {
-    gte: currentUser('createdAt'),
+    gte: CurrentUser.get('createdAt'),
   },
 })
 
 RecordScopeCustom<Post>({
   createdAt: {
-    gte: currentUser({
-      profile: 'createdAt'
-    }),
+    gte: CurrentUser.get('profile').get('createdAt'),
   },
 })
 
@@ -339,7 +330,7 @@ RecordScopeCustom<Post>({
   author: {
     profile: {
       createdAt: {
-        gte: currentUser('createdAt')
+        gte: CurrentUser.get('createdAt')
       }
     }
   }
@@ -350,7 +341,7 @@ RecordScopeCustom<Post>({
     roles: {
       all: [{
         id: {
-          eq: currentUser('id')
+          eq: CurrentUser.get('id')
         }
       }]
     }
