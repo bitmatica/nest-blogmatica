@@ -255,7 +255,7 @@ type DynamicComparitor<T> = T extends number
     : T extends boolean
       ? BooleanComparitor<T>
       : T extends Maybe<infer U>
-        ? U extends Maybe<infer V>
+        ? U extends Maybe<infer V> // Have to nest here because all of the query fields are technically Optional, so doing 2 layers gets at whether or not the actual column type is nullable
           ? ExistsComparitor<V>
           : Comparator<T>
         : Comparator<T>
