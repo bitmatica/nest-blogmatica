@@ -304,8 +304,8 @@ type QueryFilter<T> = {
     : T[P] extends Array<infer U>
       ? U extends Model
         ? ArrayOperation<U>
-        : DynamicComparator<U> | ComparatorValue<T>
-      : DynamicComparator<UnpackedArg<T[P]>> | ComparatorValue<T>
+        : DynamicComparator<U>
+      : DynamicComparator<UnpackedArg<T[P]>> | ComparatorValue<T[P]>
 }
 
 const RecordScopeCustom = <T>(filter: BooleanOperator<T> | QueryFilter<T>) => {
@@ -315,9 +315,15 @@ const RecordScopeCustom = <T>(filter: BooleanOperator<T> | QueryFilter<T>) => {
 const CurrentUser: ComputedValue<User> = {} as any
 
 RecordScopeCustom<Post>({
-  createdAt: {
-    gte: CurrentUser.get('createdAt'),
-  },
+  createdAt: CurrentUser.get('createdAt'),
+})
+
+RecordScopeCustom<User>({
+  roles: {
+    all: [{
+      id: ''
+    }]
+  }
 })
 
 RecordScopeCustom<Post>({
