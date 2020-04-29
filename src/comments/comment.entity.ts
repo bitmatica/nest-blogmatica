@@ -21,7 +21,7 @@ export class Comment extends BaseModel {
   body: string
 
   @Field(type => User)
-  @ManyToOne(type => User, { nullable: false, lazy: true })
+  @ManyToOne(type => User, author => author.comments, { nullable: false, lazy: true })
   author: Promise<User>
 
   @Column()

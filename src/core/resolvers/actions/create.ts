@@ -25,7 +25,7 @@ export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, withou
 }
 
 export function defaultCreateModelResponse<TModel>(modelClass: Type<TModel>): Type<MutationResponse<TModel>> {
-  @ObjectType(`${modelClass.name}CreationResponse`, { implements: MutationResponse })
+  @ObjectType(`${modelClass.name}CreationResponse`)
   class ModelCreationResponse extends MutationResponse<TModel> {
     @Field(type => modelClass, { name: modelClass.name.toLocaleLowerCase(), nullable: true })
     model?: TModel
