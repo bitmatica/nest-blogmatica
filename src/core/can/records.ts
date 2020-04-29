@@ -205,58 +205,58 @@ type ComputedValue<T> = {
   value(context: UserContext): T
 }
 
-type ComparitorValue<T> = T | ComputedValue<T>
+type ComparatorValue<T> = T | ComputedValue<T>
 
-type EqualityComparitor<T> = {
-  eq: ComparitorValue<T>
+type EqualityComparator<T> = {
+  eq: ComparatorValue<T>
 }
 
-type InComparitor<T> = {
-  in: [ ComparitorValue<T> ]
+type InComparator<T> = {
+  in: [ ComparatorValue<T> ]
 }
 
-type ContainsComparitor<T> = {
-  contains: ComparitorValue<T>
+type ContainsComparator<T> = {
+  contains: ComparatorValue<T>
 }
 
-type ExistsComparitor<T> = {
+type ExistsComparator<T> = {
   exists: boolean
 }
 
-type LessThanComparitor<T> = {
+type LessThanComparator<T> = {
   lt: ComputedValue<T>
 }
 
-type LessThanOrEqualsComparitor<T> = {
+type LessThanOrEqualsComparator<T> = {
   lte: ComputedValue<T>
 }
 
-type GreaterThanComparitor<T> = {
+type GreaterThanComparator<T> = {
   gt: ComputedValue<T>
 }
 
-type GreaterThanOrEqualsComparitor<T> = {
+type GreaterThanOrEqualsComparator<T> = {
   gte: ComputedValue<T>
 }
 
-type ArrayComparitor<T> = InComparitor<T> | ContainsComparitor<T>
-type StringComparitor<T> = EqualityComparitor<T> | ContainsComparitor<T>
-type NumberComparitor<T> = LessThanComparitor<T> | LessThanOrEqualsComparitor<T> | GreaterThanComparitor<T> | GreaterThanOrEqualsComparitor<T>
-type BooleanComparitor<T> = EqualityComparitor<T>
+type ArrayComparator<T> = InComparator<T> | ContainsComparator<T>
+type StringComparator<T> = EqualityComparator<T> | ContainsComparator<T>
+type NumberComparator<T> = LessThanComparator<T> | LessThanOrEqualsComparator<T> | GreaterThanComparator<T> | GreaterThanOrEqualsComparator<T>
+type BooleanComparator<T> = EqualityComparator<T>
 
-type Comparator<T> = ArrayComparitor<T> | StringComparitor<T> | BooleanComparitor<T> | NumberComparitor<T> | ExistsComparitor<T>
+type Comparator<T> = ArrayComparator<T> | StringComparator<T> | BooleanComparator<T> | NumberComparator<T> | ExistsComparator<T>
 
 type Maybe<T> = T | undefined
 
-type DynamicComparitor<T> = T extends number
-  ? NumberComparitor<T>
+type DynamicComparator<T> = T extends number
+  ? NumberComparator<T>
   : T extends string
-    ? StringComparitor<T>
+    ? StringComparator<T>
     : T extends boolean
-      ? BooleanComparitor<T>
+      ? BooleanComparator<T>
       : T extends Maybe<infer U>
         ? U extends Maybe<infer V> // Have to nest here because all of the query fields are technically Optional, so doing 2 layers gets at whether or not the actual column type is nullable
-          ? ExistsComparitor<V>
+          ? ExistsComparator<V>
           : Comparator<T>
         : Comparator<T>
 
@@ -281,7 +281,7 @@ type QueryFilter<T> = {
     ? QueryFilter<ThenArg<T[P]>>
     : T[P] extends Array<infer U>
       ? ArrayOperation<U>
-      : DynamicComparitor<UnpackedArg<T[P]>> | QueryFilter<UnpackedArg<T[P]>>
+      : DynamicComparator<UnpackedArg<T[P]>> | QueryFilter<UnpackedArg<T[P]>>
 }
 
 type UserFilter<T> = {
