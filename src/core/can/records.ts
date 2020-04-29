@@ -54,6 +54,7 @@ type Post = {
   id: string
   author: User
   title: string
+  createdAt: Date
 }
 
 
@@ -224,19 +225,19 @@ type ExistsComparator<T> = {
 }
 
 type LessThanComparator<T> = {
-  lt: ComputedValue<T>
+  lt: ComparatorValue<T>
 }
 
 type LessThanOrEqualsComparator<T> = {
-  lte: ComputedValue<T>
+  lte: ComparatorValue<T>
 }
 
 type GreaterThanComparator<T> = {
-  gt: ComputedValue<T>
+  gt: ComparatorValue<T>
 }
 
 type GreaterThanOrEqualsComparator<T> = {
-  gte: ComputedValue<T>
+  gte: ComparatorValue<T>
 }
 
 
@@ -250,7 +251,7 @@ type Comparator<T> = ArrayComparator<T> | StringComparator<T> | BooleanComparato
 
 type Maybe<T> = T | undefined
 
-type DynamicComparator<T> = T extends number
+type DynamicComparator<T> = T extends number | Date
   ? NumberComparator<T>
   : T extends string
     ? StringComparator<T>
@@ -283,7 +284,7 @@ type QueryFilter<T> = {
     ? QueryFilter<ThenArg<T[P]>>
     : T[P] extends Array<infer U>
       ? ArrayOperation<U>
-      : DynamicComparator<UnpackedArg<T[P]>> | QueryFilter<UnpackedArg<T[P]>>
+      : DynamicComparator<UnpackedArg<T[P]>>
 }
 
 type UserFilter<T> = {
@@ -300,11 +301,9 @@ function currentUser<T extends keyof User>(filter: T | QueryFilter<ThenArg<User[
 
 
 RecordScopeCustom<Post>({
-  author: {
-    id: {
-      eq: currentUser('id'),
-    },
-  },
+  createdAt: {
+    gte: new Date()
+  }
 })
 
 RecordScopeCustom<Post>({
