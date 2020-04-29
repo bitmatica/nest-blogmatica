@@ -36,11 +36,6 @@ export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ]
       authorId: user.id,
     }
 
-    this.repo.find({
-      where: {
-
-      }
-    })
     return defaultCreateModelMutation(Post, this.repo, modifiedInput)
   }
 }
