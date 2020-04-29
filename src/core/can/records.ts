@@ -26,8 +26,36 @@
 // type CanAccessFunction<TModel, K extends keyof TModel> = (className: Type<TModel>, where: Record<K, string>) => string
 
 import { Type } from '@nestjs/common'
-import { Comment } from '../../comments/comment.entity'
-import { Post } from '../../posts/post.entity'
+
+type Role = {
+  id: string
+  name: string
+}
+
+type Organization = {
+  id: string
+}
+
+type Profile = {
+  id: string
+  picture?: string
+}
+
+type User = {
+  id: string
+  roles: Array<Role>
+  profile: Profile
+  organizations: Array<Organization>
+  mainOrganization: Organization
+  inviter: User
+}
+
+type Post = {
+  id: string
+  author: User
+  title: string
+}
+
 
 function canAccess<TModel>(className: Type<TModel>, where: Record<keyof TModel, string>) {
   return ''
@@ -167,45 +195,15 @@ class Or<T> extends BooleanOperation<T> {
 }
 
 
-new CanAccess(Comment).where('authorId', new Equals(new StaticValue('asdf')))
-
-new CanAccess(Comment).where('authorId', new Equals(new CurrentUserId()))
-
-const perm = new CanAccess(Comment).where('post', new Relation(Post).where('authorId', new Equals(new StaticValue('asdf'))))
+// new CanAccess(Comment).where('authorId', new Equals(new StaticValue('asdf')))
+//
+// new CanAccess(Comment).where('authorId', new Equals(new CurrentUserId()))
+//
+// new CanAccess(Comment).where('post', new Relation(Post).where('authorId', new Equals(new StaticValue('asdf'))))
 
 type ComputedValue<T> = {
   value(context: UserContext): T
 }
-
-type Role = {
-  id: string
-  name: string
-}
-
-type Organization = {
-  id: string
-}
-
-type Profile = {
-  id: string
-  picture?: string
-}
-
-type User = {
-  id: string
-  roles: Array<Role>
-  profile: Profile
-  organizations: Array<Organization>
-  mainOrganization: Organization
-  inviter: User
-}
-
-type Post = {
-  id: string
-  author: User
-  title: string
-}
-
 
 type Comparator<T> = {
   eq?: T | ComputedValue<T>
@@ -250,19 +248,18 @@ const RecordScopeCustom = <T>(filter: BooleanOperator<T> | QueryFilter<T>) => {
   return
 }
 
-RecordScopeCustom<Comment>({
-  post: {
-    author: {
-      posts: {
-        exists: true
-      }
-    }
-  }
-})
-
 function currentUser<T extends keyof User>(filter: T | QueryFilter<ThenArg<User[T]>>): ComputedValue<T> {
   return {} as any
 }
+
+
+RecordScopeCustom<Post>({
+  author: {
+    id: {
+      eq: currentUser('id')
+    }
+  }
+})
 
 RecordScopeCustom<Post>({
   or: [
@@ -283,9 +280,6 @@ RecordScopeCustom<Post>({
   ]
 })
 
-/*
-select * from posts join author on posts.authorId = author.id join organizations on
- */
 RecordScopeCustom<Post>({
   author: {
     organizations: {
@@ -300,12 +294,3 @@ RecordScopeCustom<Post>({
   }
 })
 
-// RecordScopeCustom<Post>({
-//   author: {
-//     id: {
-//       eq: currentUser({
-//         inviter: 'id'
-//       })
-//     }
-//   }
-// })
