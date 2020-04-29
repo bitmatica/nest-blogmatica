@@ -239,10 +239,12 @@ type GreaterThanOrEqualsComparator<T> = {
   gte: ComputedValue<T>
 }
 
-type ArrayComparator<T> = InComparator<T> | ContainsComparator<T>
-type StringComparator<T> = EqualityComparator<T> | ContainsComparator<T>
-type NumberComparator<T> = LessThanComparator<T> | LessThanOrEqualsComparator<T> | GreaterThanComparator<T> | GreaterThanOrEqualsComparator<T>
-type BooleanComparator<T> = EqualityComparator<T>
+
+type GenericComparitor<T> = EqualityComparator<T> | InComparator<T>
+type ArrayComparator<T> = ContainsComparator<T>
+type StringComparator<T> = GenericComparitor<T> | ContainsComparator<T>
+type NumberComparator<T> = GenericComparitor<T> | LessThanComparator<T> | LessThanOrEqualsComparator<T> | GreaterThanComparator<T> | GreaterThanOrEqualsComparator<T>
+type BooleanComparator<T> = GenericComparitor<T>
 
 type Comparator<T> = ArrayComparator<T> | StringComparator<T> | BooleanComparator<T> | NumberComparator<T> | ExistsComparator<T>
 
@@ -330,7 +332,7 @@ RecordScopeCustom<Post>({
       any: [
         {
           id: {
-            eq: undefined
+            eq: 'asdf'
           },
         },
       ],
