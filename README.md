@@ -73,3 +73,53 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
   Nest is [MIT licensed](LICENSE).
+  
+## Roadmap
+BE App Framework
+- [x] API (GQL)
+- [x] DRY models (nest)
+- [x] ORM (typeorm)
+- [x] Reusable resolvers (for typeorm)
+- [x] N+1 problem (for typeorm queries, single sql query per gql query)
+- [x] Role-based authorization
+- [x] Dependency injection
+- [ ] Owned-record and other advanced authorization schemes
+- [ ] Authentication (email/password, oauth2, store/revoke tokens)
+- [ ] Resolver with REST data source
+- [ ] Query pagination
+- [ ] Query filtering
+- [ ] Query sorting
+- [ ] File upload (streaming?)
+- [ ] File download (non-gql REST endpoint?)
+- [ ] Subscriptions (instead of FE polling where live data is desired)
+- [ ] Logging
+- [ ] Observability (e.g. latency stats, error counts, etc)
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] Forgot password flow (email sender?)
+- [ ] Encrypted db field (e.g. ssn)
+- [ ] ???
+
+BE Infra
+- [ ] Dockerize
+- [ ] RDMS (postgres)
+- [ ] Set up k8s on AWS (or heroku?)
+- [ ] CI/CD
+- [ ] ???
+
+FE App Framework
+- [x] React
+- [x] GQL client lib (apollo)
+- [x] State management (mobx state tree?)
+- [ ] Hooks
+- [ ] Email/password authentication flow
+- [ ] Oauth2 authentication flow
+- [ ] Collection views (posts/comments/users)
+- [ ] Styling framework
+- [ ] Subscriptions (depends on BE scheme)
+- [ ] Testing
+- [ ] ???
+
+FE Infra
+- [ ] Static file server (s3? cdn?)
+- [ ] CI/CD
