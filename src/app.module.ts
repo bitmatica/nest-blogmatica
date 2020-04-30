@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as databaseConfig from './database/config';
@@ -8,6 +8,7 @@ import { getConnection } from 'typeorm';
 import { User } from './users/user.entity';
 import { getTokenFromRequest, getUserIdFromToken } from './users/authentication';
 import { CommentsModule } from './comments/comments.module';
+import { OauthController } from './oauth/oauth.controller';
 
 @Module({
   imports: [
@@ -34,6 +35,8 @@ import { CommentsModule } from './comments/comments.module';
       },
     }),
     CommentsModule,
+    HttpModule,
   ],
+  controllers: [OauthController],
 })
 export class AppModule {}
