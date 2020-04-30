@@ -1,3 +1,4 @@
+import { Post } from '../../../../posts/post.entity'
 import { User } from '../../../../users/user.entity'
 import { parseScope } from './parser'
 import { BooleanOperator, ComputedValue, QueryFilter } from './types'
@@ -18,49 +19,45 @@ export const CurrentUser: ComputedValue<User> = {
   }
 } as ComputedValue<User>
 
-// RecordScopeCustom<Post>({
-//   createdAt: CurrentUser.get('createdAt'),
-// })
-//
-// RecordScopeCustom<User>({
-//   roles: {
-//     all: [{
-//       id: ''
-//     }]
-//   }
-// })
-//
-// RecordScopeCustom<Post>({
-//   createdAt: {
-//     gte: CurrentUser.get('profile').get('createdAt'),
-//   },
-// })
+RecordScopeCustom<Post>({
+  createdAt: CurrentUser.get('createdAt'),
+})
 
-// RecordScopeCustom<Post>({
-//   author: {
-//     roles: {
-//       all: [{
-//         id: {
-//           eq: CurrentUser.get('id')
-//         }
-//       }]
-//     }
-//   },
-// })
-//
-// RecordScopeCustom<Post>({
-//   or: [
-//     {
-//       author: {
-//         id: {
-//           eq: CurrentUser.get('id')
-//         }
-//       }
-//     },
-//     {
-//       createdAt: {
-//         gte: CurrentUser.get('profile').get('createdAt')
-//       }
-//     }
-//   ]
-// })
+RecordScopeCustom<User>({
+  posts: {
+    $all: [{
+      id: ''
+    }]
+  }
+})
+
+RecordScopeCustom<Post>({
+  createdAt: {
+    $gte: CurrentUser.get('createdAt'),
+  },
+})
+
+RecordScopeCustom<Post>({
+  author: {
+    posts: {
+
+    }
+  },
+})
+
+RecordScopeCustom<Post>({
+  $or: [
+    {
+      author: {
+        id: {
+          $eq: CurrentUser.get('id')
+        }
+      }
+    },
+    {
+      createdAt: {
+        $gte: CurrentUser.get('createdAt')
+      }
+    }
+  ]
+})
