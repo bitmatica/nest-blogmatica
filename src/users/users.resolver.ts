@@ -6,7 +6,7 @@ import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './auth
 import { Create, CreateModelMutation } from '../core/resolvers/actions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IContext } from '../common/context';
+import { IContext } from '../core/context';
 import { CurrentUser } from '../decorators/currentUser';
 
 @InputType()

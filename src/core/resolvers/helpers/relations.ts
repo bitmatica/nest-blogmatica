@@ -1,13 +1,14 @@
-import { ForbiddenException, Type } from '@nestjs/common'
+import { Type } from '@nestjs/common'
 import { FieldNode, GraphQLResolveInfo, SelectionSetNode } from 'graphql'
 import { EntityMetadata, getConnection, SelectQueryBuilder } from 'typeorm'
-import { ActionScope, Can, IUser, RecordScope } from '../../can'
+import { ActionScope, Can, RecordScope } from '../../can'
+import { IContext } from '../../context'
 
 function getFieldNodes(selectionSet: SelectionSetNode | undefined): Array<FieldNode> | undefined {
   return selectionSet?.selections.filter(selection => selection.kind === 'Field') as Array<FieldNode> | undefined
 }
 
-function addNestedRelations<TModel>(queryBuilder: SelectQueryBuilder<TModel>, entityMetadata: EntityMetadata, parentAlias: string, selections: Array<FieldNode>, user: IUser): SelectQueryBuilder<TModel> {
+function addNestedRelations<TModel>(queryBuilder: SelectQueryBuilder<TModel>, entityMetadata: EntityMetadata, parentAlias: string, selections: Array<FieldNode>, context: IContext): SelectQueryBuilder<TModel> {
   return selections.reduce((prevBuilder: SelectQueryBuilder<TModel>, field: FieldNode) => {
     const selections = getFieldNodes(field.selectionSet)
     if (!selections) {
@@ -21,37 +22,33 @@ function addNestedRelations<TModel>(queryBuilder: SelectQueryBuilder<TModel>, en
 
     const relationPath = `${parentAlias}.${relation.propertyName}`
     const relationAlias = `${parentAlias}_${relation.propertyName}`
+    const recordScope = Can.check(context, ActionScope.Read, relation.inverseEntityMetadata.target as Type<any>)
 
-    let condition = 'true = true'
-    const recordScope = Can.check(user, ActionScope.Read, relation.inverseEntityMetadata.target as Type<any>)
-    if (recordScope === RecordScope.None) condition = 'true = false'
-
-    if (recordScope === RecordScope.Owned) {
-      const ownershipField = Can.ownedBy(relation.inverseEntityMetadata.target as Type<any>)
-      condition = `${relationAlias}.${ownershipField} = :userId`
-    }
-
-    return addNestedRelations(prevBuilder.leftJoinAndSelect(relationPath, relationAlias, condition, { userId: user.id }), relation.inverseEntityMetadata, relationAlias, selections, user)
+    const qb = prevBuilder.leftJoinAndSelect(relationPath, relationAlias).where(recordScope.queryBuilder(relationAlias, context))
+    return addNestedRelations(qb, relation.inverseEntityMetadata, relationAlias, selections, context)
   }, queryBuilder)
 }
 
-export function constructQueryWithRelations<TModel>(rootClass: Type<TModel>, info: GraphQLResolveInfo, user: IUser): SelectQueryBuilder<TModel> {
+export function constructQueryWithRelations<TModel>(rootClass: Type<TModel>, info: GraphQLResolveInfo, context: IContext): SelectQueryBuilder<TModel> {
   const conn = getConnection()
 
   const rootAlias = rootClass.name.toLocaleLowerCase()
 
   const rootSelections = getFieldNodes(info.fieldNodes[0].selectionSet)
   if (!rootSelections) {
-    throw new Error("No selection set found in query")
+    throw new Error('No selection set found in query')
   }
 
   const rootMetadata = conn.entityMetadatas.find(metadata => metadata.target === rootClass)
   if (!rootMetadata) {
     throw new Error(`No entity metadata found for ${rootClass.name}, cannot construct relation with queries`)
   }
+
+  const recordScope = Can.check(context, ActionScope.Read, rootClass)
   const query = conn.createQueryBuilder()
     .select(rootAlias)
     .from(rootClass, rootAlias)
+    .where(recordScope.queryBuilder(rootAlias, context))
 
-  return addNestedRelations(query, rootMetadata, rootAlias, rootSelections, user)
+  return addNestedRelations(query, rootMetadata, rootAlias, rootSelections, context)
 }

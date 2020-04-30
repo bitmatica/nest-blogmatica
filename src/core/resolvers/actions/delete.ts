@@ -2,7 +2,8 @@ import { ForbiddenException, Type } from '@nestjs/common'
 import { Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { ActionScope, Can, RecordScope } from '../../can'
+import { FAKE_CONTEXT, FAKE_CURRENT_USER } from '../../context'
 import { IdInput } from '../decorators'
 import { deleteModelResolverName } from '../helpers/naming'
 import { DeletionResponse, IActionResolverOptions } from '../types'
@@ -17,8 +18,8 @@ export async function defaultDeleteModelMutation<TModel>(
   id: string,
 ): Promise<DeletionResponse> {
   try {
-    const user = FAKE_CURRENT_USER
-    if (!user) throw new ForbiddenException()
+    const context = FAKE_CONTEXT
+    if (!context.currentUser) throw new ForbiddenException()
 
     const model = await repo.findOne(id)
     if (!model) {
@@ -28,16 +29,8 @@ export async function defaultDeleteModelMutation<TModel>(
       }
     }
 
-    const recordScope = Can.check(user, ActionScope.Delete, modelClass)
-    if (recordScope === RecordScope.None) throw new ForbiddenException()
-    if (recordScope === RecordScope.Owned) {
-      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
-      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
-      if (ownershipField !== user.id) {
-        throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
-      }
-    }
-
+    const recordScope = Can.check(context, ActionScope.Delete, modelClass)
+    if (!recordScope.validate(model, context)) throw new ForbiddenException()
 
     await repo.delete(model)
     return {

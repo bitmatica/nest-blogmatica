@@ -8,13 +8,10 @@ import * as bcrypt from 'bcrypt'
 
 @ObjectType()
 @Entity()
-@Can.register({
-  ownershipField: 'id',
-  permissions: [
-    Can.do(ActionScope.Read).as(UserScope.Authenticated).to(RecordScope.Owned),
-    Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All).withRole('admin'),
-  ],
-})
+@Can.register(
+  Can.do(ActionScope.Read).as(UserScope.Authenticated).to(RecordScope.Owned('id')),
+  Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All).withRole('admin'),
+)
 export class User extends BaseModel {
   @Field()
   @Column({ unique: true })

@@ -2,7 +2,7 @@ import { ForbiddenException } from '@nestjs/common'
 import { Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { FAKE_CURRENT_USER } from '../core/can'
+import { FAKE_CURRENT_USER } from '../core/context'
 import { BASE_MODEL_FIELDS } from '../core/model'
 import {
   Create,

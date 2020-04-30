@@ -2,7 +2,8 @@ import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { ActionScope, Can, RecordScope } from '../../can'
+import { FAKE_CONTEXT, FAKE_CURRENT_USER } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IdInput } from '../decorators'
 import { updateModelResolverName } from '../helpers/naming'
@@ -48,8 +49,7 @@ export async function defaultUpdateModelMutation<TModel>(
  input: IUpdateModelInput<TModel>,
 ): Promise<MutationResponse<TModel>> {
   try {
-    const user = FAKE_CURRENT_USER
-    if (!user) throw new ForbiddenException()
+    const context = FAKE_CONTEXT
 
     const model = await repo.findOne(id)
     if (!model) {
@@ -59,18 +59,12 @@ export async function defaultUpdateModelMutation<TModel>(
       }
     }
 
-    const recordScope = Can.check(user, ActionScope.Update, modelClass)
-    if (recordScope === RecordScope.None) throw new ForbiddenException()
-    if (recordScope === RecordScope.Owned) {
-      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
-      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
-      if (ownershipField !== user.id) {
-        throw new ForbiddenException(`Can not update ${modelClass.name} for other users.`)
-      }
-    }
+    const recordScope = Can.check(context, ActionScope.Update, modelClass)
+    if (recordScope.validate(model, context)) throw new ForbiddenException()
 
     Object.assign(model, { ...input })
     await repo.save(model)
+
     return {
       success: true,
       message: `${modelClass.name} updated.`,

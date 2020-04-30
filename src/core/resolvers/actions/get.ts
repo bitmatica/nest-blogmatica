@@ -1,7 +1,8 @@
 import { ForbiddenException, Type } from '@nestjs/common'
 import { Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
-import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { ActionScope, Can, RecordScope } from '../../can'
+import { FAKE_CONTEXT } from '../../context'
 import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
@@ -16,19 +17,8 @@ export function defaultGetModelResponse<TModel>(modelClass: Type<TModel>) {
 }
 
 export function defaultGetModelQuery<TModel>(modelClass: Type<TModel>, id: string, info: GraphQLResolveInfo): Promise<TModel | undefined> {
-  const user = FAKE_CURRENT_USER
-  if (!user) throw new ForbiddenException()
-
-  const recordScope = Can.check(user, ActionScope.Read, modelClass)
-  if (recordScope === RecordScope.None) throw new ForbiddenException()
-
-  const filters: Record<string, string> = { id }
-  if (recordScope === RecordScope.Owned) {
-    const ownershipField = Can.ownedBy(modelClass)
-    filters[ownershipField] = user.id
-  }
-
-  return constructQueryWithRelations(modelClass, info, user).where(filters).getOne()
+  const context = FAKE_CONTEXT
+  return constructQueryWithRelations(modelClass, info, context).getOne()
 }
 
 export function GetModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
