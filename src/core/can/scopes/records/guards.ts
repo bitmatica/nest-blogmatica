@@ -1,6 +1,8 @@
 import { types } from 'util'
 import { BaseModel } from '../../../model'
 import {
+  AllOperator, AndOperator,
+  AnyOperator,
   ArrayOperator,
   BooleanOperator,
   Comparator,
@@ -11,13 +13,9 @@ import {
   GreaterThanComparator,
   GreaterThanOrEqualsComparator,
   LessThanComparator,
-  LessThanOrEqualsComparator,
+  LessThanOrEqualsComparator, OrOperator,
 } from './types'
 import isDate from 'lodash/isDate'
-
-export function isBooleanOperator<T>(arg: any): arg is BooleanOperator<T> {
-  return arg.hasOwnProperty('$and') || arg.hasOwnProperty('$or')
-}
 
 export function isEqualityComparator<T>(arg: any): arg is BooleanOperator<T> {
   return arg.hasOwnProperty('$eq')
@@ -62,8 +60,28 @@ export function isComparator<T>(arg: any): arg is Comparator<T> {
     isGreaterThanOrEqualsComparator(arg)
 }
 
+export function isOrOperator<T>(arg: any): arg is OrOperator<T> {
+  return arg.hasOwnProperty('$or')
+}
+
+export function isAndOperator<T>(arg: any): arg is AndOperator<T> {
+  return arg.hasOwnProperty('$and')
+}
+
+export function isBooleanOperator<T>(arg: any): arg is BooleanOperator<T> {
+  return isOrOperator(arg) || isAndOperator(arg)
+}
+
+export function isAnyOperator<T>(arg: any): arg is AnyOperator<T> {
+  return arg.hasOwnProperty('$any')
+}
+
+export function isAllOperator<T>(arg: any): arg is AllOperator<T> {
+  return arg.hasOwnProperty('$all')
+}
+
 export function isArrayOperator<T>(arg: any): arg is ArrayOperator<T> {
-  return arg.hasOwnProperty('$any') || arg.hasOwnProperty('$all')
+  return isAnyOperator(arg) || isAllOperator(arg)
 }
 
 export function isModel<T>(arg: any): arg is BaseModel {

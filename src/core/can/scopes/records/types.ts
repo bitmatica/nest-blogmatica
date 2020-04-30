@@ -66,26 +66,30 @@ export type DynamicComparator<T> = T extends number | Date
     : T extends boolean
       ? BooleanComparator<T>
       : T extends Maybe<infer U>
-        ? U extends Maybe<infer V> // Have to nest here because all of the query fields are technically Optional, so doing 2 layers gets at whether or not the actual column export type is nullable
-          ? ExistsComparator<V>
-          : Comparator<T>
+        ? U extends Maybe<infer V> // Have to nest here because all query fields are optional, so doing 2nd unpack is actual column
+          ? ExistsComparator<U>
+          : Comparator<U>
         : Comparator<T>
 
-export type BooleanOperator<T> = {
-  $or?: Array<QueryFilter<T>>
-  $and?: Array<QueryFilter<T>>
+export type OrOperator<T> = {
+  $or: Array<QueryFilter<T>>
 }
 
-export type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
-
-export type ArrayArg<T> = T extends Array<infer U> ? U : T
-
-export type UnpackedArg<T> = ArrayArg<ThenArg<T>>
-
-export type ArrayOperator<T> = {
-  $any?: Array<QueryFilter<T>>
-  $all?: Array<QueryFilter<T>>
+export type AndOperator<T> = {
+  $and: Array<QueryFilter<T>>
 }
+
+export type BooleanOperator<T> = OrOperator<T> | AndOperator<T>
+
+export type AnyOperator<T> = {
+  $any: Array<QueryFilter<T>>
+}
+
+export type AllOperator<T> = {
+  $all: Array<QueryFilter<T>>
+}
+
+export type ArrayOperator<T> = AnyOperator<T> | AllOperator<T>
 
 export type QueryFilter<T> = {
   [P in keyof T]?: T[P] extends BaseModel
@@ -100,5 +104,5 @@ export type QueryFilter<T> = {
         ? U extends BaseModel
           ? ArrayOperator<U>
           : DynamicComparator<U> | QueryFilter<U>
-        : DynamicComparator<UnpackedArg<T[P]>> | ComparatorValue<T[P]>
+        : DynamicComparator<T[P]> | ComparatorValue<T[P]>
 }
