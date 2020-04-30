@@ -73,3 +73,47 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
   Nest is [MIT licensed](LICENSE).
+  
+## Roadmap
+BE App Framework
+- [x] API (GQL)
+- [x] DRY models (nest)
+- [x] ORM (typeorm)
+- [x] Reusable resolvers (for typeorm)
+- [x] N+1 problem (for typeorm queries, single sql query per gql query)
+- [x] Role-based authorization
+- [ ] Owned-record and other advanced authorization schemes
+- [ ] Authentication (email/password, oauth2, store/revoke tokens)
+- [ ] Resolver with REST data source
+- [ ] Query pagination
+- [ ] Query filtering
+- [ ] Query sorting
+- [ ] File upload (streaming?)
+- [ ] File download (non-gql REST endpoint?)
+- [ ] Subscriptions (instead of FE polling where live data is desired)
+- [ ] Dependency injection
+- [ ] Logging
+- [ ] Observability (e.g. latency stats, error counts, etc)
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] Forgot password flow (email sender?)
+- [ ] Encrypted db field (e.g. ssn)
+- [ ] ???
+
+BE Infra
+- [ ] Dockerize
+- [ ] Set up k8s on AWS
+- [ ] CI/CD
+- [ ] ???
+
+FE App Framework
+- [ ] GQL client lib (apollo?)
+- [ ] Email/password authentication flow
+- [ ] Oauth2 authentication flow
+- [ ] Collection views (posts/comments/users)
+- [ ] Styling framework
+- [ ] Subscriptions (depends on BE scheme)
+- [ ] ???
+
+FE Infra
+- [ ] ???
