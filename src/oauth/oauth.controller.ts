@@ -25,28 +25,15 @@ export class OauthController {
   async authCallback(
     @Query('code') code: string,
   ) {
-    console.log('code: ' + code)
-    const config = {
-      url: 'https://api.gusto.com/oauth/token',
-      params: {
-        code,
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        redirect_uri: REDIRECT_URI,
-        grant_type: 'authorization_code'
-      }
-    }
-    console.log(this.httpService.axiosRef.getUri(config))
-
     const result = await this.httpService.post(
       'https://api.gusto.com/oauth/token',
       {},
       {
         params: {
           code,
-          client_id: 'OVERRIDE_ME',
-          client_secret: 'OVERRIDE_ME',
-          redirect_uri: 'http://gusto.apps.bitmatica.com/',
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          redirect_uri: REDIRECT_URI,
           grant_type: 'authorization_code'
         }
       }
