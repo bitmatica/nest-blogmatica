@@ -82,6 +82,7 @@ BE App Framework
 - [x] Reusable resolvers (for typeorm)
 - [x] N+1 problem (for typeorm queries, single sql query per gql query)
 - [x] Role-based authorization
+- [x] Dependency injection
 - [ ] Owned-record and other advanced authorization schemes
 - [ ] Authentication (email/password, oauth2, store/revoke tokens)
 - [ ] Resolver with REST data source
@@ -91,7 +92,6 @@ BE App Framework
 - [ ] File upload (streaming?)
 - [ ] File download (non-gql REST endpoint?)
 - [ ] Subscriptions (instead of FE polling where live data is desired)
-- [ ] Dependency injection
 - [ ] Logging
 - [ ] Observability (e.g. latency stats, error counts, etc)
 - [ ] Unit tests
@@ -102,18 +102,24 @@ BE App Framework
 
 BE Infra
 - [ ] Dockerize
-- [ ] Set up k8s on AWS
+- [ ] RDMS (postgres)
+- [ ] Set up k8s on AWS (or heroku?)
 - [ ] CI/CD
 - [ ] ???
 
 FE App Framework
-- [ ] GQL client lib (apollo?)
+- [x] React
+- [x] GQL client lib (apollo)
+- [x] State management (mobx state tree?)
+- [ ] Hooks
 - [ ] Email/password authentication flow
 - [ ] Oauth2 authentication flow
 - [ ] Collection views (posts/comments/users)
 - [ ] Styling framework
 - [ ] Subscriptions (depends on BE scheme)
+- [ ] Testing
 - [ ] ???
 
 FE Infra
-- [ ] ???
+- [ ] Static file server (s3? cdn?)
+- [ ] CI/CD
