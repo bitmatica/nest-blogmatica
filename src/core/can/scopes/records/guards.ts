@@ -1,7 +1,8 @@
-import { types } from 'util'
+import isDate from 'lodash/isDate'
 import { BaseModel } from '../../../model'
 import {
-  AllOperator, AndOperator,
+  AllOperator,
+  AndOperator,
   AnyOperator,
   ArrayOperator,
   BooleanOperator,
@@ -13,9 +14,9 @@ import {
   GreaterThanComparator,
   GreaterThanOrEqualsComparator,
   LessThanComparator,
-  LessThanOrEqualsComparator, OrOperator,
+  LessThanOrEqualsComparator,
+  OrOperator,
 } from './types'
-import isDate from 'lodash/isDate'
 
 export function isEqualityComparator<T>(arg: any): arg is BooleanOperator<T> {
   return arg.hasOwnProperty('$eq')
@@ -85,7 +86,7 @@ export function isArrayOperator<T>(arg: any): arg is ArrayOperator<T> {
 }
 
 export function isModel<T>(arg: any): arg is BaseModel {
-  return arg instanceof BaseModel
+  return arg.hasOwnProperty('id') && arg.hasOwnProperty('createdAt') && arg.hasOwnProperty('updatedAt')
 }
 
 export function isComputedValue<T>(arg: any): arg is ComputedValue<T> {
