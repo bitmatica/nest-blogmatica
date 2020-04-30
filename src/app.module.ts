@@ -22,11 +22,11 @@ import { CommentsModule } from './comments/comments.module';
         try {
           const token = getTokenFromRequest(req)
           if (!token) return baseContext
-          const userId = await getUserIdFromToken(token!)
-          const currentUser = await getConnection().getRepository(User).findOne(userId)
+          const userId = await getUserIdFromToken(token)
+          const user = await getConnection().getRepository(User).findOne(userId)
           return {
             ...baseContext,
-            currentUser
+            user
           }
         } catch(err) {
           return baseContext
