@@ -30,6 +30,6 @@ export class OauthController {
       }
     ).toPromise()
     console.log(result)
-    return result
+    // return result.data
   }
 }
