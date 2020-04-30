@@ -89,12 +89,16 @@ export type ArrayOperator<T> = {
 
 export type QueryFilter<T> = {
   [P in keyof T]?: T[P] extends BaseModel
-    ? QueryFilter<ThenArg<T[P]>>
+    ? QueryFilter<T[P]>
     : T[P] extends PromiseLike<infer U>
-      ? QueryFilter<U>
+      ? U extends Array<infer V>
+        ? V extends BaseModel
+          ? ArrayOperator<V>
+          : DynamicComparator<V>
+        : DynamicComparator<U> | QueryFilter<U>
       : T[P] extends Array<infer U>
         ? U extends BaseModel
           ? ArrayOperator<U>
-          : DynamicComparator<U>
+          : DynamicComparator<U> | QueryFilter<U>
         : DynamicComparator<UnpackedArg<T[P]>> | ComparatorValue<T[P]>
 }

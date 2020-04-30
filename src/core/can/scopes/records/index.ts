@@ -37,12 +37,12 @@ RecordScopeCustom<Post>({
   },
 })
 
-RecordScopeCustom<Post>({
-  author: {
-    posts: {
-
-    }
-  },
+RecordScopeCustom<User>({
+  posts: {
+    $all: [{
+      id: ''
+    }]
+  }
 })
 
 RecordScopeCustom<Post>({
