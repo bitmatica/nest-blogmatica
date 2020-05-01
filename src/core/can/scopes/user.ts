@@ -34,5 +34,8 @@ export abstract class UserScope {
   static Anyone = new AnyoneUserScope()
   static Authenticated = new AuthenticatedUserScope()
   static Where = (checker: ApplyChecker) => new WhereUserScope(checker)
-  static WithRole = (role: string) => new WhereUserScope((context) => (context.user?.roles.indexOf(role) || -1) >= 0)
+  static WithRole = (role: string) => new WhereUserScope((context) => {
+    const roles = context.user?.roles
+    return !!roles && roles.indexOf(role) >= 0
+  })
 }

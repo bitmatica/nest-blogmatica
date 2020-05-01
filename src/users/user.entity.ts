@@ -26,7 +26,7 @@ export class User extends BaseModel {
   comments: Promise<Array<Comment>>
 
   // Placeholder until we have a real solution
-  roles: Array<string> = []
+  roles: Array<string> = ['admin']
 
   async setPassword(password: string): Promise<void> {
     const salt = await bcrypt.genSalt(10)

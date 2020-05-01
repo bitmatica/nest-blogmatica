@@ -29,5 +29,6 @@ export class Post extends BaseModel {
 }
 
 Can.register(Post)
-  .do(ActionScope.Read, { as: UserScope.Anyone, to: RecordScope.Where('title', 'New title') })
-  .do(ActionScope.Create, { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
+  // .do(ActionScope.Read, { as: UserScope.Where((ctx) => ctx.user?.id === 'af58075c-7f18-4312-90fb-a78ef1bb629a'), to: RecordScope.Where('title', 'New title') })
+  .do(ActionScope.Read, { as: UserScope.WithRole('admin'), to: RecordScope.Where('title', 'New title') })
+  // .do(ActionScope.Create, { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
