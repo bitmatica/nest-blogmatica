@@ -1,4 +1,4 @@
-import { Type, UseGuards } from '@nestjs/common'
+import { Type } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { ActionScope } from '../../can'
@@ -8,7 +8,6 @@ import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
-import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IGet<TModel> {
   get(id: string, context: IContext, info: GraphQLResolveInfo): Promise<TModel | undefined>

@@ -1,4 +1,4 @@
-import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
+import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
@@ -15,7 +15,6 @@ import {
   IUpdateModelInput,
   MutationResponse,
 } from '../types'
-import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IUpdate<TModel> {
   update(id: string, input: IUpdateModelInput<TModel>, context: IContext): Promise<MutationResponse<TModel>>

@@ -1,15 +1,13 @@
-import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
+import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { User } from '../../../users/user.entity'
 import { ActionScope, Can } from '../../can'
 import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
 import { IActionResolverArgsOptions, IActionResolverOptions, ICreateModelInput, MutationResponse } from '../types'
-import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface ICreate<TModel> {
   create(input: ICreateModelInput<TModel>, context: IContext): Promise<MutationResponse<TModel>>
@@ -83,8 +81,6 @@ export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: IAction
     },
   )
 }
-
-function ApplyAuth<TModel>(modelClass: Type<TModel>, actionScope: ActionScope)
 
 export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
   @Resolver(() => modelClass, { isAbstract: true })

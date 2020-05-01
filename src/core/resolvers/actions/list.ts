@@ -1,4 +1,4 @@
-import { Type, UseGuards } from '@nestjs/common'
+import { Type } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { ActionScope } from '../../can'
@@ -7,7 +7,6 @@ import { IContext } from '../../context'
 import { listModelsResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
-import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IList<TModel> {
   list(context: IContext, info: GraphQLResolveInfo): Promise<Array<TModel>>
