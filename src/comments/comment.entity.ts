@@ -8,8 +8,8 @@ import { User } from '../users/user.entity'
 @ObjectType()
 @Entity()
 @Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Authenticated),
-  Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
+  Can.do(ActionScope.Read).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
+  Can.do(Can.everything()).as(UserScope.Authenticated),
 )
 export class Comment extends BaseModel {
   @Field()

@@ -74,8 +74,10 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
   }
 }
 
-export const RecordScope = {
-  None: new NoneScope(),
-  Owned: (fieldName: string) => new OwnedScope(fieldName),
-  All: new AllScope(),
+export abstract class RecordScope {
+  static None = new NoneScope()
+
+  static All = new AllScope()
+
+  static Owned = (fieldName: string) => new OwnedScope(fieldName)
 }
