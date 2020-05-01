@@ -25,6 +25,9 @@ export class User extends BaseModel {
   @OneToMany(type => Comment, comment => comment.author, { lazy: true })
   comments: Promise<Array<Comment>>
 
+  // Placeholder until we have a real solution
+  roles: Array<string> = []
+
   async setPassword(password: string): Promise<void> {
     const salt = await bcrypt.genSalt(10)
     this.passwordHash = await bcrypt.hash(password, salt)

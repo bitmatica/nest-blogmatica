@@ -1,20 +1,15 @@
 import { SetMetadata, Type } from '@nestjs/common'
-import { CustomDecorator } from '@nestjs/common/decorators/core/set-metadata.decorator'
 import { Reflector } from '@nestjs/core'
+import isArray from 'lodash/isArray'
 import { IContext } from '../context'
 import { Permission } from './permission'
 import { ActionScope } from './scopes/action'
 import { AllRecordScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record'
-import { getUserScopes, UserScope } from './scopes/user'
-import isArray from 'lodash/isArray'
+import { IUserScope, UserScope } from './scopes/user'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
 
 export { ActionScope, RecordScope, UserScope }
-
-export interface RegisterPermissionsOptions<T> {
-  permissions: Array<Permission<T>>
-}
 
 interface IAllScopesOptions {
   except?: Array<ActionScope>
@@ -26,10 +21,10 @@ export interface ICanDoOptions {
 
 export interface IBasePermissionOptions<T> {
   to?: IRecordScope<T>,
-  as?: UserScope,
+  as?: IUserScope,
 }
 
-export interface IPermissionsWithActions<T> extends IBasePermissionOptions<T>{
+export interface IPermissionsWithActions<T> extends IBasePermissionOptions<T> {
   do: Array<ActionScope>,
 }
 
@@ -74,6 +69,16 @@ export class PermissionGroup<T> {
 
 export class Can {
   static global = new Can()
+  static Scopes = {
+    Action: ActionScope,
+    Record: RecordScope,
+    User: UserScope,
+  }
+  private defaultActionScopes: Array<ActionScope>
+
+  constructor(options?: ICanDoOptions) {
+    this.defaultActionScopes = options?.defaultActionScopes || [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
+  }
 
   static everything(options?: IAllScopesOptions): Array<ActionScope> {
     return this.global.everything(options)
@@ -88,18 +93,6 @@ export class Can {
 
   static check<T>(context: IContext, action: ActionScope, to: Type<T>): IRecordScope<T> {
     return this.global.checkPermissions(context, action, to)
-  }
-
-  static Scopes = {
-    Action: ActionScope,
-    Record: RecordScope,
-    User: UserScope
-  }
-
-  private defaultActionScopes: Array<ActionScope>
-
-  constructor(options?: ICanDoOptions) {
-    this.defaultActionScopes = options?.defaultActionScopes || [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
   }
 
   everything(options?: IAllScopesOptions): Array<ActionScope> {
@@ -122,9 +115,8 @@ export class Can {
       return RecordScope.None
     }
 
-    const currentUserScopes = getUserScopes(context.user)
     const relevantPermissions = permissionGroup.registeredPermissions
-      .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0 && perm.actions.indexOf(action) >= 0)
+      .filter(perm => perm.userScope.applies(context) && perm.actions.indexOf(action) >= 0)
 
     if (!relevantPermissions.length) {
       return RecordScope.None

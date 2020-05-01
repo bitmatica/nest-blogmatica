@@ -1,6 +1,6 @@
 import { ActionScope } from './scopes/action'
 import { IRecordScope, RecordScope } from './scopes/record'
-import { UserScope } from './scopes/user'
+import { IUserScope, UserScope } from './scopes/user'
 
 export class Permission<T> {
   actions: Array<ActionScope> = []
@@ -17,7 +17,7 @@ export class Permission<T> {
     return this
   }
 
-  as(userScope: UserScope): Permission<T> {
+  as(userScope: IUserScope): Permission<T> {
     this.userScope = userScope
     return this
   }
