@@ -1,8 +1,11 @@
 import { Request, Response } from 'express'
-import { User } from '../users/user.entity'
+
+export interface IUser {
+  id: string
+}
 
 export interface IContext {
-  currentUser?: User
+  user?: IUser
   req: Request
   res: Response
 }
