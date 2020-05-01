@@ -1,3 +1,4 @@
+import { Type } from '@nestjs/common'
 import { SelectQueryBuilder } from 'typeorm'
 import { IContext } from '../../context'
 import { ComputedValue, UserIdValue } from '../computedValues'
@@ -39,6 +40,8 @@ export class AllRecordScope extends BaseRecordScope<any> {
     }
   }
 }
+
+export type ComparatorValue<T> = ComputedValue<T> | T
 
 export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> {
   constructor(public fieldName: U, public value: ComputedValue<T[U]> | T[U]) {
@@ -85,6 +88,7 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
 
 export const RecordScope = {
   None: new NoneRecordScope(),
-  Owned: (fieldName: string) => new OwnedRecordScope(fieldName),
+  Owned: <T>(fieldName: keyof T) => new OwnedRecordScope<T>(fieldName),
+  Where: <T, U extends keyof T>(classType: Type<T>, fieldName: U, compareTo: ComparatorValue<T[U]>) => new EqualsRecordScope(fieldName, compareTo),
   All: new AllRecordScope(),
 }

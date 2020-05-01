@@ -8,10 +8,6 @@ import { Post } from '../posts/post.entity'
 
 @ObjectType()
 @Entity()
-@Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Authenticated),
-  Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All),
-)
 export class User extends BaseModel {
   @Field()
   @Column({ unique: true })
@@ -38,3 +34,7 @@ export class User extends BaseModel {
     return bcrypt.compare(password, this.passwordHash)
   }
 }
+
+Can.register(User)
+  .do(ActionScope.Read, { as: UserScope.Authenticated })
+  .do(Can.everything(), { as: UserScope.Authenticated, to: RecordScope.All })

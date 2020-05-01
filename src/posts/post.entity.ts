@@ -7,10 +7,6 @@ import { User } from '../users/user.entity'
 
 @ObjectType()
 @Entity()
-@Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.Owned('authorId')),
-  Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
-)
 export class Post extends BaseModel {
   @Field()
   @Column()
@@ -31,3 +27,7 @@ export class Post extends BaseModel {
   @OneToMany(type => Comment, comment => comment.post, { lazy: true })
   comments: Promise<Array<Comment>>
 }
+
+Can.register(Post)
+  .do(ActionScope.Read, { as: UserScope.Anyone })
+  .do(ActionScope.Create, { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
