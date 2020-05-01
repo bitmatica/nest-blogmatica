@@ -67,7 +67,7 @@ export class Can {
     return SetMetadata(PERMISSION_METADATA_KEY, options)
   }
 
-  getRegisteredPermissions = <T>(target: Type<T>): RegisterPermissionsOptions | undefined => {
+  getRegisteredPermissions<T>(target: Type<T>): RegisterPermissionsOptions | undefined {
     const reflector = new Reflector()
     return reflector.get<RegisterPermissionsOptions | undefined>(PERMISSION_METADATA_KEY, target)
   }
