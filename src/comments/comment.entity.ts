@@ -10,7 +10,7 @@ import { User } from '../users/user.entity'
 @Can.register(
   Can.do(ActionScope.Create).as(UserScope.Authenticated),
   Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
-  Can.do(Can.everything()).as(UserScope.Authenticated).withRole('admin'),
+  Can.do(Can.everything()).as(UserScope.Authenticated),
 )
 export class Comment extends BaseModel {
   @Field()

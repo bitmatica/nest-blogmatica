@@ -15,7 +15,6 @@ export class Permission {
   actions: Array<ActionScope> = []
   recordScope: IRecordScope<any> = RecordScope.All
   userScope = UserScope.Anyone
-  role?: string
 
   do(...actions: Array<ActionScope>): Permission {
     this.actions = actions
@@ -24,11 +23,6 @@ export class Permission {
 
   to(recordScope: IRecordScope<any>): Permission {
     this.recordScope = recordScope
-    return this
-  }
-
-  withRole(role: string): Permission {
-    this.role = role
     return this
   }
 
