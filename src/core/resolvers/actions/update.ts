@@ -1,4 +1,4 @@
-import { ForbiddenException, Type } from '@nestjs/common'
+import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
 import { Args, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
@@ -13,6 +13,7 @@ import {
   IUpdateModelInput,
   MutationResponse,
 } from '../types'
+import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IUpdate<TModel> {
   update(id: string, input: IUpdateModelInput<TModel>): Promise<MutationResponse<TModel>>
@@ -108,6 +109,7 @@ export function Update<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
+    @UseGuards(JwtAuthGuard)
     @UpdateModelMutation(modelClass)
     async update(@IdInput id: string, @UpdateModelArgs(modelClass) input: IUpdateModelInput<TModel>): Promise<IMutationResponse<TModel>> {
       return defaultUpdateModelMutation(modelClass, this.repo, id, input)

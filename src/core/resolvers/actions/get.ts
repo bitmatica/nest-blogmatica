@@ -1,4 +1,4 @@
-import { ForbiddenException, Type } from '@nestjs/common'
+import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
 import { Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
@@ -6,6 +6,7 @@ import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
+import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IGet<TModel> {
   get(id: string, info: GraphQLResolveInfo): Promise<TModel | undefined>
@@ -46,6 +47,7 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
   @Resolver(() => modelClass, { isAbstract: true })
   class GetModelResolverClass extends innerClass implements IGet<TModel> {
 
+    @UseGuards(JwtAuthGuard)
     @GetModelQuery(modelClass)
     async get(@IdInput id: string, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
       return defaultGetModelQuery(modelClass, id, info)

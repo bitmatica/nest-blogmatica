@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
+import Express from 'express'
+
+export const ACCESS_TOKEN_COOKIE = 'access_token'
 
 @Injectable()
 export class AuthenticationService {
@@ -23,4 +26,12 @@ export class AuthenticationService {
     const payload = { username: user.email, sub: user.id }
     return this.jwtService.sign(payload)
   }
+}
+
+export const setTokenCookie = (res: Express.Response, token: string) => {
+  res.cookie(ACCESS_TOKEN_COOKIE, token)
+}
+
+export const clearTokenCookie = (res: Express.Response) => {
+  res.clearCookie(ACCESS_TOKEN_COOKIE)
 }

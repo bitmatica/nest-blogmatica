@@ -1,10 +1,11 @@
-import { ForbiddenException, Type } from '@nestjs/common'
+import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
 import { Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { listModelsResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
+import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IList<TModel> {
   list(info: GraphQLResolveInfo): Promise<Array<TModel>>
@@ -41,6 +42,7 @@ export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionR
 export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IList<TModel>> {
   @Resolver(() => modelClass, { isAbstract: true })
   class ListModelResolverClass extends innerClass implements IList<TModel> {
+    @UseGuards(JwtAuthGuard)
     @ListModelQuery(modelClass)
     async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
       return defaultListModelQuery(modelClass, info)

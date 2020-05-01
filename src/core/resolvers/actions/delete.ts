@@ -1,4 +1,4 @@
-import { ForbiddenException, Type } from '@nestjs/common'
+import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
 import { Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -6,6 +6,7 @@ import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
 import { IdInput } from '../decorators'
 import { deleteModelResolverName } from '../helpers/naming'
 import { DeletionResponse, IActionResolverOptions } from '../types'
+import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IDelete<TModel> {
   delete(id: string): Promise<DeletionResponse>
@@ -54,6 +55,7 @@ export async function defaultDeleteModelMutation<TModel>(
 
 export function DeleteModelMutation<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
   const returns = opts?.returns || DeletionResponse
+  UseGuards(JwtAuthGuard)
   return Mutation(
     ret => returns,
     { name: opts?.name || deleteModelResolverName(modelClass) },
@@ -67,6 +69,7 @@ export function Delete<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
+    @UseGuards(JwtAuthGuard)
     @DeleteModelMutation(modelClass)
     async delete(@IdInput id: string): Promise<DeletionResponse> {
       return defaultDeleteModelMutation(modelClass, this.repo, id)
