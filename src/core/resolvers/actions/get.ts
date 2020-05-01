@@ -1,22 +1,21 @@
 import { Type } from '@nestjs/common'
-import { Info, Query, Resolver } from '@nestjs/graphql'
+import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
-import { FAKE_CONTEXT } from '../../context'
+import { IContext } from '../../context'
 import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
 
 export interface IGet<TModel> {
-  get(id: string, info: GraphQLResolveInfo): Promise<TModel | undefined>
+  get(id: string, context: IContext, info: GraphQLResolveInfo): Promise<TModel | undefined>
 }
 
 export function defaultGetModelResponse<TModel>(modelClass: Type<TModel>) {
   return modelClass
 }
 
-export function defaultGetModelQuery<TModel>(modelClass: Type<TModel>, id: string, info: GraphQLResolveInfo): Promise<TModel | undefined> {
-  const context = FAKE_CONTEXT
+export function defaultGetModelQuery<TModel>(modelClass: Type<TModel>, id: string, context: IContext, info: GraphQLResolveInfo): Promise<TModel | undefined> {
   return constructQueryWithRelations(modelClass, info, context).getOne()
 }
 
@@ -36,8 +35,8 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
   class GetModelResolverClass extends innerClass implements IGet<TModel> {
 
     @GetModelQuery(modelClass)
-    async get(@IdInput id: string, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
-      return defaultGetModelQuery(modelClass, id, info)
+    async get(@IdInput id: string, @Context() context: IContext, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
+      return defaultGetModelQuery(modelClass, id, context, info)
     }
   }
 

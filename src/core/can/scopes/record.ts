@@ -51,7 +51,7 @@ export class OwnedScope<T> extends BaseRecordScope<T> {
 
   queryBuilder(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return () => {
-      return `${parentAlias}.${this.fieldName} = '${context.currentUser?.id}'`
+      return context.currentUser ? `${parentAlias}.${this.fieldName} = '${context.currentUser.id}'` : 'true = false'
     }
   }
 }

@@ -1,9 +1,9 @@
 import { ForbiddenException, Type } from '@nestjs/common'
-import { Args, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
+import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can } from '../../can'
-import { FAKE_CONTEXT } from '../../context'
+import { FAKE_CONTEXT, IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IdInput } from '../decorators'
 import { updateModelResolverName } from '../helpers/naming'
@@ -16,7 +16,7 @@ import {
 } from '../types'
 
 export interface IUpdate<TModel> {
-  update(id: string, input: IUpdateModelInput<TModel>): Promise<MutationResponse<TModel>>
+  update(id: string, input: IUpdateModelInput<TModel>, context: IContext): Promise<MutationResponse<TModel>>
 }
 
 export function defaultUpdateModelInput<TModel>(modelClass: Type<TModel>, without?: Array<keyof TModel>): Type<IUpdateModelInput<TModel>> {
@@ -47,10 +47,9 @@ export async function defaultUpdateModelMutation<TModel>(
   repo: Repository<TModel>,
   id: string,
   input: IUpdateModelInput<TModel>,
+  context: IContext,
 ): Promise<MutationResponse<TModel>> {
   try {
-    const context = FAKE_CONTEXT
-
     const model = await repo.findOne(id)
     if (!model) {
       return {
@@ -103,8 +102,12 @@ export function Update<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     repo: Repository<TModel>
 
     @UpdateModelMutation(modelClass)
-    async update(@IdInput id: string, @UpdateModelArgs(modelClass) input: IUpdateModelInput<TModel>): Promise<IMutationResponse<TModel>> {
-      return defaultUpdateModelMutation(modelClass, this.repo, id, input)
+    async update(
+      @IdInput id: string,
+      @UpdateModelArgs(modelClass) input: IUpdateModelInput<TModel>,
+      @Context() context: IContext,
+    ): Promise<IMutationResponse<TModel>> {
+      return defaultUpdateModelMutation(modelClass, this.repo, id, input, context)
     }
   }
 

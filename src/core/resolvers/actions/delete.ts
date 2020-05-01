@@ -1,26 +1,24 @@
 import { ForbiddenException, Type } from '@nestjs/common'
-import { Mutation, Resolver } from '@nestjs/graphql'
+import { Context, Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ActionScope, Can } from '../../can'
-import { FAKE_CONTEXT } from '../../context'
+import { IContext } from '../../context'
 import { IdInput } from '../decorators'
 import { deleteModelResolverName } from '../helpers/naming'
 import { DeletionResponse, IActionResolverOptions } from '../types'
 
 export interface IDelete<TModel> {
-  delete(id: string): Promise<DeletionResponse>
+  delete(id: string, context: IContext): Promise<DeletionResponse>
 }
 
 export async function defaultDeleteModelMutation<TModel>(
   modelClass: Type<TModel>,
   repo: Repository<TModel>,
   id: string,
+  context: IContext,
 ): Promise<DeletionResponse> {
   try {
-    const context = FAKE_CONTEXT
-    if (!context.currentUser) throw new ForbiddenException()
-
     const model = await repo.findOne(id)
     if (!model) {
       return {
@@ -61,8 +59,8 @@ export function Delete<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     repo: Repository<TModel>
 
     @DeleteModelMutation(modelClass)
-    async delete(@IdInput id: string): Promise<DeletionResponse> {
-      return defaultDeleteModelMutation(modelClass, this.repo, id)
+    async delete(@IdInput id: string, @Context() context: IContext): Promise<DeletionResponse> {
+      return defaultDeleteModelMutation(modelClass, this.repo, id, context)
     }
   }
 

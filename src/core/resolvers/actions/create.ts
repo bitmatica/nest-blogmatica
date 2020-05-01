@@ -1,15 +1,15 @@
 import { ForbiddenException, Type } from '@nestjs/common'
-import { Args, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
+import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can } from '../../can'
-import { FAKE_CONTEXT } from '../../context'
+import { FAKE_CONTEXT, IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
 import { IActionResolverArgsOptions, IActionResolverOptions, ICreateModelInput, MutationResponse } from '../types'
 
 export interface ICreate<TModel> {
-  create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>
+  create(input: ICreateModelInput<TModel>, context: IContext): Promise<MutationResponse<TModel>>
 }
 
 export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, without?: Array<keyof TModel>): Type<ICreateModelInput<TModel>> {
@@ -39,11 +39,9 @@ export async function defaultCreateModelMutation<TModel>(
   modelClass: Type<TModel>,
   repo: Repository<TModel>,
   input: ICreateModelInput<TModel>,
+  context: IContext,
 ): Promise<MutationResponse<TModel>> {
   try {
-    const context = FAKE_CONTEXT
-    if (!context.currentUser) throw new ForbiddenException()
-
     const model = new modelClass()
     Object.assign(model, { ...input })
 
@@ -90,8 +88,8 @@ export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     repo: Repository<TModel>
 
     @CreateModelMutation(modelClass)
-    async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
-      return defaultCreateModelMutation(modelClass, this.repo, input)
+    async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>, @Context() context: IContext): Promise<MutationResponse<TModel>> {
+      return defaultCreateModelMutation(modelClass, this.repo, input, context)
     }
   }
 
