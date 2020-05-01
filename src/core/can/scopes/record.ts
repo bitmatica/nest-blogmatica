@@ -62,8 +62,8 @@ class OwnedScope<T> extends BaseRecordScope<T> {
   }
 
   queryBuilder(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
-    return (qb) => {
-      return qb.andWhere(`${parentAlias}.${this.fieldName} = :currentUserId`, { currentUserId: context.currentUser?.id }).getQuery()
+    return () => {
+      return `${parentAlias}.${this.fieldName} = '${context.currentUser?.id}'`
     }
   }
 }

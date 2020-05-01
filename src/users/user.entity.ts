@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt'
 @ObjectType()
 @Entity()
 @Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Authenticated).to(RecordScope.Owned('id')),
+  Can.do(ActionScope.Read).as(UserScope.Authenticated),
   Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All).withRole('admin'),
 )
 export class User extends BaseModel {
