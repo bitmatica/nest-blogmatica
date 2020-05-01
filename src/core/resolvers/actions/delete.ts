@@ -3,6 +3,7 @@ import { Context, Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ActionScope, Can } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { IdInput } from '../decorators'
 import { deleteModelResolverName } from '../helpers/naming'
@@ -46,7 +47,6 @@ export async function defaultDeleteModelMutation<TModel>(
 
 export function DeleteModelMutation<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
   const returns = opts?.returns || DeletionResponse
-  UseGuards(JwtAuthGuard)
   return Mutation(
     ret => returns,
     { name: opts?.name || deleteModelResolverName(modelClass) },
@@ -60,7 +60,7 @@ export function Delete<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @UseGuards(JwtAuthGuard)
+    @CanAuth(modelClass, ActionScope.Delete)
     @DeleteModelMutation(modelClass)
     async delete(@IdInput id: string, @Context() context: IContext): Promise<DeletionResponse> {
       return defaultDeleteModelMutation(modelClass, this.repo, id, context)

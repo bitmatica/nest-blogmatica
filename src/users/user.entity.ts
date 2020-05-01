@@ -9,7 +9,7 @@ import { Post } from '../posts/post.entity'
 @ObjectType()
 @Entity()
 @Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Authenticated),
+  Can.do(ActionScope.Read).as(UserScope.Anyone),
   Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All),
 )
 export class User extends BaseModel {

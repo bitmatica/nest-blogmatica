@@ -1,4 +1,6 @@
 import { Args, Context, Field, InputType, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql'
+import { ActionScope } from '../core/can'
+import { CanAuth } from '../core/can/decorators'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { User } from './user.entity'
 import { MutationResponse } from '../core/resolvers/types'
@@ -109,7 +111,6 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Query(returns => User)
   async whoAmI(
     @CurrentUser() user: User,

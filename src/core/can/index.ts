@@ -6,6 +6,7 @@ import { Permission } from './permission'
 import { ActionScope } from './scopes/action'
 import { AllRecordScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record'
 import { getUserScopes, UserScope } from './scopes/user'
+import every from 'lodash/every'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
 
@@ -71,6 +72,20 @@ export class Can {
     const reflector = new Reflector()
     return reflector.get<RegisterPermissionsOptions | undefined>(PERMISSION_METADATA_KEY, target)
   }
+
+  static checkRequiresAuthentication<T>(target: Type<T>, ...actions: Array<ActionScope>): boolean {
+    const permissions = this.global.getRegisteredPermissions(target)?.permissions
+    if (!permissions) {
+      return true // TODO: What to do by default when no registered permissions
+    }
+
+    return !every(actions.map(action => {
+      return permissions
+        .filter(p => p.userScope === UserScope.Anyone && p.actions.indexOf(action) >= 0)
+        .length
+    }))
+  }
+
 
   checkPermissions<T>(context: IContext, action: ActionScope, to: Type<T>): IRecordScope<T> {
     const entityConfig = this.getRegisteredPermissions(to)

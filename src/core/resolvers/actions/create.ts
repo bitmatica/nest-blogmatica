@@ -2,7 +2,9 @@ import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
 import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
+import { User } from '../../../users/user.entity'
 import { ActionScope, Can } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
@@ -90,7 +92,7 @@ export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @UseGuards(JwtAuthGuard)
+    @CanAuth(modelClass, ActionScope.Create)
     @CreateModelMutation(modelClass)
     async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>, @Context() context: IContext): Promise<MutationResponse<TModel>> {
       return defaultCreateModelMutation(modelClass, this.repo, input, context)

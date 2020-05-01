@@ -1,6 +1,8 @@
 import { Type, UseGuards } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'
@@ -35,7 +37,7 @@ export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Ty
   @Resolver(() => modelClass, { isAbstract: true })
   class GetModelResolverClass extends innerClass implements IGet<TModel> {
 
-    @UseGuards(JwtAuthGuard)
+    @CanAuth(modelClass, ActionScope.Read)
     @GetModelQuery(modelClass)
     async get(@IdInput id: string, @Context() context: IContext, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
       return defaultGetModelQuery(modelClass, id, context, info)

@@ -1,6 +1,8 @@
 import { Type, UseGuards } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { listModelsResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
@@ -30,7 +32,8 @@ export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionR
 export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IList<TModel>> {
   @Resolver(() => modelClass, { isAbstract: true })
   class ListModelResolverClass extends innerClass implements IList<TModel> {
-    @UseGuards(JwtAuthGuard)
+
+    @CanAuth(modelClass, ActionScope.Read)
     @ListModelQuery(modelClass)
     async list(@Context() context: IContext, @Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
       return defaultListModelQuery(modelClass, context, info)

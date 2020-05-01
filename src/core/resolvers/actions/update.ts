@@ -3,6 +3,7 @@ import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, Partia
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IdInput } from '../decorators'
@@ -102,7 +103,7 @@ export function Update<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     @InjectRepository(modelClass)
     repo: Repository<TModel>
 
-    @UseGuards(JwtAuthGuard)
+    @CanAuth(modelClass, ActionScope.Update)
     @UpdateModelMutation(modelClass)
     async update(
       @IdInput id: string,
