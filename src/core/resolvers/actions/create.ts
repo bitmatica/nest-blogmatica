@@ -1,15 +1,15 @@
 import { ForbiddenException, Type } from '@nestjs/common'
-import { Args, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
+import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { ActionScope, Can, RecordScope } from '../../can'
-import { FAKE_CURRENT_USER } from '../../can/currentUser'
+import { ActionScope, Can } from '../../can'
+import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
 import { IActionResolverArgsOptions, IActionResolverOptions, ICreateModelInput, MutationResponse } from '../types'
 
 export interface ICreate<TModel> {
-  create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>
+  create(input: ICreateModelInput<TModel>, context: IContext): Promise<MutationResponse<TModel>>
 }
 
 export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, without?: Array<keyof TModel>): Type<ICreateModelInput<TModel>> {
@@ -39,24 +39,14 @@ export async function defaultCreateModelMutation<TModel>(
   modelClass: Type<TModel>,
   repo: Repository<TModel>,
   input: ICreateModelInput<TModel>,
+  context: IContext,
 ): Promise<MutationResponse<TModel>> {
   try {
-    const user = FAKE_CURRENT_USER
-    if (!user) throw new ForbiddenException()
-
     const model = new modelClass()
     Object.assign(model, { ...input })
 
-    const recordScope = Can.check(user, ActionScope.Create, modelClass)
-    if (recordScope === RecordScope.None) throw new ForbiddenException()
-    if (recordScope === RecordScope.Owned) {
-      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
-      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
-      if (ownershipField !== user.id) {
-        throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
-      }
-    }
-
+    const recordScope = Can.check(context, ActionScope.Create, modelClass)
+    if (!recordScope.validate(model, context)) throw new ForbiddenException()
 
     const saved = await repo.save(model)
 
@@ -98,8 +88,8 @@ export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
     repo: Repository<TModel>
 
     @CreateModelMutation(modelClass)
-    async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
-      return defaultCreateModelMutation(modelClass, this.repo, input)
+    async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>, @Context() context: IContext): Promise<MutationResponse<TModel>> {
+      return defaultCreateModelMutation(modelClass, this.repo, input, context)
     }
   }
 

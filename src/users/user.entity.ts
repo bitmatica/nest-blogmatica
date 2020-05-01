@@ -1,20 +1,17 @@
-import { Field, HideField, ObjectType } from '@nestjs/graphql';
+import { Field, HideField, ObjectType } from '@nestjs/graphql'
+import * as bcrypt from 'bcrypt'
 import { Column, Entity, OneToMany } from 'typeorm'
 import { Comment } from '../comments/comment.entity'
 import { ActionScope, Can, RecordScope, UserScope } from '../core/can'
 import { BaseModel } from '../core/model'
 import { Post } from '../posts/post.entity'
-import * as bcrypt from 'bcrypt'
 
 @ObjectType()
 @Entity()
-@Can.register({
-  ownershipField: 'id',
-  permissions: [
-    Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.All),
-    Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All).withRole('admin'),
-  ],
-})
+@Can.register(
+  Can.do(ActionScope.Read).as(UserScope.Authenticated),
+  Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All),
+)
 export class User extends BaseModel {
   @Field()
   @Column({ unique: true })

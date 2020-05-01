@@ -1,34 +1,21 @@
-import { ForbiddenException, Type } from '@nestjs/common'
-import { Info, Query, Resolver } from '@nestjs/graphql'
+import { Type } from '@nestjs/common'
+import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
-import { ActionScope, Can, RecordScope } from '../../can'
-import { FAKE_CURRENT_USER } from '../../can/currentUser'
+import { IContext } from '../../context'
 import { listModelsResolverName } from '../helpers/naming'
 import { constructQueryWithRelations } from '../helpers/relations'
 import { IActionResolverOptions } from '../types'
 
 export interface IList<TModel> {
-  list(info: GraphQLResolveInfo): Promise<Array<TModel>>
+  list(context: IContext, info: GraphQLResolveInfo): Promise<Array<TModel>>
 }
 
 export function defaultListModelResponse<TModel>(modelClass: Type<TModel>) {
   return [ modelClass ]
 }
 
-export function defaultListModelQuery<TModel>(modelClass: Type<TModel>, info: GraphQLResolveInfo): Promise<Array<TModel>> {
-  const user = FAKE_CURRENT_USER
-  if (!user) throw new ForbiddenException()
-
-  const recordScope = Can.check(user, ActionScope.Read, modelClass)
-  if (recordScope === RecordScope.None) throw new ForbiddenException()
-
-  const filters: Record<string, string> = {}
-  if (recordScope === RecordScope.Owned) {
-    const ownershipField = Can.ownedBy(modelClass)
-    filters[ownershipField] = user.id
-  }
-
-  return constructQueryWithRelations(modelClass, info, user).where(filters).getMany()
+export function defaultListModelQuery<TModel>(modelClass: Type<TModel>, context: IContext, info: GraphQLResolveInfo): Promise<Array<TModel>> {
+  return constructQueryWithRelations(modelClass, info, context).getMany()
 }
 
 export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
@@ -43,8 +30,8 @@ export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): T
   @Resolver(() => modelClass, { isAbstract: true })
   class ListModelResolverClass extends innerClass implements IList<TModel> {
     @ListModelQuery(modelClass)
-    async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
-      return defaultListModelQuery(modelClass, info)
+    async list(@Context() context: IContext, @Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
+      return defaultListModelQuery(modelClass, context, info)
     }
   }
 

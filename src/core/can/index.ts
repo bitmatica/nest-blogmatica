@@ -1,49 +1,28 @@
 import { SetMetadata, Type } from '@nestjs/common'
 import { CustomDecorator } from '@nestjs/common/decorators/core/set-metadata.decorator'
 import { Reflector } from '@nestjs/core'
+import { User } from '../../users/user.entity'
+import { IContext } from '../context'
+import { ActionScope } from './scopes/action'
+import { AllScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record'
+import { UserScope } from './scopes/user'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
 
-type ManagedEntity = Type<any> | Function
-
-export enum UserScope {
-  Anyone,
-  Authenticated,
-}
-
-export enum RecordScope {
-  None,
-  Owned,
-  All,
-}
-
-export class ActionScope {
-  static Create: ActionScope = new ActionScope('Create')
-  static Read: ActionScope = new ActionScope('Read')
-  static Update: ActionScope = new ActionScope('Update')
-  static Delete: ActionScope = new ActionScope('Delete')
-
-  constructor(public name: string) {}
-}
+export { ActionScope, RecordScope, UserScope }
 
 export class Permission {
   actions: Array<ActionScope> = []
-  recordScope = RecordScope.All
+  recordScope: IRecordScope<any> = RecordScope.All
   userScope = UserScope.Anyone
-  role?: string
 
   do(...actions: Array<ActionScope>): Permission {
     this.actions = actions
     return this
   }
 
-  to(recordScope: RecordScope): Permission {
+  to(recordScope: IRecordScope<any>): Permission {
     this.recordScope = recordScope
-    return this
-  }
-
-  withRole(role: string): Permission {
-    this.role = role
     return this
   }
 
@@ -54,8 +33,7 @@ export class Permission {
 }
 
 export interface RegisterPermissionsOptions {
-  permissions: Array<Permission>,
-  ownershipField?: string
+  permissions: Array<Permission>
 }
 
 export function registerPermissions(options: RegisterPermissionsOptions): CustomDecorator
@@ -65,46 +43,36 @@ export function registerPermissions(permissionsOrOptions: RegisterPermissionsOpt
   return SetMetadata(PERMISSION_METADATA_KEY, options)
 }
 
-export const getRegisteredPermissions = (target: ManagedEntity): RegisterPermissionsOptions | undefined => {
+export const getRegisteredPermissions = <T>(target: Type<T>): RegisterPermissionsOptions | undefined => {
   const reflector = new Reflector()
   return reflector.get<RegisterPermissionsOptions | undefined>(PERMISSION_METADATA_KEY, target)
 }
 
-export interface IUser {
-  id: string
-  roles: Array<string>
-}
-
-export function getUserScopes(user: IUser | undefined): Array<UserScope> {
+export function getUserScopes(user: User | undefined): Array<UserScope> {
   if (!user) {
     return [ UserScope.Anyone ]
   }
   return [ UserScope.Anyone, UserScope.Authenticated ]
 }
 
-export function checkPermissions(user: IUser | undefined, action: ActionScope, to: ManagedEntity): RecordScope {
+export function checkPermissions<T>(context: IContext, action: ActionScope, to: Type<T>): IRecordScope<T> {
   const entityConfig = getRegisteredPermissions(to)
   if (!entityConfig) {
     return RecordScope.None
   }
 
-  const currentUserScopes = getUserScopes(user)
+  const currentUserScopes = getUserScopes(context.currentUser)
   const relevantPermissions = entityConfig.permissions
-    .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0)
-    .filter(perm => perm.actions.indexOf(action) >= 0)
-    .filter(perm => perm.role ? user && user.roles.indexOf(perm.role) >= 0 : true)
+    .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0 && perm.actions.indexOf(action) >= 0)
 
-  const recordScope = relevantPermissions.reduce((prev: RecordScope, perm: Permission) => {
-    return perm.recordScope > prev ? perm.recordScope : prev
-  }, RecordScope.None)
+  if (!relevantPermissions.length) {
+    return RecordScope.None
+  }
 
-  // If there is no user, trying to query for owned records will fail
-  return (!user && recordScope === RecordScope.Owned) ? RecordScope.None : recordScope
-}
-
-export function getOwnershipField(to: ManagedEntity): string {
-  const entityConfig = getRegisteredPermissions(to)
-  return entityConfig?.ownershipField || 'userId'
+  if (relevantPermissions.find(permission => permission.recordScope instanceof AllScope)) {
+    return RecordScope.All
+  }
+  return new CombinedRecordScope(relevantPermissions.map(permission => permission.recordScope))
 }
 
 const allActionScopes = [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
@@ -120,7 +88,6 @@ export const Can = {
   },
   register: registerPermissions,
   check: checkPermissions,
-  ownedBy: getOwnershipField,
   everything(options?: IAllScopesOptions): Array<ActionScope> {
     const except = options?.except || []
     return allActionScopes.filter(scope => except.indexOf(scope) < 0)

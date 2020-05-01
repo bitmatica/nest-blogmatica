@@ -3,7 +3,7 @@ import * as JWT from 'jsonwebtoken'
 import { DateTime } from 'luxon'
 
 export const AUTH_TOKEN_COOKIE = 'AUTH_TOKEN'
-export const AUTH_TOKEN_VERSION: number = 1
+export const AUTH_TOKEN_VERSION = 1
 
 interface IJWTPayload {
   version: number
@@ -35,7 +35,7 @@ export const getTokenFromHeader = (req: Express.Request): string | undefined => 
   return req.header('Authorization')?.replace('Bearer ', '')
 }
 
-export const getUserIdFromToken = async (token: string): Promise< string | undefined> => {
+export const getUserIdFromToken = async (token: string): Promise<string | undefined> => {
   const secret = await getSigningToken()
   const payload: IJWTPayload = JWT.verify(token, secret) as IJWTPayload
   const tokenExpiration = payload.createdAt || 0
