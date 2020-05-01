@@ -27,7 +27,7 @@ export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ]
     @CreateModelArgs(Post, { type: CreatePostInput }) input: ICreateModelInput<Post>,
     @Context() context: IContext,
   ): Promise<IMutationResponse<Post>> {
-    const user = context.currentUser
+    const user = context.user
     if (!user) {
       throw new ForbiddenException()
     }

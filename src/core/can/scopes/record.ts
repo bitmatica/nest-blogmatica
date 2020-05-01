@@ -1,5 +1,6 @@
 import { SelectQueryBuilder } from 'typeorm'
 import { IContext } from '../../context'
+import { ComputedValue, UserIdValue } from '../computedValues'
 
 export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => string
 
@@ -15,7 +16,7 @@ export abstract class BaseRecordScope<T> implements IRecordScope<T> {
   abstract where(parentAlias: string, context: IContext): QueryBuilderFunction<T>
 }
 
-export class NoneScope extends BaseRecordScope<any> {
+export class NoneRecordScope extends BaseRecordScope<any> {
   validate(): boolean {
     return false
   }
@@ -27,7 +28,7 @@ export class NoneScope extends BaseRecordScope<any> {
   }
 }
 
-export class AllScope extends BaseRecordScope<any> {
+export class AllRecordScope extends BaseRecordScope<any> {
   validate(): boolean {
     return true
   }
@@ -39,20 +40,28 @@ export class AllScope extends BaseRecordScope<any> {
   }
 }
 
-export class OwnedScope<T> extends BaseRecordScope<T> {
-  constructor(public fieldName: keyof T) {
+export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> {
+  constructor(public fieldName: U, public value: ComputedValue<T[U]> | T[U]) {
     super()
   }
 
   validate(model: T, context: IContext): boolean {
-    const ownershipField = model[this.fieldName]
-    return !!context.currentUser && context.currentUser.id === (ownershipField as unknown as string)
+    const fieldValue = model[this.fieldName]
+    const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
+    return fieldValue === compareToValue
   }
 
   where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return () => {
-      return context.currentUser ? `${parentAlias}.${this.fieldName} = '${context.currentUser.id}'` : 'true = false'
+      const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
+      return compareToValue ? `${parentAlias}.${this.fieldName} = '${compareToValue}'` : 'true = false'
     }
+  }
+}
+
+export class OwnedRecordScope<T> extends EqualsRecordScope<T, any> {
+  constructor(public fieldName: keyof T) {
+    super(fieldName, UserIdValue as any)
   }
 }
 
@@ -74,10 +83,8 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
   }
 }
 
-export abstract class RecordScope {
-  static None = new NoneScope()
-
-  static All = new AllScope()
-
-  static Owned = (fieldName: string) => new OwnedScope(fieldName)
+export const RecordScope = {
+  None: new NoneRecordScope(),
+  Owned: (fieldName: string) => new OwnedRecordScope(fieldName),
+  All: new AllRecordScope(),
 }

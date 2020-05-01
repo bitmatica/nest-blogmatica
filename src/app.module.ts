@@ -3,6 +3,7 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { getConnection } from 'typeorm'
 import { CommentsModule } from './comments/comments.module'
+import { IContext } from './core/context'
 import * as databaseConfig from './database/config'
 import { PostsModule } from './posts/posts.module'
 import { getTokenFromRequest, getUserIdFromToken } from './users/authentication'
@@ -17,16 +18,16 @@ import { UsersModule } from './users/users.module'
     GraphQLModule.forRoot({
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
-      context: async ({ req, res }) => {
+      context: async ({ req, res }): Promise<IContext> => {
         const baseContext = { req, res }
         try {
           const token = getTokenFromRequest(req)
           if (!token) return baseContext
           const userId = await getUserIdFromToken(token!)
-          const currentUser = await getConnection().getRepository(User).findOne(userId)
+          const user = await getConnection().getRepository(User).findOne(userId)
           return {
             ...baseContext,
-            currentUser,
+            user,
           }
         } catch (err) {
           return baseContext

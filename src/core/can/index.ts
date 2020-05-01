@@ -2,9 +2,9 @@ import { SetMetadata, Type } from '@nestjs/common'
 import { CustomDecorator } from '@nestjs/common/decorators/core/set-metadata.decorator'
 import { Reflector } from '@nestjs/core'
 import { IContext } from '../context'
-import { Permission } from './permissions'
+import { Permission } from './permission'
 import { ActionScope } from './scopes/action'
-import { AllScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record'
+import { AllRecordScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record'
 import { getUserScopes, UserScope } from './scopes/user'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
@@ -27,7 +27,7 @@ export class Can {
   static global = new Can()
 
   static do(actionOrList: ActionScope | Array<ActionScope>, ...actions: Array<ActionScope>): Permission {
-    const allActions = Array.isArray(actionOrList) ? actionOrList.concat(actions) : [ actionOrList ].concat(actions)
+    const allActions: Array<ActionScope> = Array.isArray(actionOrList) ? actionOrList.concat(actions) : [ actionOrList ].concat(actions)
     return new Permission().do(...allActions)
   }
 
@@ -78,7 +78,7 @@ export class Can {
       return RecordScope.None
     }
 
-    const currentUserScopes = getUserScopes(context.currentUser)
+    const currentUserScopes = getUserScopes(context.user)
     const relevantPermissions = entityConfig.permissions
       .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0 && perm.actions.indexOf(action) >= 0)
 
@@ -86,7 +86,7 @@ export class Can {
       return RecordScope.None
     }
 
-    if (relevantPermissions.find(permission => permission.recordScope instanceof AllScope)) {
+    if (relevantPermissions.find(permission => permission.recordScope instanceof AllRecordScope)) {
       return RecordScope.All
     }
     return new CombinedRecordScope(relevantPermissions.map(permission => permission.recordScope))
