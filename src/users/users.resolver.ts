@@ -1,13 +1,16 @@
-import { Args, Context, Field, InputType, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql';
-import { BaseModelResolver } from '../core/resolvers/model';
-import { User } from './user.entity';
-import { MutationResponse } from '../core/resolvers/types';
-import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './authentication';
-import { Create, CreateModelMutation } from '../core/resolvers/actions';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { IContext } from '../common/context';
-import { CurrentUser } from '../decorators/currentUser';
+import { Args, Context, Field, InputType, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql'
+import { BaseModelResolver } from '../core/resolvers/model'
+import { User } from './user.entity'
+import { MutationResponse } from '../core/resolvers/types'
+import { clearTokenCookie, setTokenCookie } from './authentication'
+import { Create, CreateModelMutation } from '../core/resolvers/actions'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { IContext } from '../common/context'
+import { CurrentUser } from '../decorators/currentUser'
+import { AuthenticationService } from '../authentication/authentication.service'
+import { UseGuards } from '@nestjs/common'
+import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 
 @InputType()
 export class CreateUserInput {
@@ -40,6 +43,9 @@ export class UserLoginResponse extends MutationResponse<User> {
 export class UsersResolver extends BaseModelResolver(User, { without: [ Create ] }) {
   @InjectRepository(User)
   protected repo: Repository<User>
+  constructor(private readonly authenticationService: AuthenticationService) {
+    super();
+  }
 
   @CreateModelMutation(User)
   async create(
@@ -69,21 +75,8 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     @Context() context: IContext
   ) {
     try {
-      const user: User | undefined = await this.repo.findOne({ email: input.email })
-      if (!user) {
-        return {
-          success: false,
-          message: 'User does not exist'
-        }
-      }
-      const correctPassword = await user.checkPassword(input.password)
-      if (!correctPassword) {
-        return {
-          success: false,
-          message: 'Incorrect password'
-        }
-      }
-      const token = await generateTokenForUserId(user.id)
+      const user = await this.authenticationService.validateUser(input.email, input.password)
+      const token = await this.authenticationService.login(user!)
       setTokenCookie(context.res, token)
       return {
         success: true,
@@ -117,7 +110,8 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     }
   }
 
-  @Query(returns => User, { nullable: true })
+  @UseGuards(JwtAuthGuard)
+  @Query(returns => User)
   async whoAmI(
     @CurrentUser() user: User
   ) {

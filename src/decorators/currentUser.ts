@@ -4,7 +4,7 @@ import { IContext } from '../common/context';
 
 export const CurrentUser = createParamDecorator(
   (data: unknown, context: ExecutionContext) => {
-    const ctx: IContext = GqlExecutionContext.create(context).getContext();
-    return ctx.user;
+    const ctx = GqlExecutionContext.create(context);
+    return ctx.getContext().req.user;
   },
 );
