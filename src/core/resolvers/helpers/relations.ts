@@ -22,9 +22,11 @@ function addNestedRelations<TModel>(queryBuilder: SelectQueryBuilder<TModel>, en
 
     const relationPath = `${parentAlias}.${relation.propertyName}`
     const relationAlias = `${parentAlias}_${relation.propertyName}`
-    const recordScope = Can.check(context, ActionScope.Read, relation.inverseEntityMetadata.target as Type<any>)
 
-    const nextBuilder = prevBuilder.leftJoinAndSelect(relationPath, relationAlias, recordScope.where(relationAlias, context)(prevBuilder))
+    const recordScope = Can.check(context, ActionScope.Read, relation.inverseEntityMetadata.target as Type<any>)
+    const joinCondition = recordScope.where(relationAlias, context)(prevBuilder)
+
+    const nextBuilder = prevBuilder.leftJoinAndSelect(relationPath, relationAlias, joinCondition)
     return addNestedRelations(nextBuilder, relation.inverseEntityMetadata, relationAlias, selections, context)
   }, queryBuilder)
 }
