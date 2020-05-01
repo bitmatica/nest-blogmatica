@@ -1,13 +1,14 @@
-import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import * as databaseConfig from './database/config';
-import { PostsModule } from './posts/posts.module';
-import { UsersModule } from './users/users.module';
-import { getConnection } from 'typeorm';
-import { User } from './users/user.entity';
-import { getTokenFromRequest, getUserIdFromToken } from './users/authentication';
-import { CommentsModule } from './comments/comments.module';
+import { Module } from '@nestjs/common'
+import { GraphQLModule } from '@nestjs/graphql'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { getConnection } from 'typeorm'
+import { CommentsModule } from './comments/comments.module'
+import { IContext } from './core/context'
+import * as databaseConfig from './database/config'
+import { PostsModule } from './posts/posts.module'
+import { getTokenFromRequest, getUserIdFromToken } from './users/authentication'
+import { User } from './users/user.entity'
+import { UsersModule } from './users/users.module'
 
 @Module({
   imports: [
@@ -17,18 +18,18 @@ import { CommentsModule } from './comments/comments.module';
     GraphQLModule.forRoot({
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
-      context: async ({ req, res }) => {
+      context: async ({ req, res }): Promise<IContext> => {
         const baseContext = { req, res }
         try {
           const token = getTokenFromRequest(req)
           if (!token) return baseContext
           const userId = await getUserIdFromToken(token!)
-          const currentUser = await getConnection().getRepository(User).findOne(userId)
+          const user = await getConnection().getRepository(User).findOne(userId)
           return {
             ...baseContext,
-            currentUser
+            user,
           }
-        } catch(err) {
+        } catch (err) {
           return baseContext
         }
       },

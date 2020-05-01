@@ -7,14 +7,10 @@ import { User } from '../users/user.entity'
 
 @ObjectType()
 @Entity()
-@Can.register({
-  ownershipField: 'authorId',
-  permissions: [
-    Can.do(ActionScope.Create).as(UserScope.Authenticated),
-    Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.Owned),
-    Can.do(Can.everything()).as(UserScope.Authenticated).withRole('admin'),
-  ],
-})
+@Can.register(
+  Can.do(ActionScope.Read).as(UserScope.Authenticated),
+  Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
+)
 export class Comment extends BaseModel {
   @Field()
   @Column()

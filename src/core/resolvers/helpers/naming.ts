@@ -1,4 +1,4 @@
-import { Type } from '@nestjs/common';
+import { Type } from '@nestjs/common'
 
 export function getModelResolverName<TModel>(ModelCls: Type<TModel>): string {
   return ModelCls.name.toLocaleLowerCase()

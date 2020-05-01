@@ -1,8 +1,8 @@
 import { ForbiddenException } from '@nestjs/common'
-import { Resolver } from '@nestjs/graphql'
+import { Context, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { FAKE_CURRENT_USER } from '../core/can'
+import { IContext } from '../core/context'
 import { BASE_MODEL_FIELDS } from '../core/model'
 import {
   Create,
@@ -23,8 +23,11 @@ export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ]
   repo: Repository<Post>
 
   @CreateModelMutation(Post)
-  async create(@CreateModelArgs(Post, { type: CreatePostInput }) input: ICreateModelInput<Post>): Promise<IMutationResponse<Post>> {
-    const user = FAKE_CURRENT_USER
+  async create(
+    @CreateModelArgs(Post, { type: CreatePostInput }) input: ICreateModelInput<Post>,
+    @Context() context: IContext,
+  ): Promise<IMutationResponse<Post>> {
+    const user = context.user
     if (!user) {
       throw new ForbiddenException()
     }
@@ -33,6 +36,6 @@ export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ]
       ...input,
       authorId: user.id,
     }
-    return defaultCreateModelMutation(Post, this.repo, modifiedInput)
+    return defaultCreateModelMutation(Post, this.repo, modifiedInput, context)
   }
 }
