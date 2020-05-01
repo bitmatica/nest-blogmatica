@@ -33,8 +33,7 @@ export class Permission {
 }
 
 export interface RegisterPermissionsOptions {
-  permissions: Array<Permission>,
-  ownershipField?: string
+  permissions: Array<Permission>
 }
 
 export function registerPermissions(options: RegisterPermissionsOptions): CustomDecorator
@@ -78,11 +77,6 @@ export function checkPermissions<T>(context: IContext, action: ActionScope, to: 
   return new CombinedRecordScope(relevantPermissions.map(permission => permission.recordScope))
 }
 
-export function getOwnershipField<T>(to: Type<T>): string {
-  const entityConfig = getRegisteredPermissions(to)
-  return entityConfig?.ownershipField || 'userId'
-}
-
 const allActionScopes = [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
 
 interface IAllScopesOptions {
@@ -96,7 +90,6 @@ export const Can = {
   },
   register: registerPermissions,
   check: checkPermissions,
-  ownedBy: getOwnershipField,
   everything(options?: IAllScopesOptions): Array<ActionScope> {
     const except = options?.except || []
     return allActionScopes.filter(scope => except.indexOf(scope) < 0)
