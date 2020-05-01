@@ -1,8 +1,9 @@
 import { ForbiddenException, Type, UseGuards } from '@nestjs/common'
-import { Args, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
+import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { ActionScope, Can } from '../../can'
+import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IdInput } from '../decorators'
 import { updateModelResolverName } from '../helpers/naming'
@@ -16,7 +17,7 @@ import {
 import { JwtAuthGuard } from '../../../authentication/guards/jwt-auth.guard'
 
 export interface IUpdate<TModel> {
-  update(id: string, input: IUpdateModelInput<TModel>): Promise<MutationResponse<TModel>>
+  update(id: string, input: IUpdateModelInput<TModel>, context: IContext): Promise<MutationResponse<TModel>>
 }
 
 export function defaultUpdateModelInput<TModel>(modelClass: Type<TModel>, without?: Array<keyof TModel>): Type<IUpdateModelInput<TModel>> {
@@ -43,15 +44,13 @@ export function defaultUpdateModelResponse<TModel>(modelClass: Type<TModel>): Ty
 }
 
 export async function defaultUpdateModelMutation<TModel>(
- modelClass: Type<TModel>,
- repo: Repository<TModel>,
- id: string,
- input: IUpdateModelInput<TModel>,
+  modelClass: Type<TModel>,
+  repo: Repository<TModel>,
+  id: string,
+  input: IUpdateModelInput<TModel>,
+  context: IContext,
 ): Promise<MutationResponse<TModel>> {
   try {
-    const user = FAKE_CURRENT_USER
-    if (!user) throw new ForbiddenException()
-
     const model = await repo.findOne(id)
     if (!model) {
       return {
@@ -60,18 +59,12 @@ export async function defaultUpdateModelMutation<TModel>(
       }
     }
 
-    const recordScope = Can.check(user, ActionScope.Update, modelClass)
-    if (recordScope === RecordScope.None) throw new ForbiddenException()
-    if (recordScope === RecordScope.Owned) {
-      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
-      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
-      if (ownershipField !== user.id) {
-        throw new ForbiddenException(`Can not update ${modelClass.name} for other users.`)
-      }
-    }
+    const recordScope = Can.check(context, ActionScope.Update, modelClass)
+    if (!recordScope.validate(model, context)) throw new ForbiddenException()
 
     Object.assign(model, { ...input })
     await repo.save(model)
+
     return {
       success: true,
       message: `${modelClass.name} updated.`,
@@ -111,8 +104,12 @@ export function Update<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
 
     @UseGuards(JwtAuthGuard)
     @UpdateModelMutation(modelClass)
-    async update(@IdInput id: string, @UpdateModelArgs(modelClass) input: IUpdateModelInput<TModel>): Promise<IMutationResponse<TModel>> {
-      return defaultUpdateModelMutation(modelClass, this.repo, id, input)
+    async update(
+      @IdInput id: string,
+      @UpdateModelArgs(modelClass) input: IUpdateModelInput<TModel>,
+      @Context() context: IContext,
+    ): Promise<IMutationResponse<TModel>> {
+      return defaultUpdateModelMutation(modelClass, this.repo, id, input, context)
     }
   }
 

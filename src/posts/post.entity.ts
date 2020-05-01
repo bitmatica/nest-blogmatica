@@ -7,13 +7,10 @@ import { User } from '../users/user.entity'
 
 @ObjectType()
 @Entity()
-@Can.register({
-  ownershipField: 'authorId',
-  permissions: [
-    Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.All),
-    Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned).withRole('postWriter'),
-  ],
-})
+@Can.register(
+  Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.Owned('authorId')),
+  Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
+)
 export class Post extends BaseModel {
   @Field()
   @Column()

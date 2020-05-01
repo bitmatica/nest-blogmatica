@@ -5,11 +5,12 @@ import { MutationResponse } from '../core/resolvers/types'
 import { Create, CreateModelMutation } from '../core/resolvers/actions'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { IContext } from '../common/context'
 import { CurrentUser } from '../decorators/currentUser'
-import { AuthenticationService, clearTokenCookie, setTokenCookie } from '../authentication/authentication.service'
+import { AuthenticationService } from '../authentication/authentication.service'
 import { UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
+import { IContext } from '../core/context'
+import { clearTokenCookie, setTokenCookie } from './authentication'
 
 @InputType()
 export class CreateUserInput {
@@ -31,10 +32,10 @@ export class UserLoginArgs {
 
 @ObjectType()
 export class UserLoginResponse extends MutationResponse<User> {
-  @Field({nullable: true, name: 'user'})
+  @Field({ nullable: true, name: 'user' })
   model?: User
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
   token?: string
 }
 
@@ -48,7 +49,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
 
   @CreateModelMutation(User)
   async create(
-    @Args('input', { type: () => CreateUserInput }) input: CreateUserInput
+    @Args('input', { type: () => CreateUserInput }) input: CreateUserInput,
   ) {
     try {
       const model = new User()
@@ -71,7 +72,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
   @Mutation(returns => UserLoginResponse!)
   async login(
     @Args('input', { type: () => UserLoginArgs }) input: UserLoginArgs,
-    @Context() context: IContext
+    @Context() context: IContext,
   ) {
     try {
       const user = await this.authenticationService.validateUser(input.email, input.password)
@@ -81,30 +82,30 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
         success: true,
         message: 'Login successful!',
         model: user,
-        token: token
+        token: token,
       }
-    } catch(err) {
+    } catch (err) {
       return {
         success: false,
-        message: 'Login failed'
+        message: 'Login failed',
       }
     }
   }
 
   @Mutation(returns => MutationResponse!)
   async logout(
-    @Context() context: IContext
+    @Context() context: IContext,
   ) {
     try {
       clearTokenCookie(context.res)
       return {
         success: true,
-        message: 'Logout successful!'
+        message: 'Logout successful!',
       }
-    } catch(err) {
+    } catch (err) {
       return {
         success: false,
-        message: 'Logout failed'
+        message: 'Logout failed',
       }
     }
   }
@@ -112,7 +113,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
   @UseGuards(JwtAuthGuard)
   @Query(returns => User)
   async whoAmI(
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
   ) {
     return user
   }

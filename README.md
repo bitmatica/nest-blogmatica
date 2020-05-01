@@ -86,6 +86,7 @@ BE App Framework
 - [ ] Owned-record and other advanced authorization schemes
 - [ ] Authentication (email/password, oauth2, store/revoke tokens)
 - [ ] Resolver with REST data source
+- [ ] Env config (@credit-karma/dynamic-config?)
 - [ ] Query pagination
 - [ ] Query filtering
 - [ ] Query sorting
