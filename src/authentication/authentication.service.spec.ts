@@ -5,7 +5,6 @@ import { UsersModule } from '../users/users.module';
 import { AuthenticationService } from './authentication.service';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { LocalStrategy } from './strategies/local.strategy';
 
 describe('AuthService', () => {
   let service: AuthenticationService;
@@ -20,7 +19,7 @@ describe('AuthService', () => {
           signOptions: { expiresIn: '60s' },
         }),
       ],
-      providers: [AuthenticationService, LocalStrategy, JwtStrategy],
+      providers: [AuthenticationService, JwtStrategy],
     }).compile();
 
     service = module.get<AuthenticationService>(AuthenticationService);
