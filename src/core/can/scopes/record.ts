@@ -58,12 +58,12 @@ export class OwnedScope<T> extends BaseRecordScope<T> {
 
 export class CombinedRecordScope<T> extends BaseRecordScope<T> {
   constructor(private scopes: Array<IRecordScope<T>>) {
-    super();
+    super()
   }
 
   queryBuilder(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return (qb) => {
-      return this.scopes.map(scope => scope.queryBuilder(parentAlias, context)(qb)).join(" OR ")
+      return this.scopes.map(scope => scope.queryBuilder(parentAlias, context)(qb)).join(' OR ')
     }
   }
 
