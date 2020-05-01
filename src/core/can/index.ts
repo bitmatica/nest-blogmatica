@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core'
 import { User } from '../../users/user.entity'
 import { IContext } from '../context'
 import { ActionScope } from './scopes/action'
-import { BaseRecordScope, IRecordScope, RecordScope } from './scopes/record'
+import { AllScope, BaseRecordScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record';
 import { UserScope } from './scopes/user'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
@@ -67,12 +67,15 @@ export function checkPermissions<T>(context: IContext, action: ActionScope, to: 
     .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0)
     .filter(perm => perm.actions.indexOf(action) >= 0)
 
-  const scope = relevantPermissions.reduce((prev: IRecordScope<T>, perm: Permission) => {
-    return perm.recordScope.weight > prev.weight ? perm.recordScope : prev
-  }, RecordScope.None)
+  if (!relevantPermissions.length) {
+    return RecordScope.None
+  }
 
-  // If there is no user, trying to query for owned records will fail
-  return (!context.currentUser && scope.weight === 2) ? RecordScope.None : scope
+  if (relevantPermissions.find(permission => permission.recordScope instanceof AllScope)) {
+    return RecordScope.All
+  }
+
+  return new CombinedRecordScope(relevantPermissions.map(permission => permission.recordScope))
 }
 
 export function getOwnershipField<T>(to: Type<T>): string {
