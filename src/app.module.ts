@@ -1,13 +1,13 @@
-import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import * as databaseConfig from './database/config';
-import { PostsModule } from './posts/posts.module';
-import { UsersModule } from './users/users.module';
-import { getConnection } from 'typeorm';
-import { User } from './users/user.entity';
-import { getTokenFromRequest, getUserIdFromToken } from './users/authentication';
-import { CommentsModule } from './comments/comments.module';
+import { Module } from '@nestjs/common'
+import { GraphQLModule } from '@nestjs/graphql'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { getConnection } from 'typeorm'
+import { CommentsModule } from './comments/comments.module'
+import * as databaseConfig from './database/config'
+import { PostsModule } from './posts/posts.module'
+import { getTokenFromRequest, getUserIdFromToken } from './users/authentication'
+import { User } from './users/user.entity'
+import { UsersModule } from './users/users.module'
 
 @Module({
   imports: [
@@ -26,9 +26,9 @@ import { CommentsModule } from './comments/comments.module';
           const currentUser = await getConnection().getRepository(User).findOne(userId)
           return {
             ...baseContext,
-            currentUser
+            currentUser,
           }
-        } catch(err) {
+        } catch (err) {
           return baseContext
         }
       },

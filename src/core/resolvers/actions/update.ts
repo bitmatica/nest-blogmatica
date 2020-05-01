@@ -2,8 +2,8 @@ import { ForbiddenException, Type } from '@nestjs/common'
 import { Args, Field, InputType, Mutation, ObjectType, OmitType, PartialType, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { ActionScope, Can, RecordScope } from '../../can'
-import { FAKE_CONTEXT, FAKE_CURRENT_USER } from '../../context'
+import { ActionScope, Can } from '../../can'
+import { FAKE_CONTEXT } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IdInput } from '../decorators'
 import { updateModelResolverName } from '../helpers/naming'
@@ -43,10 +43,10 @@ export function defaultUpdateModelResponse<TModel>(modelClass: Type<TModel>): Ty
 }
 
 export async function defaultUpdateModelMutation<TModel>(
- modelClass: Type<TModel>,
- repo: Repository<TModel>,
- id: string,
- input: IUpdateModelInput<TModel>,
+  modelClass: Type<TModel>,
+  repo: Repository<TModel>,
+  id: string,
+  input: IUpdateModelInput<TModel>,
 ): Promise<MutationResponse<TModel>> {
   try {
     const context = FAKE_CONTEXT

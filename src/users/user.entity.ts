@@ -1,10 +1,10 @@
-import { Field, HideField, ObjectType } from '@nestjs/graphql';
+import { Field, HideField, ObjectType } from '@nestjs/graphql'
+import * as bcrypt from 'bcrypt'
 import { Column, Entity, OneToMany } from 'typeorm'
 import { Comment } from '../comments/comment.entity'
 import { ActionScope, Can, RecordScope, UserScope } from '../core/can'
 import { BaseModel } from '../core/model'
 import { Post } from '../posts/post.entity'
-import * as bcrypt from 'bcrypt'
 
 @ObjectType()
 @Entity()

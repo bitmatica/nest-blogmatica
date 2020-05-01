@@ -1,7 +1,6 @@
-import { ForbiddenException, Type } from '@nestjs/common'
+import { Type } from '@nestjs/common'
 import { Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
-import { ActionScope, Can, RecordScope } from '../../can'
 import { FAKE_CONTEXT } from '../../context'
 import { IdInput } from '../decorators'
 import { getModelResolverName } from '../helpers/naming'

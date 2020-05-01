@@ -1,13 +1,13 @@
-import { Args, Context, Field, InputType, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql';
-import { BaseModelResolver } from '../core/resolvers/model';
-import { User } from './user.entity';
-import { MutationResponse } from '../core/resolvers/types';
-import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './authentication';
-import { Create, CreateModelMutation } from '../core/resolvers/actions';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { IContext } from '../core/context';
-import { CurrentUser } from '../decorators/currentUser';
+import { Args, Context, Field, InputType, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { IContext } from '../core/context'
+import { Create, CreateModelMutation } from '../core/resolvers/actions'
+import { BaseModelResolver } from '../core/resolvers/model'
+import { MutationResponse } from '../core/resolvers/types'
+import { CurrentUser } from '../decorators/currentUser'
+import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './authentication'
+import { User } from './user.entity'
 
 @InputType()
 export class CreateUserInput {
@@ -29,10 +29,10 @@ export class UserLoginArgs {
 
 @ObjectType()
 export class UserLoginResponse extends MutationResponse<User> {
-  @Field({nullable: true, name: 'user'})
+  @Field({ nullable: true, name: 'user' })
   model?: User
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
   token?: string
 }
 
@@ -43,7 +43,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
 
   @CreateModelMutation(User)
   async create(
-    @Args('input', { type: () => CreateUserInput }) input: CreateUserInput
+    @Args('input', { type: () => CreateUserInput }) input: CreateUserInput,
   ) {
     try {
       const model = new User()
@@ -66,21 +66,21 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
   @Mutation(returns => UserLoginResponse!)
   async login(
     @Args('input', { type: () => UserLoginArgs }) input: UserLoginArgs,
-    @Context() context: IContext
+    @Context() context: IContext,
   ) {
     try {
       const user: User | undefined = await this.repo.findOne({ email: input.email })
       if (!user) {
         return {
           success: false,
-          message: 'User does not exist'
+          message: 'User does not exist',
         }
       }
       const correctPassword = await user.checkPassword(input.password)
       if (!correctPassword) {
         return {
           success: false,
-          message: 'Incorrect password'
+          message: 'Incorrect password',
         }
       }
       const token = await generateTokenForUserId(user.id)
@@ -89,37 +89,37 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
         success: true,
         message: 'Login successful!',
         model: user,
-        token: token
+        token: token,
       }
-    } catch(err) {
+    } catch (err) {
       return {
         success: false,
-        message: 'Login failed'
+        message: 'Login failed',
       }
     }
   }
 
   @Mutation(returns => MutationResponse!)
   async logout(
-    @Context() context: IContext
+    @Context() context: IContext,
   ) {
     try {
       clearTokenCookie(context.res)
       return {
         success: true,
-        message: 'Logout successful!'
+        message: 'Logout successful!',
       }
-    } catch(err) {
+    } catch (err) {
       return {
         success: false,
-        message: 'Logout failed'
+        message: 'Logout failed',
       }
     }
   }
 
   @Query(returns => User, { nullable: true })
   async whoAmI(
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
   ) {
     return user
   }

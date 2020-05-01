@@ -1,7 +1,7 @@
 import { Type } from '@nestjs/common'
 import { FieldNode, GraphQLResolveInfo, SelectionSetNode } from 'graphql'
 import { EntityMetadata, getConnection, SelectQueryBuilder } from 'typeorm'
-import { ActionScope, Can, RecordScope } from '../../can'
+import { ActionScope, Can } from '../../can'
 import { IContext } from '../../context'
 
 function getFieldNodes(selectionSet: SelectionSetNode | undefined): Array<FieldNode> | undefined {

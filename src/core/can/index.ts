@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core'
 import { User } from '../../users/user.entity'
 import { IContext } from '../context'
 import { ActionScope } from './scopes/action'
-import { AllScope, BaseRecordScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record';
+import { AllScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record'
 import { UserScope } from './scopes/user'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'

@@ -11,7 +11,7 @@ export const FAKE_CURRENT_USER: User = {
   id: 'af58075c-7f18-4312-90fb-a78ef1bb629a',
   email: '',
   passwordHash: '',
-  updatedAt:  new Date(),
+  updatedAt: new Date(),
   posts: Promise.resolve([]),
   async checkPassword(password: string): Promise<boolean> {
     return Promise.resolve(false)
