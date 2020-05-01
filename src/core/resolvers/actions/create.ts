@@ -82,6 +82,8 @@ export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: IAction
   )
 }
 
+function ApplyAuth<TModel>(modelClass: Type<TModel>, actionScope: ActionScope)
+
 export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
   @Resolver(() => modelClass, { isAbstract: true })
   class CreateModelResolverClass extends innerClass implements ICreate<TModel> {

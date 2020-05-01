@@ -6,11 +6,10 @@ import { Create, CreateModelMutation } from '../core/resolvers/actions'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { CurrentUser } from '../decorators/currentUser'
-import { AuthenticationService } from '../authentication/authentication.service'
+import { AuthenticationService, clearTokenCookie, setTokenCookie } from '../authentication/authentication.service'
 import { UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { IContext } from '../core/context'
-import { clearTokenCookie, setTokenCookie } from './authentication'
 
 @InputType()
 export class CreateUserInput {
