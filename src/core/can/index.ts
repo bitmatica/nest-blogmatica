@@ -63,8 +63,7 @@ export function checkPermissions<T>(context: IContext, action: ActionScope, to: 
 
   const currentUserScopes = getUserScopes(context.currentUser)
   const relevantPermissions = entityConfig.permissions
-    .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0)
-    .filter(perm => perm.actions.indexOf(action) >= 0)
+    .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0 && perm.actions.indexOf(action) >= 0)
 
   if (!relevantPermissions.length) {
     return RecordScope.None
