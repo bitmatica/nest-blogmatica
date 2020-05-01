@@ -3,7 +3,7 @@ import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, Resolv
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can } from '../../can'
-import { FAKE_CONTEXT, IContext } from '../../context'
+import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { createModelResolverName } from '../helpers/naming'
 import { IActionResolverArgsOptions, IActionResolverOptions, ICreateModelInput, MutationResponse } from '../types'
@@ -46,7 +46,7 @@ export async function defaultCreateModelMutation<TModel>(
     Object.assign(model, { ...input })
 
     const recordScope = Can.check(context, ActionScope.Create, modelClass)
-    if (!recordScope.validate(model, FAKE_CONTEXT)) throw new ForbiddenException()
+    if (!recordScope.validate(model, context)) throw new ForbiddenException()
 
     const saved = await repo.save(model)
 

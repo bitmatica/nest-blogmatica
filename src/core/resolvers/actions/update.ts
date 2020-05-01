@@ -3,7 +3,7 @@ import { Args, Context, Field, InputType, Mutation, ObjectType, OmitType, Partia
 import { InjectRepository } from '@nestjs/typeorm'
 import { getMetadataArgsStorage, Repository } from 'typeorm'
 import { ActionScope, Can } from '../../can'
-import { FAKE_CONTEXT, IContext } from '../../context'
+import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IdInput } from '../decorators'
 import { updateModelResolverName } from '../helpers/naming'
@@ -59,7 +59,7 @@ export async function defaultUpdateModelMutation<TModel>(
     }
 
     const recordScope = Can.check(context, ActionScope.Update, modelClass)
-    if (recordScope.validate(model, context)) throw new ForbiddenException()
+    if (!recordScope.validate(model, context)) throw new ForbiddenException()
 
     Object.assign(model, { ...input })
     await repo.save(model)
