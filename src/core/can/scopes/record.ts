@@ -89,6 +89,6 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
 export const RecordScope = {
   None: new NoneRecordScope(),
   Owned: <T>(fieldName: keyof T) => new OwnedRecordScope<T>(fieldName),
-  Where: <T, U extends keyof T>(classType: Type<T>, fieldName: U, compareTo: ComparatorValue<T[U]>) => new EqualsRecordScope(fieldName, compareTo),
+  Where: <T, U extends keyof T>(fieldName: U, compareTo: ComparatorValue<T[U]>) => new EqualsRecordScope(fieldName, compareTo),
   All: new AllRecordScope(),
 }
