@@ -24,9 +24,8 @@ function addNestedRelations<TModel>(queryBuilder: SelectQueryBuilder<TModel>, en
     const relationAlias = `${parentAlias}_${relation.propertyName}`
     const recordScope = Can.check(context, ActionScope.Read, relation.inverseEntityMetadata.target as Type<any>)
 
-    const qb = prevBuilder.leftJoinAndSelect(relationPath, relationAlias, recordScope.queryBuilder(relationAlias, context)(prevBuilder))
-
-    return addNestedRelations(qb, relation.inverseEntityMetadata, relationAlias, selections, context)
+    const nextBuilder = prevBuilder.leftJoinAndSelect(relationPath, relationAlias, recordScope.where(relationAlias, context)(prevBuilder))
+    return addNestedRelations(nextBuilder, relation.inverseEntityMetadata, relationAlias, selections, context)
   }, queryBuilder)
 }
 
@@ -49,7 +48,7 @@ export function constructQueryWithRelations<TModel>(rootClass: Type<TModel>, inf
   const query = conn.createQueryBuilder()
     .select(rootAlias)
     .from(rootClass, rootAlias)
-    .where(recordScope.queryBuilder(rootAlias, context))
+    .where(recordScope.where(rootAlias, context))
 
   return addNestedRelations(query, rootMetadata, rootAlias, rootSelections, context)
 }

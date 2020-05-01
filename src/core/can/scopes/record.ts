@@ -6,13 +6,13 @@ export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => string
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
 
-  queryBuilder(parentAlias: string, context: IContext): QueryBuilderFunction<T>
+  where(parentAlias: string, context: IContext): QueryBuilderFunction<T>
 }
 
 export abstract class BaseRecordScope<T> implements IRecordScope<T> {
   abstract validate(record: T, context: IContext): boolean
 
-  abstract queryBuilder(parentAlias: string, context: IContext): QueryBuilderFunction<T>
+  abstract where(parentAlias: string, context: IContext): QueryBuilderFunction<T>
 }
 
 export class NoneScope extends BaseRecordScope<any> {
@@ -20,7 +20,7 @@ export class NoneScope extends BaseRecordScope<any> {
     return false
   }
 
-  queryBuilder(): QueryBuilderFunction<any> {
+  where(): QueryBuilderFunction<any> {
     return () => {
       return 'true = false'
     }
@@ -32,7 +32,7 @@ export class AllScope extends BaseRecordScope<any> {
     return true
   }
 
-  queryBuilder(): QueryBuilderFunction<any> {
+  where(): QueryBuilderFunction<any> {
     return () => {
       return 'true = true'
     }
@@ -49,7 +49,7 @@ export class OwnedScope<T> extends BaseRecordScope<T> {
     return !!context.currentUser && context.currentUser.id === (ownershipField as unknown as string)
   }
 
-  queryBuilder(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
+  where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return () => {
       return context.currentUser ? `${parentAlias}.${this.fieldName} = '${context.currentUser.id}'` : 'true = false'
     }
@@ -61,9 +61,9 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
     super()
   }
 
-  queryBuilder(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
+  where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return (qb) => {
-      return this.scopes.map(scope => scope.queryBuilder(parentAlias, context)(qb)).join(' OR ')
+      return this.scopes.map(scope => scope.where(parentAlias, context)(qb)).join(' OR ')
     }
   }
 
