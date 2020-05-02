@@ -13,7 +13,9 @@ export type QueryBuilderFunction<T> = (
 
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
+
   filter(records: Array<T>, context: IContext): Array<T>
+
   where(
     parentAlias: string,
     context: IContext,
@@ -101,8 +103,12 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<
   }
 }
 
+type KeysOfType<T, U> = {
+  [P in keyof T]: T[P] extends U ? P : never
+}[keyof T]
+
 export class OwnedRecordScope<T> extends EqualsRecordScope<T, any> {
-  constructor(public fieldName: keyof T) {
+  constructor(public fieldName: KeysOfType<T, string>) {
     super(fieldName, ComputedValue.UserId as any)
   }
 }
@@ -140,7 +146,8 @@ export abstract class RecordScope {
 
   static All = new AllRecordScope()
 
-  static Owned = <T>(fieldName: keyof T) => new OwnedRecordScope<T>(fieldName)
+  static Owned = <T>(fieldName: KeysOfType<T, string>) =>
+    new OwnedRecordScope<T>(fieldName)
 
   static Where = <T, U extends keyof T>(
     fieldName: U,
