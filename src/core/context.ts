@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
+import { ModelId } from './model'
 
 export interface IUser {
-  id: string
+  id: ModelId
   roles: Array<string>
 }
 

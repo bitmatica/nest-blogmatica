@@ -1,5 +1,6 @@
 import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 import { IContext } from '../../context'
+import { ModelId } from '../../model'
 import { ComputedValue } from '../computedValues'
 
 export interface WhereQueryResult {
@@ -108,7 +109,7 @@ type KeysOfType<T, U> = {
 }[keyof T]
 
 export class OwnedRecordScope<T> extends EqualsRecordScope<T, any> {
-  constructor(public fieldName: KeysOfType<T, string>) {
+  constructor(public fieldName: KeysOfType<T, ModelId>) {
     super(fieldName, ComputedValue.UserId as any)
   }
 }
@@ -146,7 +147,7 @@ export abstract class RecordScope {
 
   static All = new AllRecordScope()
 
-  static Owned = <T>(fieldName: KeysOfType<T, string>) =>
+  static Owned = <T>(fieldName: KeysOfType<T, ModelId>) =>
     new OwnedRecordScope<T>(fieldName)
 
   static Where = <T, U extends keyof T>(
