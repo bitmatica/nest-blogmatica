@@ -17,6 +17,11 @@ function transformContextGetter<T, U>(ctxGetter: ContextGetter<T>, transform: Tr
 export class ComputedValue<T> {
   constructor(private contextGetter: ContextGetter<T>) {}
 
+  static Context = new ComputedValue((ctx) => ctx)
+  static Now = new ComputedValue(() => new Date())
+  static User = ComputedValue.Context.map(ctx => ctx.user)
+  static UserId = ComputedValue.User.map(user => user.id)
+
   map<U>(transform: TransformFunction<T, U>): ComputedValue<U> {
     return new ComputedValue(transformContextGetter(this.contextGetter, transform))
   }
@@ -25,8 +30,3 @@ export class ComputedValue<T> {
     return this.contextGetter(context)
   }
 }
-
-export const ContextValue = new ComputedValue((ctx) => ctx)
-export const NowValue = new ComputedValue(() => new Date())
-export const UserValue = ContextValue.map(ctx => ctx.user)
-export const UserIdValue = UserValue.map(user => user.id)

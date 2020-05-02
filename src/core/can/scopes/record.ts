@@ -1,6 +1,6 @@
 import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 import { IContext } from '../../context'
-import { ComputedValue, UserIdValue } from '../computedValues'
+import { ComputedValue } from '../computedValues'
 
 export interface WhereQueryResult {
   query: string,
@@ -83,7 +83,7 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> 
 
 export class OwnedRecordScope<T> extends EqualsRecordScope<T, any> {
   constructor(public fieldName: keyof T) {
-    super(fieldName, UserIdValue as any)
+    super(fieldName, ComputedValue.UserId as any)
   }
 }
 
