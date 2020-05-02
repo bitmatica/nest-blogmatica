@@ -9,7 +9,7 @@ export abstract class BaseUserScope implements IUserScope {
 }
 
 export class AnyoneUserScope extends BaseUserScope {
-  applies(): boolean {
+  applies(context: IContext): boolean {
     return true
   }
 }
