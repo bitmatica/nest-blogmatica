@@ -12,13 +12,13 @@ export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => WhereQueryR
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
 
-  where(parentAlias: string, context: IContext): QueryBuilderFunction<T>
+  where(parentAlias: string, context: IContext, index?: number): QueryBuilderFunction<T>
 }
 
 export abstract class BaseRecordScope<T> implements IRecordScope<T> {
   abstract validate(record: T, context: IContext): boolean
 
-  abstract where(parentAlias: string, context: IContext): QueryBuilderFunction<T>
+  abstract where(parentAlias: string, context: IContext, index?: number): QueryBuilderFunction<T>
 }
 
 export class NoneRecordScope extends BaseRecordScope<any> {
@@ -62,7 +62,7 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> 
     return fieldValue === compareToValue
   }
 
-  where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
+  where(parentAlias: string, context: IContext, index = 0): QueryBuilderFunction<T> {
     return () => {
       const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
       if (!compareToValue) {
@@ -71,9 +71,7 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> 
         }
       }
 
-      // TODO: Do we need to randomize this param name to avoid collision?
-      const paramName = `${parentAlias}_${this.fieldName}`
-
+      const paramName = `${parentAlias}_${this.fieldName}_${index}`
       return {
         query: `${parentAlias}.${this.fieldName} = :${paramName}`,
         parameters: {
@@ -98,7 +96,7 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
   where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return (qb) => {
       return this.scopes
-        .map(scope => scope.where(parentAlias, context)(qb))
+        .map((scope, index) => scope.where(parentAlias, context, index)(qb))
         .reduce((prev, next) => {
           return {
             query: `${prev.query} OR ${next.query}`,
