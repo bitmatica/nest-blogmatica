@@ -1,19 +1,38 @@
-import { SelectQueryBuilder } from 'typeorm'
+import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 import { IContext } from '../../context'
-import { ComputedValue, UserIdValue } from '../computedValues'
+import { ComputedValue } from '../computedValues'
 
-export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => string
+export interface WhereQueryResult {
+  query: string
+  parameters?: ObjectLiteral
+}
+
+export type QueryBuilderFunction<T> = (
+  qb: SelectQueryBuilder<T>,
+) => WhereQueryResult
 
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
-
-  where(parentAlias: string, context: IContext): QueryBuilderFunction<T>
+  filter(records: Array<T>, context: IContext): Array<T>
+  where(
+    parentAlias: string,
+    context: IContext,
+    index?: number,
+  ): QueryBuilderFunction<T>
 }
 
 export abstract class BaseRecordScope<T> implements IRecordScope<T> {
   abstract validate(record: T, context: IContext): boolean
 
-  abstract where(parentAlias: string, context: IContext): QueryBuilderFunction<T>
+  abstract where(
+    parentAlias: string,
+    context: IContext,
+    index?: number,
+  ): QueryBuilderFunction<T>
+
+  filter(records: Array<T>, context: IContext): Array<T> {
+    return records.filter(record => this.validate(record, context))
+  }
 }
 
 export class NoneRecordScope extends BaseRecordScope<any> {
@@ -23,7 +42,9 @@ export class NoneRecordScope extends BaseRecordScope<any> {
 
   where(): QueryBuilderFunction<any> {
     return () => {
-      return 'true = false'
+      return {
+        query: 'true = false',
+      }
     }
   }
 }
@@ -35,43 +56,54 @@ export class AllRecordScope extends BaseRecordScope<any> {
 
   where(): QueryBuilderFunction<any> {
     return () => {
-      return 'true = true'
+      return {
+        query: 'true = true',
+      }
     }
   }
 }
 
 export type ComparatorValue<T> = ComputedValue<T> | T
 
-// TODO: Escape strings? Add additional formatters for other types like Date
-function quoteSqlParam(arg: any): string {
-  if (typeof arg === 'string') {
-    return `'${arg}'`
-  }
-  return arg.toString()
-}
-
-export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> {
+export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<
+  T
+> {
   constructor(public fieldName: U, public value: ComputedValue<T[U]> | T[U]) {
     super()
   }
 
   validate(model: T, context: IContext): boolean {
     const fieldValue = model[this.fieldName]
-    const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
+    const compareToValue =
+      this.value instanceof ComputedValue ? this.value.get(context) : this.value
     return fieldValue === compareToValue
   }
 
-  where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
+  where(
+    parentAlias: string,
+    context: IContext,
+    index = 0,
+  ): QueryBuilderFunction<T> {
     return () => {
-      const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
-      return compareToValue ? `${parentAlias}.${this.fieldName} = ${quoteSqlParam(compareToValue)}` : 'true = false'
+      const compareToValue =
+        this.value instanceof ComputedValue
+          ? this.value.get(context)
+          : this.value
+
+      const paramName = `${parentAlias}_${this.fieldName}_${index}`
+      return {
+        query: `${parentAlias}.${this.fieldName} = :${paramName}`,
+        parameters: {
+          [paramName]: compareToValue,
+        },
+      }
     }
   }
 }
 
 export class OwnedRecordScope<T> extends EqualsRecordScope<T, any> {
   constructor(public fieldName: keyof T) {
-    super(fieldName, UserIdValue as any)
+    super(fieldName, ComputedValue.UserId as any)
   }
 }
 
@@ -81,8 +113,18 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
   }
 
   where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
-    return (qb) => {
-      return this.scopes.map(scope => scope.where(parentAlias, context)(qb)).join(' OR ')
+    return qb => {
+      return this.scopes
+        .map((scope, index) => scope.where(parentAlias, context, index)(qb))
+        .reduce((prev, next) => {
+          return {
+            query: `${prev.query} OR ${next.query}`,
+            parameters: {
+              ...prev.parameters,
+              ...next.parameters,
+            },
+          }
+        })
     }
   }
 
@@ -100,5 +142,8 @@ export abstract class RecordScope {
 
   static Owned = <T>(fieldName: keyof T) => new OwnedRecordScope<T>(fieldName)
 
-  static Where = <T, U extends keyof T>(fieldName: U, compareTo: ComparatorValue<T[U]>) => new EqualsRecordScope(fieldName, compareTo)
+  static Where = <T, U extends keyof T>(
+    fieldName: U,
+    compareTo: ComparatorValue<T[U]>,
+  ) => new EqualsRecordScope(fieldName, compareTo)
 }

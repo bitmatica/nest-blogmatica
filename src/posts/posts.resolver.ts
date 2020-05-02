@@ -15,16 +15,22 @@ import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
 
-const CreatePostInput = defaultCreateModelInput(Post, [ 'authorId', ...BASE_MODEL_FIELDS ])
+const CreatePostInput = defaultCreateModelInput(Post, [
+  'authorId',
+  ...BASE_MODEL_FIELDS,
+])
 
 @Resolver(() => Post)
-export class PostsResolver extends BaseModelResolver(Post, { without: [ Create ] }) {
+export class PostsResolver extends BaseModelResolver(Post, {
+  without: [Create],
+}) {
   @InjectRepository(Post)
   repo: Repository<Post>
 
   @CreateModelMutation(Post)
   async create(
-    @CreateModelArgs(Post, { type: CreatePostInput }) input: ICreateModelInput<Post>,
+    @CreateModelArgs(Post, { type: CreatePostInput })
+    input: ICreateModelInput<Post>,
     @Context() context: IContext,
   ): Promise<IMutationResponse<Post>> {
     const user = context.user

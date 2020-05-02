@@ -1,15 +1,28 @@
-import { Args, Context, Field, InputType, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql'
-import { BaseModelResolver } from '../core/resolvers/model'
-import { User } from './user.entity'
-import { MutationResponse } from '../core/resolvers/types'
-import { Create, CreateModelMutation } from '../core/resolvers/actions'
+import { UseGuards } from '@nestjs/common'
+import {
+  Args,
+  Context,
+  Field,
+  InputType,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+} from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { CurrentUser } from '../decorators/currentUser'
-import { AuthenticationService, clearTokenCookie, setTokenCookie } from '../authentication/authentication.service'
-import { UseGuards } from '@nestjs/common'
+import {
+  AuthenticationService,
+  clearTokenCookie,
+  setTokenCookie,
+} from '../authentication/authentication.service'
 import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { IContext } from '../core/context'
+import { Create, CreateModelMutation } from '../core/resolvers/actions'
+import { BaseModelResolver } from '../core/resolvers/model'
+import { MutationResponse } from '../core/resolvers/types'
+import { CurrentUser } from '../decorators/currentUser'
+import { User } from './user.entity'
 
 @InputType()
 export class CreateUserInput {
@@ -39,11 +52,14 @@ export class UserLoginResponse extends MutationResponse<User> {
 }
 
 @Resolver(() => User)
-export class UsersResolver extends BaseModelResolver(User, { without: [ Create ] }) {
+export class UsersResolver extends BaseModelResolver(User, {
+  without: [Create],
+}) {
   @InjectRepository(User)
   protected repo: Repository<User>
+
   constructor(private readonly authenticationService: AuthenticationService) {
-    super();
+    super()
   }
 
   @CreateModelMutation(User)
@@ -68,15 +84,20 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     }
   }
 
-  @Mutation(returns => UserLoginResponse!)
+  @Mutation(returns => UserLoginResponse)
   async login(
     @Args('input', { type: () => UserLoginArgs }) input: UserLoginArgs,
     @Context() context: IContext,
   ) {
     try {
-      const user = await this.authenticationService.validateUser(input.email, input.password)
+      const user = await this.authenticationService.validateUser(
+        input.email,
+        input.password,
+      )
       const token = await this.authenticationService.login(user!)
+
       setTokenCookie(context.res, token)
+
       return {
         success: true,
         message: 'Login successful!',
@@ -91,10 +112,8 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     }
   }
 
-  @Mutation(returns => MutationResponse!)
-  async logout(
-    @Context() context: IContext,
-  ) {
+  @Mutation(returns => MutationResponse)
+  async logout(@Context() context: IContext) {
     try {
       clearTokenCookie(context.res)
       return {
@@ -111,9 +130,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
 
   @UseGuards(JwtAuthGuard)
   @Query(returns => User)
-  async whoAmI(
-    @CurrentUser() user: User,
-  ) {
+  async whoAmI(@CurrentUser() user: User) {
     return user
   }
 }

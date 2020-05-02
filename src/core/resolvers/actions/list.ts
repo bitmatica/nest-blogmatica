@@ -13,28 +13,38 @@ export interface IList<TModel> {
 }
 
 export function defaultListModelResponse<TModel>(modelClass: Type<TModel>) {
-  return [ modelClass ]
+  return [modelClass]
 }
 
-export function defaultListModelQuery<TModel>(modelClass: Type<TModel>, context: IContext, info: GraphQLResolveInfo): Promise<Array<TModel>> {
+export function defaultListModelQuery<TModel>(
+  modelClass: Type<TModel>,
+  context: IContext,
+  info: GraphQLResolveInfo,
+): Promise<Array<TModel>> {
   return constructQueryWithRelations(modelClass, info, context).getMany()
 }
 
-export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
+export function ListModelQuery<TModel>(
+  modelClass: Type<TModel>,
+  opts?: IActionResolverOptions,
+) {
   const returns = opts?.returns || defaultListModelResponse(modelClass)
-  return Query(
-    ret => returns,
-    { name: listModelsResolverName(modelClass) },
-  )
+  return Query(ret => returns, { name: listModelsResolverName(modelClass) })
 }
 
-export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IList<TModel>> {
+export function List<TModel>(
+  modelClass: Type<TModel>,
+  innerClass: Type<any>,
+): Type<IList<TModel>> {
   @Resolver(() => modelClass, { isAbstract: true })
   class ListModelResolverClass extends innerClass implements IList<TModel> {
 
     @CanAuth(modelClass, ActionScope.Read)
     @ListModelQuery(modelClass)
-    async list(@Context() context: IContext, @Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
+    async list(
+      @Context() context: IContext,
+      @Info() info: GraphQLResolveInfo,
+    ): Promise<Array<TModel>> {
       return defaultListModelQuery(modelClass, context, info)
     }
   }

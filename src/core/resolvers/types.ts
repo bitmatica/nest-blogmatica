@@ -34,24 +34,26 @@ export abstract class MutationResponse<T> implements IMutationResponse<T> {
   model?: T
 }
 
-
 export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
 
 export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
 
-export declare type ResolverAction<T> = ((modelClass: Type<T>, innerClass: Type<any>) => Type<any>)
+export declare type ResolverAction<T> = (
+  modelClass: Type<T>,
+  innerClass: Type<any>,
+) => Type<any>
 
 export interface IActionResolverOptions<T = any> {
   returns?: Type<any>
-  name?: string,
+  name?: string
 }
 
 export interface IActionResolverArgsOptions<T = any> {
-  type?: Type<T>,
-  name?: string,
+  type?: Type<T>
+  name?: string
 }
 
 export interface IBaseResolverOptions<T> {
-  with?: Array<ResolverAction<T>>,
+  with?: Array<ResolverAction<T>>
   without?: Array<ResolverAction<T>>
 }

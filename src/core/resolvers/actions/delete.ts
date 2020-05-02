@@ -44,16 +44,20 @@ export async function defaultDeleteModelMutation<TModel>(
   }
 }
 
-export function DeleteModelMutation<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
+export function DeleteModelMutation<TModel>(
+  modelClass: Type<TModel>,
+  opts?: IActionResolverOptions,
+) {
   const returns = opts?.returns || DeletionResponse
-  return Mutation(
-    ret => returns,
-    { name: opts?.name || deleteModelResolverName(modelClass) },
-  )
+  return Mutation(ret => returns, {
+    name: opts?.name || deleteModelResolverName(modelClass),
+  })
 }
 
-export function Delete<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IDelete<TModel>> {
-
+export function Delete<TModel>(
+  modelClass: Type<TModel>,
+  innerClass: Type<any>,
+): Type<IDelete<TModel>> {
   @Resolver(() => modelClass, { isAbstract: true })
   class DeleteModelResolverClass extends innerClass implements IDelete<TModel> {
     @InjectRepository(modelClass)
@@ -61,7 +65,10 @@ export function Delete<TModel>(modelClass: Type<TModel>, innerClass: Type<any>):
 
     @CanAuth(modelClass, ActionScope.Delete)
     @DeleteModelMutation(modelClass)
-    async delete(@IdInput id: string, @Context() context: IContext): Promise<DeletionResponse> {
+    async delete(
+      @IdInput id: string,
+      @Context() context: IContext,
+    ): Promise<DeletionResponse> {
       return defaultDeleteModelMutation(modelClass, this.repo, id, context)
     }
   }

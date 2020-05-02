@@ -1,4 +1,4 @@
-import { Resolver } from '@nestjs/graphql';
+import { Resolver } from '@nestjs/graphql'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { Comment } from './comment.entity'
 

@@ -17,12 +17,20 @@ export class User extends BaseModel {
   @Column()
   passwordHash: string
 
-  @Field(type => [ Post ])
-  @OneToMany(type => Post, post => post.author, { lazy: true })
+  @Field(type => [Post])
+  @OneToMany(
+    type => Post,
+    post => post.author,
+    { lazy: true },
+  )
   posts: Promise<Array<Post>>
 
-  @Field(type => [ Comment ])
-  @OneToMany(type => Comment, comment => comment.author, { lazy: true })
+  @Field(type => [Comment])
+  @OneToMany(
+    type => Comment,
+    comment => comment.author,
+    { lazy: true },
+  )
   comments: Promise<Array<Comment>>
 
   // Placeholder until we have a real solution

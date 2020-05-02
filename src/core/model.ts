@@ -1,5 +1,9 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql'
-import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import {
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm'
 
 @ObjectType()
 export abstract class BaseModel {
@@ -16,4 +20,8 @@ export abstract class BaseModel {
   updatedAt: Date
 }
 
-export const BASE_MODEL_FIELDS: Array<keyof BaseModel> = [ 'id', 'createdAt', 'updatedAt' ]
+export const BASE_MODEL_FIELDS: Array<keyof BaseModel> = [
+  'id',
+  'createdAt',
+  'updatedAt',
+]
