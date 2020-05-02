@@ -65,11 +65,6 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> 
   where(parentAlias: string, context: IContext, index = 0): QueryBuilderFunction<T> {
     return () => {
       const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
-      if (!compareToValue) {
-        return {
-          query: 'true = false',
-        }
-      }
 
       const paramName = `${parentAlias}_${this.fieldName}_${index}`
       return {
