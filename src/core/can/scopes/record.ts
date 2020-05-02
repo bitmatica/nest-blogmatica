@@ -11,7 +11,7 @@ export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => WhereQueryR
 
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
-
+  filter(records: Array<T>, context: IContext): Array<T>
   where(parentAlias: string, context: IContext, index?: number): QueryBuilderFunction<T>
 }
 
@@ -19,6 +19,10 @@ export abstract class BaseRecordScope<T> implements IRecordScope<T> {
   abstract validate(record: T, context: IContext): boolean
 
   abstract where(parentAlias: string, context: IContext, index?: number): QueryBuilderFunction<T>
+
+  filter(records: Array<T>, context: IContext): Array<T> {
+    return records.filter(record => this.validate(record, context))
+  }
 }
 
 export class NoneRecordScope extends BaseRecordScope<any> {
