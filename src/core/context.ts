@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 
 export interface IUser {
   id: string
+  roles: Array<string>
 }
 
 export interface IContext {

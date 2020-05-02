@@ -7,10 +7,6 @@ import { User } from '../users/user.entity'
 
 @ObjectType()
 @Entity()
-@Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Authenticated),
-  Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
-)
 export class Comment extends BaseModel {
   @Field()
   @Column()
@@ -30,3 +26,7 @@ export class Comment extends BaseModel {
   @Column()
   postId: string
 }
+
+Can.register(Comment)
+  .do(ActionScope.Read, { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
+  .do(Can.everything(), { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })

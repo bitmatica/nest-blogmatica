@@ -7,10 +7,6 @@ import { User } from '../users/user.entity'
 
 @ObjectType()
 @Entity()
-@Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Anyone).to(RecordScope.Owned('authorId')),
-  Can.do(ActionScope.Create).as(UserScope.Authenticated).to(RecordScope.Owned('authorId')),
-)
 export class Post extends BaseModel {
   @Field()
   @Column()
@@ -31,3 +27,8 @@ export class Post extends BaseModel {
   @OneToMany(type => Comment, comment => comment.post, { lazy: true })
   comments: Promise<Array<Comment>>
 }
+
+Can.register(Post)
+  // .do(ActionScope.Read, { as: UserScope.Where((ctx) => ctx.user?.id === 'af58075c-7f18-4312-90fb-a78ef1bb629a'), to: RecordScope.Where('title', 'New title') })
+  .do(ActionScope.Read, { as: UserScope.WithRole('admin'), to: RecordScope.Where('title', 'New title') })
+  // .do(ActionScope.Create, { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
