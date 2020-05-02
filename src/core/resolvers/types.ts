@@ -45,7 +45,10 @@ type RemoveKeysOfType<T, U> = {
 
 type OmitRelationKeys<T> = RemoveKeysOfType<
   T,
-  PromiseLike<BaseModel> | PromiseLike<Array<BaseModel>>
+  | PromiseLike<BaseModel>
+  | PromiseLike<Array<BaseModel>>
+  | BaseModel
+  | Array<BaseModel>
 >
 
 type FilterInputKeys<T> = OmitBaseModelKeys<T, keyof T> & OmitRelationKeys<T>
