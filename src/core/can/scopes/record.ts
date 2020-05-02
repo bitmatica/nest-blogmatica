@@ -1,8 +1,13 @@
-import { SelectQueryBuilder } from 'typeorm'
+import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 import { IContext } from '../../context'
 import { ComputedValue, UserIdValue } from '../computedValues'
 
-export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => string
+export interface WhereQueryResult {
+  query: string,
+  parameters?: ObjectLiteral
+}
+
+export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => WhereQueryResult
 
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
@@ -23,7 +28,9 @@ export class NoneRecordScope extends BaseRecordScope<any> {
 
   where(): QueryBuilderFunction<any> {
     return () => {
-      return 'true = false'
+      return {
+        query: 'true = false',
+      }
     }
   }
 }
@@ -35,20 +42,14 @@ export class AllRecordScope extends BaseRecordScope<any> {
 
   where(): QueryBuilderFunction<any> {
     return () => {
-      return 'true = true'
+      return {
+        query: 'true = true',
+      }
     }
   }
 }
 
 export type ComparatorValue<T> = ComputedValue<T> | T
-
-// TODO: Escape strings? Add additional formatters for other types like Date
-function quoteSqlParam(arg: any): string {
-  if (typeof arg === 'string') {
-    return `'${arg}'`
-  }
-  return arg.toString()
-}
 
 export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> {
   constructor(public fieldName: U, public value: ComputedValue<T[U]> | T[U]) {
@@ -64,7 +65,21 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> 
   where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return () => {
       const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
-      return compareToValue ? `${parentAlias}.${this.fieldName} = ${quoteSqlParam(compareToValue)}` : 'true = false'
+      if (!compareToValue) {
+        return {
+          query: 'true = false',
+        }
+      }
+
+      // TODO: Do we need to randomize this param name to avoid collision?
+      const paramName = `${parentAlias}_${this.fieldName}`
+
+      return {
+        query: `${parentAlias}.${this.fieldName} = :${paramName}`,
+        parameters: {
+          [paramName]: compareToValue,
+        },
+      }
     }
   }
 }
@@ -82,7 +97,17 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
 
   where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return (qb) => {
-      return this.scopes.map(scope => scope.where(parentAlias, context)(qb)).join(' OR ')
+      return this.scopes
+        .map(scope => scope.where(parentAlias, context)(qb))
+        .reduce((prev, next) => {
+          return {
+            query: `${prev.query} OR ${next.query}`,
+            parameters: {
+              ...prev.parameters,
+              ...next.parameters,
+            },
+          }
+        })
     }
   }
 
