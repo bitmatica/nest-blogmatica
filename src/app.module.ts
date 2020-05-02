@@ -23,8 +23,12 @@ import { UsersModule } from './users/users.module'
         try {
           const token = getTokenFromRequest(req)
           if (!token) return baseContext
-          const userId = await getUserIdFromToken(token!)
-          const user = await getConnection().getRepository(User).findOne(userId)
+
+          const userId = await getUserIdFromToken(token)
+          const user = await getConnection()
+            .getRepository(User)
+            .findOne(userId)
+
           return {
             ...baseContext,
             user,

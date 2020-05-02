@@ -13,14 +13,22 @@ export class Comment extends BaseModel {
   body: string
 
   @Field(type => User)
-  @ManyToOne(type => User, author => author.comments, { nullable: false, lazy: true })
+  @ManyToOne(
+    type => User,
+    author => author.comments,
+    { nullable: false, lazy: true },
+  )
   author: Promise<User>
 
   @Column()
   authorId: string
 
   @Field(type => Post)
-  @ManyToOne(type => Post, post => post.comments, { nullable: false, lazy: true })
+  @ManyToOne(
+    type => Post,
+    post => post.comments,
+    { nullable: false, lazy: true },
+  )
   post: Promise<Post>
 
   @Column()
@@ -29,4 +37,7 @@ export class Comment extends BaseModel {
 
 Can.register(Comment)
   .do(ActionScope.Read)
-  .do(Can.everything(), { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
+  .do(Can.everything(), {
+    as: UserScope.Authenticated,
+    to: RecordScope.Owned('authorId'),
+  })

@@ -23,30 +23,42 @@ export const clearTokenCookie = (res: Express.Response) => {
   res.clearCookie(AUTH_TOKEN_COOKIE)
 }
 
-export const getTokenFromCookie = (req: Express.Request): string | undefined => {
+export const getTokenFromCookie = (
+  req: Express.Request,
+): string | undefined => {
   return req.cookies[AUTH_TOKEN_COOKIE]
 }
 
-export const getTokenFromRequest = (req: Express.Request): string | undefined => {
-  return getTokenFromHeader(req) || getTokenFromCookie(req)
-}
-
-export const getTokenFromHeader = (req: Express.Request): string | undefined => {
+export const getTokenFromHeader = (
+  req: Express.Request,
+): string | undefined => {
   return req.header('Authorization')?.replace('Bearer ', '')
 }
 
-export const getUserIdFromToken = async (token: string): Promise<string | undefined> => {
+export const getTokenFromRequest = (
+  req: Express.Request,
+): string | undefined => {
+  return getTokenFromHeader(req) || getTokenFromCookie(req)
+}
+
+export const getUserIdFromToken = async (
+  token: string,
+): Promise<string | undefined> => {
   const secret = await getSigningToken()
   const payload: IJWTPayload = JWT.verify(token, secret) as IJWTPayload
   const tokenExpiration = payload.createdAt || 0
 
-  if (DateTime.utc() > DateTime.fromMillis(tokenExpiration).plus({ hours: 12 })) {
+  if (
+    DateTime.utc() > DateTime.fromMillis(tokenExpiration).plus({ hours: 12 })
+  ) {
     return undefined
   }
   return payload.userId
 }
 
-export const generateTokenForUserId = async (userId: string): Promise<string> => {
+export const generateTokenForUserId = async (
+  userId: string,
+): Promise<string> => {
   const secret = await getSigningToken()
   const payload: IJWTPayload = {
     version: AUTH_TOKEN_VERSION,
@@ -55,4 +67,3 @@ export const generateTokenForUserId = async (userId: string): Promise<string> =>
   }
   return JWT.sign(payload, secret)
 }
-

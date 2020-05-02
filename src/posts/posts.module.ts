@@ -4,7 +4,7 @@ import { Post } from './post.entity'
 import { PostsResolver } from './posts.resolver'
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([ Post ]) ],
-  providers: [ PostsResolver ],
+  imports: [TypeOrmModule.forFeature([Post])],
+  providers: [PostsResolver],
 })
 export class PostsModule {}

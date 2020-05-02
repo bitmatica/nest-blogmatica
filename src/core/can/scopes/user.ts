@@ -9,7 +9,7 @@ export abstract class BaseUserScope implements IUserScope {
 }
 
 export class AnyoneUserScope extends BaseUserScope {
-  applies(context: IContext): boolean {
+  applies(): boolean {
     return true
   }
 }
@@ -23,7 +23,9 @@ export class AuthenticatedUserScope extends BaseUserScope {
 export type ApplyChecker = (context: IContext) => boolean
 
 export class WhereUserScope extends BaseUserScope {
-  constructor(private checker: ApplyChecker) {super()}
+  constructor(private checker: ApplyChecker) {
+    super()
+  }
 
   applies(context: IContext): boolean {
     return this.checker(context)
@@ -34,8 +36,9 @@ export abstract class UserScope {
   static Anyone = new AnyoneUserScope()
   static Authenticated = new AuthenticatedUserScope()
   static Where = (checker: ApplyChecker) => new WhereUserScope(checker)
-  static WithRole = (role: string) => new WhereUserScope((context) => {
-    const roles = context.user?.roles
-    return !!roles && roles.indexOf(role) >= 0
-  })
+  static WithRole = (role: string) =>
+    new WhereUserScope(context => {
+      const roles = context.user?.roles
+      return !!roles && roles.indexOf(role) >= 0
+    })
 }
