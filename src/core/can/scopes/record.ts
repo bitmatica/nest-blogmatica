@@ -40,6 +40,16 @@ export class AllRecordScope extends BaseRecordScope<any> {
   }
 }
 
+export type ComparatorValue<T> = ComputedValue<T> | T
+
+// TODO: Escape strings? Add additional formatters for other types like Date
+function quoteSqlParam(arg: any): string {
+  if (typeof arg === 'string') {
+    return `'${arg}'`
+  }
+  return arg.toString()
+}
+
 export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> {
   constructor(public fieldName: U, public value: ComputedValue<T[U]> | T[U]) {
     super()
@@ -54,7 +64,7 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> 
   where(parentAlias: string, context: IContext): QueryBuilderFunction<T> {
     return () => {
       const compareToValue = this.value instanceof ComputedValue ? this.value.get(context) : this.value
-      return compareToValue ? `${parentAlias}.${this.fieldName} = '${compareToValue}'` : 'true = false'
+      return compareToValue ? `${parentAlias}.${this.fieldName} = ${quoteSqlParam(compareToValue)}` : 'true = false'
     }
   }
 }
@@ -83,8 +93,12 @@ export class CombinedRecordScope<T> extends BaseRecordScope<T> {
   }
 }
 
-export const RecordScope = {
-  None: new NoneRecordScope(),
-  Owned: (fieldName: string) => new OwnedRecordScope(fieldName),
-  All: new AllRecordScope(),
+export abstract class RecordScope {
+  static None = new NoneRecordScope()
+
+  static All = new AllRecordScope()
+
+  static Owned = <T>(fieldName: keyof T) => new OwnedRecordScope<T>(fieldName)
+
+  static Where = <T, U extends keyof T>(fieldName: U, compareTo: ComparatorValue<T[U]>) => new EqualsRecordScope(fieldName, compareTo)
 }

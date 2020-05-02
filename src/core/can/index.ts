@@ -1,20 +1,16 @@
 import { SetMetadata, Type } from '@nestjs/common'
-import { CustomDecorator } from '@nestjs/common/decorators/core/set-metadata.decorator'
 import { Reflector } from '@nestjs/core'
+import isArray from 'lodash/isArray'
 import { IContext } from '../context'
 import { Permission } from './permission'
 import { ActionScope } from './scopes/action'
 import { AllRecordScope, CombinedRecordScope, IRecordScope, RecordScope } from './scopes/record'
-import { getUserScopes, UserScope } from './scopes/user'
 import every from 'lodash/every'
+import { IUserScope, UserScope } from './scopes/user'
 
 export const PERMISSION_METADATA_KEY = 'PERMISSION_METADATA_KEY'
 
 export { ActionScope, RecordScope, UserScope }
-
-export interface RegisterPermissionsOptions {
-  permissions: Array<Permission>
-}
 
 interface IAllScopesOptions {
   except?: Array<ActionScope>
@@ -24,38 +20,80 @@ export interface ICanDoOptions {
   defaultActionScopes?: Array<ActionScope>
 }
 
+export interface IBasePermissionOptions<T> {
+  to?: IRecordScope<T>,
+  as?: IUserScope,
+}
+
+export interface IPermissionsWithActions<T> extends IBasePermissionOptions<T> {
+  do: Array<ActionScope>,
+}
+
+export class PermissionGroup<T> {
+  readonly registeredPermissions: Array<Permission<T>>
+
+  constructor(private classType: Type<T>, initialPermissions?: Array<Permission<T>>) {
+    this.registeredPermissions = initialPermissions || []
+  }
+
+  doAll(...perms: Array<Permission<T>>): this {
+    this.registeredPermissions.concat(perms)
+    return this
+  }
+
+  do(options: IPermissionsWithActions<T>): this
+  do(action: ActionScope, options?: IBasePermissionOptions<T>): this
+  do(actions: Array<ActionScope>, options?: IBasePermissionOptions<T>): this
+  do(actionOrOptions: ActionScope | Array<ActionScope> | IPermissionsWithActions<T>, options?: IBasePermissionOptions<T>): this {
+    const actions: Array<ActionScope> = []
+    if (actionOrOptions instanceof ActionScope) {
+      actions.push(actionOrOptions)
+    } else if (isArray(actionOrOptions)) {
+      actions.concat(actionOrOptions)
+    } else {
+      actions.concat(actionOrOptions.do || [])
+    }
+    const perm = new Permission<T>().do(...actions)
+
+    const mergedOptions = actionOrOptions instanceof ActionScope || isArray(actionOrOptions) ? options : actionOrOptions
+    if (mergedOptions?.to) {
+      perm.to(mergedOptions.to)
+    }
+    if (mergedOptions?.as) {
+      perm.as(mergedOptions.as)
+    }
+
+    this.registeredPermissions.push(perm)
+    return this
+  }
+}
+
 export class Can {
   static global = new Can()
+  static Scopes = {
+    Action: ActionScope,
+    Record: RecordScope,
+    User: UserScope,
+  }
+  private defaultActionScopes: Array<ActionScope>
 
-  static do(actionOrList: ActionScope | Array<ActionScope>, ...actions: Array<ActionScope>): Permission {
-    const allActions: Array<ActionScope> = Array.isArray(actionOrList) ? actionOrList.concat(actions) : [ actionOrList ].concat(actions)
-    return new Permission().do(...allActions)
+  constructor(options?: ICanDoOptions) {
+    this.defaultActionScopes = options?.defaultActionScopes || [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
   }
 
   static everything(options?: IAllScopesOptions): Array<ActionScope> {
     return this.global.everything(options)
   }
 
-  static register(options: RegisterPermissionsOptions): CustomDecorator
-  static register(...permissions: Array<Permission>): CustomDecorator
-  static register(permissionsOrOptions: RegisterPermissionsOptions | Permission, ...permissions: Array<Permission>): CustomDecorator {
-    return this.global.registerPermissions(permissionsOrOptions, ...permissions)
+  static register<T>(classType: Type<T>, permissions?: Array<Permission<T>>): PermissionGroup<T> {
+    const permissionGroup = new PermissionGroup(classType, permissions)
+    this.global.registerPermissions(classType, permissionGroup)
+
+    return permissionGroup
   }
 
   static check<T>(context: IContext, action: ActionScope, to: Type<T>): IRecordScope<T> {
     return this.global.checkPermissions(context, action, to)
-  }
-
-  static Scopes = {
-    Action: ActionScope,
-    Record: RecordScope,
-    User: UserScope
-  }
-
-  private defaultActionScopes: Array<ActionScope>
-
-  constructor(options?: ICanDoOptions) {
-    this.defaultActionScopes = options?.defaultActionScopes || [ ActionScope.Create, ActionScope.Read, ActionScope.Update, ActionScope.Delete ]
   }
 
   everything(options?: IAllScopesOptions): Array<ActionScope> {
@@ -63,18 +101,17 @@ export class Can {
     return this.defaultActionScopes.filter(scope => except.indexOf(scope) < 0)
   }
 
-  registerPermissions(permissionsOrOptions: RegisterPermissionsOptions | Permission, ...permissions: Array<Permission>): CustomDecorator {
-    const options = permissionsOrOptions instanceof Permission ? { permissions: [ permissionsOrOptions ].concat(...permissions) } : permissionsOrOptions
-    return SetMetadata(PERMISSION_METADATA_KEY, options)
+  registerPermissions<T>(classType: Type<T>, permissionGroup: PermissionGroup<T>) {
+    SetMetadata(PERMISSION_METADATA_KEY, permissionGroup)(classType)
   }
 
-  getRegisteredPermissions<T>(target: Type<T>): RegisterPermissionsOptions | undefined {
+  getRegisteredPermissions<T>(target: Type<T>): PermissionGroup<T> | undefined {
     const reflector = new Reflector()
-    return reflector.get<RegisterPermissionsOptions | undefined>(PERMISSION_METADATA_KEY, target)
+    return reflector.get<PermissionGroup<T> | undefined>(PERMISSION_METADATA_KEY, target)
   }
 
   static checkRequiresAuthentication<T>(target: Type<T>, ...actions: Array<ActionScope>): boolean {
-    const permissions = this.global.getRegisteredPermissions(target)?.permissions
+    const permissions = this.global.getRegisteredPermissions(target)?.registeredPermissions
     if (!permissions) {
       return true // TODO: What to do by default when no registered permissions
     }
@@ -88,14 +125,13 @@ export class Can {
 
 
   checkPermissions<T>(context: IContext, action: ActionScope, to: Type<T>): IRecordScope<T> {
-    const entityConfig = this.getRegisteredPermissions(to)
-    if (!entityConfig) {
+    const permissionGroup = this.getRegisteredPermissions(to)
+    if (!permissionGroup || !permissionGroup.registeredPermissions.length) {
       return RecordScope.None
     }
 
-    const currentUserScopes = getUserScopes(context.user)
-    const relevantPermissions = entityConfig.permissions
-      .filter(perm => currentUserScopes.indexOf(perm.userScope) >= 0 && perm.actions.indexOf(action) >= 0)
+    const relevantPermissions = permissionGroup.registeredPermissions
+      .filter(perm => perm.userScope.applies(context) && perm.actions.indexOf(action) >= 0)
 
     if (!relevantPermissions.length) {
       return RecordScope.None

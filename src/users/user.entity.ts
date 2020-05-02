@@ -8,10 +8,6 @@ import { Post } from '../posts/post.entity'
 
 @ObjectType()
 @Entity()
-@Can.register(
-  Can.do(ActionScope.Read).as(UserScope.Anyone),
-  Can.do(Can.everything()).as(UserScope.Authenticated).to(RecordScope.All),
-)
 export class User extends BaseModel {
   @Field()
   @Column({ unique: true })
@@ -29,6 +25,9 @@ export class User extends BaseModel {
   @OneToMany(type => Comment, comment => comment.author, { lazy: true })
   comments: Promise<Array<Comment>>
 
+  // Placeholder until we have a real solution
+  roles: Array<string> = ['admin']
+
   async setPassword(password: string): Promise<void> {
     const salt = await bcrypt.genSalt(10)
     this.passwordHash = await bcrypt.hash(password, salt)
@@ -38,3 +37,7 @@ export class User extends BaseModel {
     return bcrypt.compare(password, this.passwordHash)
   }
 }
+
+Can.register(User)
+  .do(ActionScope.Read, { as: UserScope.Authenticated })
+  .do(Can.everything(), { as: UserScope.Authenticated, to: RecordScope.All })
