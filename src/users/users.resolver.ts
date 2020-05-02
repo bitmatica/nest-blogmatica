@@ -1,4 +1,13 @@
-import { Args, Context, Field, InputType, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  Context,
+  Field,
+  InputType,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+} from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { IContext } from '../core/context'
@@ -6,7 +15,11 @@ import { Create, CreateModelMutation } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { MutationResponse } from '../core/resolvers/types'
 import { CurrentUser } from '../decorators/currentUser'
-import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './authentication'
+import {
+  clearTokenCookie,
+  generateTokenForUserId,
+  setTokenCookie,
+} from './authentication'
 import { User } from './user.entity'
 
 @InputType()
@@ -37,7 +50,9 @@ export class UserLoginResponse extends MutationResponse<User> {
 }
 
 @Resolver(() => User)
-export class UsersResolver extends BaseModelResolver(User, { without: [ Create ] }) {
+export class UsersResolver extends BaseModelResolver(User, {
+  without: [Create],
+}) {
   @InjectRepository(User)
   protected repo: Repository<User>
 
@@ -63,13 +78,15 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     }
   }
 
-  @Mutation(returns => UserLoginResponse!)
+  @Mutation(returns => UserLoginResponse)
   async login(
     @Args('input', { type: () => UserLoginArgs }) input: UserLoginArgs,
     @Context() context: IContext,
   ) {
     try {
-      const user: User | undefined = await this.repo.findOne({ email: input.email })
+      const user: User | undefined = await this.repo.findOne({
+        email: input.email,
+      })
       if (!user) {
         return {
           success: false,
@@ -99,10 +116,8 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
     }
   }
 
-  @Mutation(returns => MutationResponse!)
-  async logout(
-    @Context() context: IContext,
-  ) {
+  @Mutation(returns => MutationResponse)
+  async logout(@Context() context: IContext) {
     try {
       clearTokenCookie(context.res)
       return {
@@ -118,9 +133,7 @@ export class UsersResolver extends BaseModelResolver(User, { without: [ Create ]
   }
 
   @Query(returns => User, { nullable: true })
-  async whoAmI(
-    @CurrentUser() user: User,
-  ) {
+  async whoAmI(@CurrentUser() user: User) {
     return user
   }
 }

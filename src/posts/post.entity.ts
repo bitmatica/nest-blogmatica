@@ -23,11 +23,18 @@ export class Post extends BaseModel {
   @Column()
   authorId: string
 
-  @Field(type => [ Comment ])
-  @OneToMany(type => Comment, comment => comment.post, { lazy: true })
+  @Field(type => [Comment])
+  @OneToMany(
+    type => Comment,
+    comment => comment.post,
+    { lazy: true },
+  )
   comments: Promise<Array<Comment>>
 }
 
 Can.register(Post)
   .do(ActionScope.Read)
-  .do(ActionScope.Create, { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
+  .do(ActionScope.Create, {
+    as: UserScope.Authenticated,
+    to: RecordScope.Owned('authorId'),
+  })
