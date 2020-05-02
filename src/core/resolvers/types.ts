@@ -1,5 +1,6 @@
 import { Type } from '@nestjs/common'
 import { Field, ObjectType } from '@nestjs/graphql'
+import { BaseModel } from '../model'
 
 export interface IDeletionResponse {
   success: boolean
@@ -34,7 +35,22 @@ export abstract class MutationResponse<T> implements IMutationResponse<T> {
   model?: T
 }
 
-export type ICreateModelInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
+type OmitBaseModelKeys<T, U extends keyof T> = U extends keyof BaseModel
+  ? never
+  : U
+
+type RemoveKeysOfType<T, U> = {
+  [P in keyof T]: T[P] extends U ? never : P
+}[keyof T]
+
+type OmitRelationKeys<T> = RemoveKeysOfType<
+  T,
+  PromiseLike<BaseModel> | PromiseLike<Array<BaseModel>>
+>
+
+type FilterInputKeys<T> = OmitBaseModelKeys<T, keyof T> & OmitRelationKeys<T>
+
+export type ICreateModelInput<T> = Pick<T, FilterInputKeys<T>>
 
 export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
 

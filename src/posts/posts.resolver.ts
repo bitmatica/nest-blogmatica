@@ -15,6 +15,7 @@ import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
 
+type ICreatePostInput = Omit<ICreateModelInput<Post>, 'authorId'>
 const CreatePostInput = defaultCreateModelInput(Post, [
   'authorId',
   ...BASE_MODEL_FIELDS,
@@ -30,7 +31,7 @@ export class PostsResolver extends BaseModelResolver(Post, {
   @CreateModelMutation(Post)
   async create(
     @CreateModelArgs(Post, { type: CreatePostInput })
-    input: ICreateModelInput<Post>,
+    input: ICreatePostInput,
     @Context() context: IContext,
   ): Promise<IMutationResponse<Post>> {
     const user = context.user
