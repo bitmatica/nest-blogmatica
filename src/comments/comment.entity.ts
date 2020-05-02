@@ -28,6 +28,5 @@ export class Comment extends BaseModel {
 }
 
 Can.register(Comment)
-  .do(ActionScope.Read, { as: UserScope.Authenticated, to: RecordScope.Where('id', 'f3826af6-9ed0-472e-8db4-b0b63a7411fe') })
-  .do(ActionScope.Read, { as: UserScope.Authenticated, to: RecordScope.Where('id', '13baad95-096e-4228-9a2a-7f34f647c235') })
+  .do(ActionScope.Read)
   .do(Can.everything(), { as: UserScope.Authenticated, to: RecordScope.Owned('authorId') })
