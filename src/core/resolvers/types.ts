@@ -35,15 +35,15 @@ export abstract class MutationResponse<T> implements IMutationResponse<T> {
   model?: T
 }
 
-type OmitBaseModelKeys<T, U extends keyof T> = U extends keyof BaseModel
+export type OmitBaseModelKeys<T, U extends keyof T> = U extends keyof BaseModel
   ? never
   : U
 
-type RemoveKeysOfType<T, U> = {
+export type RemoveKeysOfType<T, U> = {
   [P in keyof T]: T[P] extends U ? never : P
 }[keyof T]
 
-type OmitRelationKeys<T> = RemoveKeysOfType<
+export type OmitRelationKeys<T> = RemoveKeysOfType<
   T,
   | PromiseLike<BaseModel>
   | PromiseLike<Array<BaseModel>>
