@@ -6,11 +6,6 @@ import {
   MutationResponse,
 } from '../resolvers/types'
 
-export interface IServiceInfo {
-  context: IContext
-  info: GraphQLResolveInfo
-}
-
 export interface ICreateService<T> {
   create(
     input: ICreateModelInput<T>,
