@@ -57,11 +57,6 @@ export type ICreateModelInput<T> = Pick<T, FilterInputKeys<T>>
 
 export type IUpdateModelInput<T> = Partial<ICreateModelInput<T>>
 
-export declare type ResolverAction<T> = (
-  modelClass: Type<T>,
-  innerClass: Type<any>,
-) => Type<any>
-
 export interface IActionResolverOptions<T = any> {
   returns?: Type<any>
   name?: string
@@ -72,41 +67,28 @@ export interface IActionResolverArgsOptions<T = any> {
   name?: string
 }
 
-export interface IBaseResolverOptions<T> {
-  with?: Array<ResolverAction<T>>
-  without?: Array<ResolverAction<T>>
+export type ResolverAction = IActionResolverBuilder | IAction
+
+export interface IBaseResolverOptions {
+  with?: Array<ResolverAction>
+  without?: Array<ResolverAction>
 }
 
 export type ResolverFunction = (...args: any) => any
 
-export type RemovePromise<T> = T extends PromiseLike<infer U> ? U : T
-
-export type ResolverReturnType<T extends ResolverFunction> = RemovePromise<
-  ReturnType<T>
->
-
 export interface IActionOptions<T, U extends ResolverFunction> {
   name?: string
-  decorator?: MethodDecorator
-  input?: ParameterDecorator
-  response?: Type<ResolverReturnType<U>>
+  resolverDecorator?: MethodDecorator
+  input?: Type<any>
+  response?: Type<any>
   resolver?: U
+  argDecorator?: ParameterDecorator
 }
 
-export interface IAction {
+export interface IActionResolverBuilder {
   build(innerClass: Type<any>): Type<any>
 }
 
-export interface IActionBuilder {
-  Name<T>(modelClass: Type<T>): string
-
-  Response<T>(modelClass: Type<T>): Type<any>
-
-  Decorator<T>(modelClass: Type<T>): MethodDecorator
-
-  Input<T>(modelClass: Type<T>): ParameterDecorator
-
-  Resolver<T>(modelClass: Type<T>): ResolverFunction
-
-  Default<T>(modelClass: Type<T>): IAction
+export interface IAction {
+  Default<T>(modelClass: Type<T>): IActionResolverBuilder
 }

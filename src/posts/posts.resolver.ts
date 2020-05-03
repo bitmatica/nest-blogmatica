@@ -4,22 +4,13 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { IContext } from '../core/context'
 import { BASE_MODEL_FIELDS } from '../core/model'
-import {
-  Create,
-  CreateModelArgs,
-  CreateModelMutation,
-  defaultCreateModelInput,
-  defaultCreateModelMutation,
-} from '../core/resolvers/actions'
+import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
 
 type ICreatePostInput = Omit<ICreateModelInput<Post>, 'authorId'>
-const CreatePostInput = defaultCreateModelInput(Post, [
-  'authorId',
-  ...BASE_MODEL_FIELDS,
-])
+const CreatePostInput = Create.Input(Post, ['authorId', ...BASE_MODEL_FIELDS])
 
 @Resolver(() => Post)
 export class PostsResolver extends BaseModelResolver(Post, {
@@ -28,9 +19,9 @@ export class PostsResolver extends BaseModelResolver(Post, {
   @InjectRepository(Post)
   repo: Repository<Post>
 
-  @CreateModelMutation(Post)
+  @Create.Decorator(Post)
   async create(
-    @CreateModelArgs(Post, { type: CreatePostInput })
+    @Create.Arg(Post, { type: CreatePostInput })
     input: ICreatePostInput,
     @Context() context: IContext,
   ): Promise<IMutationResponse<Post>> {
@@ -43,6 +34,7 @@ export class PostsResolver extends BaseModelResolver(Post, {
       ...input,
       authorId: user.id,
     }
-    return defaultCreateModelMutation(Post, this.repo, modifiedInput, context)
+
+    return Create.Resolver(Post)(this.repo, modifiedInput, context)
   }
 }
