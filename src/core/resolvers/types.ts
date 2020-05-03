@@ -82,7 +82,7 @@ export interface IActionResolverArgsOptions<T = any> {
   name?: string
 }
 
-export type ResolverAction = IActionResolverBuilder | IAction
+export type ResolverAction<T = any> = IActionResolverBuilder<T> | IAction
 
 export interface IActionOptions<T> {
   name?: string
@@ -92,12 +92,12 @@ export interface IActionOptions<T> {
   argDecorator?: ParameterDecorator
 }
 
-export interface IActionResolverBuilder {
-  build(innerClass: Type<any>): Type<any>
+export interface IActionResolverBuilder<T = any> {
+  build(innerClass: Type<any>): Type<T>
 }
 
 export interface IAction {
-  Default<T>(modelClass: Type<T>): IActionResolverBuilder
+  Default<T>(modelClass: Type<T>): IActionResolverBuilder<T>
 }
 
 export type IBaseResolver<T> = IGetResolver<T> &
@@ -123,7 +123,11 @@ type ServiceActionKeyMap<T> = {
 }
 
 export type ActionMap<T> = {
-  [P in keyof ResolverActionKeyMap<T>]?: ResolverAction
+  Get?: ResolverAction<IGetResolver<T>>
+  List?: ResolverAction<IListResolver<T>>
+  Create?: ResolverAction<ICreateResolver<T>>
+  Update?: ResolverAction<IUpdateResolver<T>>
+  Delete?: ResolverAction<IDeleteResolver<T>>
 }
 
 type SelectResolverActions<T, U> = {
