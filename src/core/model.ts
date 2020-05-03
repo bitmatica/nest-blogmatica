@@ -5,11 +5,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 
+export type ModelId = string
+
 @ObjectType()
 export abstract class BaseModel {
   @Field(type => ID)
   @PrimaryGeneratedColumn('uuid')
-  id: string
+  id: ModelId
 
   @Field()
   @CreateDateColumn()

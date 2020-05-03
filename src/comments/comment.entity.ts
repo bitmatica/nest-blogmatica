@@ -1,7 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql'
 import { Column, Entity, ManyToOne } from 'typeorm'
 import { ActionScope, Can, RecordScope, UserScope } from '../core/can'
-import { BaseModel } from '../core/model'
+import { BaseModel, ModelId } from '../core/model'
 import { Post } from '../posts/post.entity'
 import { User } from '../users/user.entity'
 
@@ -21,7 +21,7 @@ export class Comment extends BaseModel {
   author: Promise<User>
 
   @Column()
-  authorId: string
+  authorId: ModelId
 
   @Field(type => Post)
   @ManyToOne(
@@ -32,7 +32,7 @@ export class Comment extends BaseModel {
   post: Promise<Post>
 
   @Column()
-  postId: string
+  postId: ModelId
 }
 
 Can.register(Comment)
