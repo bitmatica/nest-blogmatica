@@ -1,16 +1,27 @@
-import { Injectable } from '@nestjs/common'
+import { ForbiddenException, Injectable } from '@nestjs/common'
 import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../core/context'
+import { ICreateModelInput, MutationResponse } from '../core/resolvers/types'
 import { BaseModelService } from '../core/service/model'
 import { Post } from './post.entity'
 
 @Injectable()
 export class PostsService extends BaseModelService(Post) {
-  list(
+  create(
+    input: ICreateModelInput<Post>,
     context: IContext,
-    info: GraphQLResolveInfo,
-  ): Promise<Array<Post>> | Array<Post> {
-    console.log('Posts List Override')
-    return super.list(context, info)
+    info?: GraphQLResolveInfo,
+  ): Promise<MutationResponse<Post>> | MutationResponse<Post> {
+    const user = context.user
+    if (!user) {
+      throw new ForbiddenException()
+    }
+
+    const modifiedInput: ICreateModelInput<Post> = {
+      ...input,
+      authorId: user.id,
+    }
+
+    return super.create(modifiedInput, context, info)
   }
 }
