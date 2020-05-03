@@ -70,7 +70,6 @@ export interface IActionResolverArgsOptions<T = any> {
 export type ResolverAction = IActionResolverBuilder | IAction
 
 export interface IBaseResolverOptions {
-  with?: Array<ResolverAction>
   without?: Array<ResolverAction>
 }
 

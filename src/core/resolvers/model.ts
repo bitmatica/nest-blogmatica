@@ -26,7 +26,7 @@ export function BaseModelResolver<T>(
   modelClass: Type<T>,
   options?: IBaseResolverOptions,
 ): any {
-  const allBaseResolvers = (options?.with || defaultResolvers).filter(
+  const allBaseResolvers = defaultResolvers.filter(
     br => !options?.without?.find(withoutRes => withoutRes === br),
   )
 
