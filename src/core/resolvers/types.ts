@@ -1,6 +1,7 @@
 import { Type } from '@nestjs/common'
 import { Field, ObjectType } from '@nestjs/graphql'
 import { BaseModel } from '../model'
+import { IBaseService, IServiceProvider } from '../service/types'
 import {
   ICreateResolver,
   IDeleteResolver,
@@ -92,7 +93,8 @@ export interface IAction {
   Default<T>(modelClass: Type<T>): IActionResolverBuilder
 }
 
-export type IBaseResolver<T> = IGetResolver<T> &
+export type IBaseResolver<T> = IServiceProvider<IBaseService<T>> &
+  IGetResolver<T> &
   IListResolver<T> &
   ICreateResolver<T> &
   IUpdateResolver<T> &

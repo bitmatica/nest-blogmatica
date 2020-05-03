@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject } from '@nestjs/common'
+import { ForbiddenException } from '@nestjs/common'
 import { Context, Resolver } from '@nestjs/graphql'
 import { IContext } from '../core/context'
 import { BASE_MODEL_FIELDS } from '../core/model'
@@ -6,7 +6,6 @@ import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
-import { PostsService } from './posts.service'
 
 type ICreatePostInput = Omit<ICreateModelInput<Post>, 'authorId'>
 const CreatePostInput = Create.Input(Post, ['authorId', ...BASE_MODEL_FIELDS])
@@ -15,9 +14,6 @@ const CreatePostInput = Create.Input(Post, ['authorId', ...BASE_MODEL_FIELDS])
 export class PostsResolver extends BaseModelResolver(Post, {
   without: { Create },
 }) {
-  @Inject()
-  service: PostsService
-
   @Create.Decorator(Post)
   async create(
     @Create.Arg(Post, { type: CreatePostInput })
