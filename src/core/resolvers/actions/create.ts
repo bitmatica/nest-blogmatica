@@ -23,11 +23,11 @@ import {
   MutationResponse,
 } from '../types'
 
-export interface ICreate<TModel> {
+export interface ICreateResolver<T> {
   create(
-    input: ICreateModelInput<TModel>,
+    input: ICreateModelInput<T>,
     context: IContext,
-  ): Promise<MutationResponse<TModel>>
+  ): Promise<MutationResponse<T>>
 }
 
 export type ICreateActionResolver<T> = (
@@ -153,11 +153,12 @@ export class Create<T> implements IActionResolverBuilder {
     }
   }
 
-  build(innerClass: Type<any>): Type<ICreate<T>> {
+  build(innerClass: Type<any>): Type<ICreateResolver<T>> {
     const resolverHandle = this.resolver
 
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class CreateModelResolverClass extends innerClass implements ICreate<T> {
+    class CreateModelResolverClass extends innerClass
+      implements ICreateResolver<T> {
       @InjectRepository(this.modelClass)
       repo: Repository<T>
 

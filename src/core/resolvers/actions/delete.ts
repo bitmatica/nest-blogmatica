@@ -13,7 +13,7 @@ import {
   IDeletionResponse,
 } from '../types'
 
-export interface IDelete<TModel> {
+export interface IDeleteResolver<T> {
   delete(id: string, context: IContext): Promise<DeletionResponse>
 }
 
@@ -101,11 +101,12 @@ export class Delete<T> implements IActionResolverBuilder {
     })
   }
 
-  build(innerClass: Type<any>): Type<IDelete<T>> {
+  build(innerClass: Type<any>): Type<IDeleteResolver<T>> {
     const resolverHandle = this.resolver
 
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class DeleteModelResolverClass extends innerClass implements IDelete<T> {
+    class DeleteModelResolverClass extends innerClass
+      implements IDeleteResolver<T> {
       @InjectRepository(this.modelClass)
       repo: Repository<T>
 

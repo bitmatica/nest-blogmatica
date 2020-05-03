@@ -9,8 +9,8 @@ import {
   IActionResolverOptions,
 } from '../types'
 
-export interface IList<TModel> {
-  list(context: IContext, info: GraphQLResolveInfo): Promise<Array<TModel>>
+export interface IListResolver<T> {
+  list(context: IContext, info: GraphQLResolveInfo): Promise<Array<T>>
 }
 
 export type IListActionResolver<T> = (
@@ -70,7 +70,8 @@ export class List<T> implements IActionResolverBuilder {
     const resolverHandle = this.resolver
 
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class ListModelResolverClass extends innerClass implements IList<T> {
+    class ListModelResolverClass extends innerClass
+      implements IListResolver<T> {
       @(this.resolverDecorator)
       async list(
         @Context() context: IContext,

@@ -10,12 +10,12 @@ import {
   IActionResolverOptions,
 } from '../types'
 
-export interface IGet<TModel> {
+export interface IGetResolver<T> {
   get(
     id: string,
     context: IContext,
     info: GraphQLResolveInfo,
-  ): Promise<TModel | undefined>
+  ): Promise<T | undefined>
 }
 
 export type IGetActionResolver<T> = (
@@ -80,11 +80,11 @@ export class Get<T> implements IActionResolverBuilder {
     }
   }
 
-  build(innerClass: Type<any>): Type<IGet<T>> {
+  build(innerClass: Type<any>): Type<IGetResolver<T>> {
     const resolverHandle = this.resolver
 
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class GetModelResolverClass extends innerClass implements IGet<T> {
+    class GetModelResolverClass extends innerClass implements IGetResolver<T> {
       @(this.decorator)
       async get(
         @IdInput id: string,

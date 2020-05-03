@@ -26,41 +26,12 @@ import {
   MutationResponse,
 } from '../types'
 
-export interface IUpdate<TModel> {
+export interface IUpdateResolver<T> {
   update(
     id: string,
-    input: IUpdateModelInput<TModel>,
+    input: IUpdateModelInput<T>,
     context: IContext,
-  ): Promise<MutationResponse<TModel>>
-}
-
-export function defaultUpdateModelInput<TModel>(
-  modelClass: Type<TModel>,
-  without?: Array<keyof TModel>,
-): Type<IUpdateModelInput<TModel>> {
-  const tormMetadata = getMetadataArgsStorage()
-  const relations = tormMetadata.relations.filter(r => r.target === modelClass)
-  const fieldsToOmit = relations
-    .map(r => r.propertyName)
-    .concat((without as Array<string>) || BASE_MODEL_FIELDS)
-
-  @InputType(`Update${modelClass.name}Input`)
-  class UpdateModelInput extends PartialType(
-    OmitType((modelClass as unknown) as Type<any>, fieldsToOmit),
-    InputType,
-  ) {}
-
-  return UpdateModelInput as Type<IUpdateModelInput<TModel>>
-}
-
-export function UpdateModelArgs<TModel>(
-  modelClass: Type<TModel>,
-  opts?: IActionResolverArgsOptions,
-) {
-  const argType = opts?.type || defaultUpdateModelInput(modelClass)
-  return Args(opts?.name || 'input', {
-    type: () => argType,
-  })
+  ): Promise<MutationResponse<T>>
 }
 
 export type IUpdateActionResolver<T> = (
@@ -202,7 +173,8 @@ export class Update<T> implements IActionResolverBuilder {
     const resolverHandle = this.resolver
 
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class CreateModelResolverClass extends innerClass implements IUpdate<T> {
+    class CreateModelResolverClass extends innerClass
+      implements IUpdateResolver<T> {
       @InjectRepository(this.modelClass)
       repo: Repository<T>
 
