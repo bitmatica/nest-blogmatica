@@ -1,7 +1,14 @@
 import { Type } from '@nestjs/common'
 import { Field, ObjectType } from '@nestjs/graphql'
 import { BaseModel } from '../model'
-import { IBaseService, IServiceProvider } from '../service/types'
+import {
+  IBaseService,
+  ICreateService,
+  IDeleteService,
+  IGetService,
+  IListService,
+  IUpdateService,
+} from '../service/types'
 import {
   ICreateResolver,
   IDeleteResolver,
@@ -93,8 +100,7 @@ export interface IAction {
   Default<T>(modelClass: Type<T>): IActionResolverBuilder
 }
 
-export type IBaseResolver<T> = IServiceProvider<IBaseService<T>> &
-  IGetResolver<T> &
+export type IBaseResolver<T> = IGetResolver<T> &
   IListResolver<T> &
   ICreateResolver<T> &
   IUpdateResolver<T> &
@@ -108,16 +114,36 @@ type ResolverActionKeyMap<T> = {
   Delete: keyof IDeleteResolver<T>
 }
 
+type ServiceActionKeyMap<T> = {
+  Get: keyof IGetService<T>
+  List: keyof IListService<T>
+  Create: keyof ICreateService<T>
+  Update: keyof IUpdateService<T>
+  Delete: keyof IDeleteService<T>
+}
+
 export type ActionMap<T> = {
   [P in keyof ResolverActionKeyMap<T>]?: ResolverAction
 }
 
-type SelectActions<T, U> = {
+type SelectResolverActions<T, U> = {
   [P in keyof U]: P extends keyof ResolverActionKeyMap<T>
     ? ResolverActionKeyMap<T>[P]
     : never
 }[keyof U]
 
-export type DynamicService<T, U extends ActionMap<T>> = Type<
-  Omit<IBaseResolver<T>, SelectActions<T, U>>
+type SelectServiceActions<T, U> = {
+  [P in keyof U]: P extends keyof ServiceActionKeyMap<T>
+    ? ServiceActionKeyMap<T>[P]
+    : never
+}[keyof U]
+
+export type DynamicResolver<T, U extends ActionMap<T>> = Omit<
+  IBaseResolver<T>,
+  SelectResolverActions<T, U>
+>
+
+export type DynamicService<T, U extends ActionMap<T>> = Omit<
+  IBaseService<T>,
+  SelectServiceActions<T, U>
 >

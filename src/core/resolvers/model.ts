@@ -3,10 +3,11 @@ import { Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { BaseModelService } from '../service/model'
-import { IBaseService } from '../service/types'
+import { IBaseService, IServiceProvider } from '../service/types'
 import { Create, Delete, Get, List, Update } from './actions'
 import {
   ActionMap,
+  DynamicResolver,
   DynamicService,
   IAction,
   IBaseResolver,
@@ -25,28 +26,51 @@ function isAction(arg: any): arg is IAction {
   return arg.hasOwnProperty('Default')
 }
 
-export function BaseModelResolver<T, U extends ActionMap<T>>(
+export function BaseModelResolver<T>(
   objectType: Type<T>,
-  options?: {
-    service?: Type<IBaseService<T>>
-  },
-): Type<IBaseResolver<T>>
+): Type<IBaseResolver<T> & IServiceProvider<IBaseService<T>>>
 
-export function BaseModelResolver<T, U extends ActionMap<T>>(
+export function BaseModelResolver<
+  T,
+  U extends ActionMap<T>,
+  V extends DynamicService<T, U>
+>(
   objectType: Type<T>,
   options: {
-    service?: Type<IBaseService<T>>
+    service: Type<V>
+  },
+): Type<IBaseResolver<T> & IServiceProvider<V>>
+
+export function BaseModelResolver<
+  T,
+  U extends ActionMap<T>,
+  V extends DynamicService<T, U>
+>(
+  objectType: Type<T>,
+  options: {
     without: U
   },
-): DynamicService<T, U>
+): Type<DynamicResolver<T, U> & IServiceProvider<IBaseService<T>>>
+
+export function BaseModelResolver<
+  T,
+  U extends ActionMap<T>,
+  V extends DynamicService<T, U>
+>(
+  objectType: Type<T>,
+  options: {
+    service: Type<V>
+    without: U
+  },
+): Type<DynamicResolver<T, U> & IServiceProvider<V>>
 
 export function BaseModelResolver<T, U extends ActionMap<T>>(
   modelClass: Type<T>,
   options?: {
-    service?: Type<IBaseService<T>>
+    service?: Type<DynamicService<T, U>>
     without?: U
   },
-): Type<IBaseResolver<T>> | DynamicService<T, U> {
+) {
   const allBaseResolvers = defaultResolvers.filter(
     resolver =>
       !(
