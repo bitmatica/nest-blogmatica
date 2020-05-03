@@ -51,7 +51,7 @@ export class UserLoginResponse extends MutationResponse<User> {
 
 @Resolver(() => User)
 export class UsersResolver extends BaseModelResolver(User, {
-  without: [Create],
+  Create,
 }) {
   @InjectRepository(User)
   protected repo: Repository<User>

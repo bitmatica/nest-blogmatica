@@ -1,6 +1,7 @@
 import { Type } from '@nestjs/common'
 import { Field, ObjectType } from '@nestjs/graphql'
 import { BaseModel } from '../model'
+import { ICreate, IDelete, IGet, IList, IUpdate } from './actions'
 
 export interface IDeletionResponse {
   success: boolean
@@ -91,3 +92,31 @@ export interface IActionResolverBuilder {
 export interface IAction {
   Default<T>(modelClass: Type<T>): IActionResolverBuilder
 }
+
+type IBaseResolver<T> = IGet<T> &
+  IList<T> &
+  ICreate<T> &
+  IUpdate<T> &
+  IDelete<T>
+
+type ResolverActionKeyMap<T> = {
+  Get: keyof IGet<T>
+  List: keyof IList<T>
+  Create: keyof ICreate<T>
+  Update: keyof IUpdate<T>
+  Delete: keyof IDelete<T>
+}
+
+export type ActionMap<T> = {
+  [P in keyof ResolverActionKeyMap<T>]?: ResolverAction
+}
+
+type SelectActions<T, U> = {
+  [P in keyof U]: P extends keyof ResolverActionKeyMap<T>
+    ? ResolverActionKeyMap<T>[P]
+    : never
+}[keyof U]
+
+export type DynamicService<T, U extends ActionMap<T>> = Type<
+  Omit<IBaseResolver<T>, SelectActions<T, U>>
+>
