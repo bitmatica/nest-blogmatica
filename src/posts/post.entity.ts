@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql'
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm'
 import { Comment } from '../comments/comment.entity'
 import { ActionScope, Can, RecordScope, UserScope } from '../core/can'
-import { BaseModel } from '../core/model'
+import { BaseModel, ModelId } from '../core/model'
 import { User } from '../users/user.entity'
 
 @ObjectType()
@@ -21,7 +21,7 @@ export class Post extends BaseModel {
   author: Promise<User>
 
   @Column()
-  authorId: string
+  authorId: ModelId
 
   @Field(type => [Comment])
   @OneToMany(
