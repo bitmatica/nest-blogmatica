@@ -27,17 +27,22 @@ export function BaseModelResolver<T, U extends ActionMap<T>>(
 
 export function BaseModelResolver<T, U extends ActionMap<T>>(
   objectType: Type<T>,
-  without?: U,
+  options: {
+    without: U
+  },
 ): DynamicService<T, U>
 
 export function BaseModelResolver<T, U extends ActionMap<T>>(
   modelClass: Type<T>,
-  without?: U,
+  options?: {
+    without?: U
+  },
 ): Type<IBaseResolver<T>> | DynamicService<T, U> {
   const allBaseResolvers = defaultResolvers.filter(
     resolver =>
       !(
-        !!without && Object.values(without).find(action => resolver === action)
+        !!options?.without &&
+        Object.values(options.without).find(action => resolver === action)
       ),
   )
 

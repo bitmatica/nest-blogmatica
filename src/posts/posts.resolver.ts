@@ -13,7 +13,9 @@ type ICreatePostInput = Omit<ICreateModelInput<Post>, 'authorId'>
 const CreatePostInput = Create.Input(Post, ['authorId', ...BASE_MODEL_FIELDS])
 
 @Resolver(() => Post)
-export class PostsResolver extends BaseModelResolver(Post, { Create }) {
+export class PostsResolver extends BaseModelResolver(Post, {
+  without: { Create },
+}) {
   @InjectRepository(Post)
   repo: Repository<Post>
 
