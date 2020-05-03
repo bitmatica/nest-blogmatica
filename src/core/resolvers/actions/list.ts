@@ -2,7 +2,7 @@ import { Type } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../../context'
-import { constructQueryWithRelations } from '../helpers/relations'
+import { IListService, IServiceProvider } from '../../service/types'
 import {
   IActionOptions,
   IActionResolverBuilder,
@@ -13,21 +13,12 @@ export interface IListResolver<T> {
   list(context: IContext, info: GraphQLResolveInfo): Promise<Array<T>>
 }
 
-export type IListActionResolver<T> = (
-  context: IContext,
-  info: GraphQLResolveInfo,
-) => Promise<Array<T>>
-
 export class List<T> implements IActionResolverBuilder {
   private readonly name: string
   private readonly response: any
   private readonly resolverDecorator: MethodDecorator
-  private readonly resolver: IListActionResolver<T>
 
-  constructor(
-    private modelClass: Type<T>,
-    options?: IActionOptions<T, IListActionResolver<T>>,
-  ) {
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
     this.name = options?.name || List.Name(modelClass)
     this.response = options?.response || List.Response(modelClass)
     this.resolverDecorator =
@@ -36,8 +27,6 @@ export class List<T> implements IActionResolverBuilder {
         name: this.name,
         returns: this.response,
       })
-
-    this.resolver = options?.resolver || List.Resolver(modelClass)
   }
 
   static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
@@ -60,15 +49,7 @@ export class List<T> implements IActionResolverBuilder {
     return Query(ret => returns, { name: opts?.name || List.Name(modelClass) })
   }
 
-  static Resolver<T>(modelClass: Type<T>): IListActionResolver<T> {
-    return (context: IContext, info: GraphQLResolveInfo) => {
-      return constructQueryWithRelations(modelClass, info, context).getMany()
-    }
-  }
-
-  build(innerClass: Type<any>): Type<any> {
-    const resolverHandle = this.resolver
-
+  build(innerClass: Type<IServiceProvider<IListService<T>>>): Type<any> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class ListModelResolverClass extends innerClass
       implements IListResolver<T> {
@@ -77,7 +58,7 @@ export class List<T> implements IActionResolverBuilder {
         @Context() context: IContext,
         @Info() info: GraphQLResolveInfo,
       ): Promise<Array<T>> {
-        return resolverHandle(context, info)
+        return this.service.list(context, info)
       }
     }
 

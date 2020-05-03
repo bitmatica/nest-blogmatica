@@ -3,6 +3,7 @@ import {
   Args,
   Context,
   Field,
+  Info,
   InputType,
   Mutation,
   ObjectType,
@@ -10,11 +11,11 @@ import {
   PartialType,
   Resolver,
 } from '@nestjs/graphql'
-import { InjectRepository } from '@nestjs/typeorm'
-import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { ActionScope, Can } from '../../can'
+import { GraphQLResolveInfo } from 'graphql'
+import { getMetadataArgsStorage } from 'typeorm'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
+import { IServiceProvider, IUpdateService } from '../../service/types'
 import { IdInput } from '../decorators'
 import {
   IActionOptions,
@@ -31,15 +32,9 @@ export interface IUpdateResolver<T> {
     id: string,
     input: IUpdateModelInput<T>,
     context: IContext,
-  ): Promise<MutationResponse<T>>
+    info: GraphQLResolveInfo,
+  ): Promise<MutationResponse<T>> | MutationResponse<T>
 }
-
-export type IUpdateActionResolver<T> = (
-  repo: Repository<T>,
-  id: string,
-  input: IUpdateModelInput<T>,
-  context: IContext,
-) => Promise<IMutationResponse<T>>
 
 export class Update<T> implements IActionResolverBuilder {
   private readonly name: string
@@ -47,12 +42,8 @@ export class Update<T> implements IActionResolverBuilder {
   private readonly decorator: MethodDecorator
   private readonly input: Type<any>
   private readonly arg: ParameterDecorator
-  private readonly resolver: IUpdateActionResolver<T>
 
-  constructor(
-    private modelClass: Type<T>,
-    options?: IActionOptions<T, IUpdateActionResolver<T>>,
-  ) {
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
     this.name = options?.name || Update.Name(modelClass)
     this.response = options?.response || Update.Response(modelClass)
     this.decorator =
@@ -68,8 +59,6 @@ export class Update<T> implements IActionResolverBuilder {
       Update.Arg(modelClass, {
         type: this.input,
       })
-
-    this.resolver = options?.resolver || Update.Resolver(modelClass)
   }
 
   static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
@@ -131,60 +120,20 @@ export class Update<T> implements IActionResolverBuilder {
     })
   }
 
-  static Resolver<T>(modelClass: Type<T>): IUpdateActionResolver<T> {
-    return async (
-      repo: Repository<T>,
-      id: string,
-      input: IUpdateModelInput<T>,
-      context: IContext,
-    ): Promise<MutationResponse<T>> => {
-      try {
-        const model = await repo.findOne(id)
-        if (!model) {
-          return {
-            success: false,
-            message: `${modelClass.name} with id ${id} does not exist.`,
-          }
-        }
-
-        Can.check(context, ActionScope.Update, modelClass).assert(
-          model,
-          context,
-        )
-
-        Object.assign(model, { ...input })
-        await repo.save(model)
-
-        return {
-          success: true,
-          message: `${modelClass.name} updated.`,
-          model,
-        }
-      } catch (err) {
-        return {
-          success: false,
-          message: err.message,
-        }
-      }
-    }
-  }
-
-  build(innerClass: Type<any>): Type<any> {
-    const resolverHandle = this.resolver
-
+  build(
+    innerClass: Type<IServiceProvider<IUpdateService<T>>>,
+  ): Type<IUpdateResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class CreateModelResolverClass extends innerClass
       implements IUpdateResolver<T> {
-      @InjectRepository(this.modelClass)
-      repo: Repository<T>
-
       @(this.decorator)
-      async update(
+      update(
         @IdInput id: string,
         @(this.arg) input: IUpdateModelInput<T>,
         @Context() context: IContext,
-      ): Promise<IMutationResponse<T>> {
-        return resolverHandle(this.repo, id, input, context)
+        @Info() info: GraphQLResolveInfo,
+      ): Promise<IMutationResponse<T>> | IMutationResponse<T> {
+        return this.service.update(id, input, context, info)
       }
     }
 

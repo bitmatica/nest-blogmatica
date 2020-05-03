@@ -76,18 +76,11 @@ export interface IActionResolverArgsOptions<T = any> {
 
 export type ResolverAction = IActionResolverBuilder | IAction
 
-export interface IBaseResolverOptions {
-  without?: Array<ResolverAction>
-}
-
-export type ResolverFunction = (...args: any) => any
-
-export interface IActionOptions<T, U extends ResolverFunction> {
+export interface IActionOptions<T> {
   name?: string
   resolverDecorator?: MethodDecorator
   input?: Type<any>
   response?: Type<any>
-  resolver?: U
   argDecorator?: ParameterDecorator
 }
 

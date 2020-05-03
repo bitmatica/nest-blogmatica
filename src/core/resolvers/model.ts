@@ -1,5 +1,9 @@
 import { Type } from '@nestjs/common'
 import { Resolver } from '@nestjs/graphql'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { BaseModelService } from '../service/model'
+import { IBaseService } from '../service/types'
 import { Create, Delete, Get, List, Update } from './actions'
 import {
   ActionMap,
@@ -47,7 +51,14 @@ export function BaseModelResolver<T, U extends ActionMap<T>>(
   )
 
   @Resolver({ isAbstract: true })
-  class DefaultBaseResolver {}
+  class DefaultBaseResolver {
+    service: IBaseService<T>
+
+    constructor(@InjectRepository(modelClass) private repo: Repository<T>) {
+      const ServiceClass = BaseModelService(modelClass)
+      this.service = new ServiceClass(repo)
+    }
+  }
 
   let returnClass: any = DefaultBaseResolver
   allBaseResolvers.forEach(resolverActionOrBuilder => {

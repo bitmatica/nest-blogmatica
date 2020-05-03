@@ -1,9 +1,10 @@
 import { Type } from '@nestjs/common'
-import { Context, Mutation, Resolver } from '@nestjs/graphql'
+import { Context, Info, Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
+import { GraphQLResolveInfo } from 'graphql'
 import { Repository } from 'typeorm'
-import { ActionScope, Can } from '../../can'
 import { IContext } from '../../context'
+import { IDeleteService, IServiceProvider } from '../../service/types'
 import { IdInput } from '../decorators'
 import {
   DeletionResponse,
@@ -14,25 +15,19 @@ import {
 } from '../types'
 
 export interface IDeleteResolver<T> {
-  delete(id: string, context: IContext): Promise<DeletionResponse>
+  delete(
+    id: string,
+    context: IContext,
+    info: GraphQLResolveInfo,
+  ): Promise<DeletionResponse> | DeletionResponse
 }
-
-export type IDeleteActionResolver<T> = (
-  repo: Repository<T>,
-  id: string,
-  context: IContext,
-) => Promise<IDeletionResponse>
 
 export class Delete<T> implements IActionResolverBuilder {
   private readonly name: string
   private readonly response: Type<any>
   private readonly resolverDecorator: MethodDecorator
-  private readonly resolver: IDeleteActionResolver<T>
 
-  constructor(
-    private modelClass: Type<T>,
-    options?: IActionOptions<T, IDeleteActionResolver<T>>,
-  ) {
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
     this.name = options?.name || Delete.Name(modelClass)
     this.response = options?.response || Delete.Response(modelClass)
     this.resolverDecorator =
@@ -41,8 +36,6 @@ export class Delete<T> implements IActionResolverBuilder {
         returns: this.response,
         name: this.name,
       })
-
-    this.resolver = options?.resolver || Delete.Resolver(modelClass)
   }
 
   static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
@@ -57,40 +50,6 @@ export class Delete<T> implements IActionResolverBuilder {
     return DeletionResponse
   }
 
-  static Resolver<T>(modelClass: Type<T>) {
-    return async (
-      repo: Repository<T>,
-      id: string,
-      context: IContext,
-    ): Promise<DeletionResponse> => {
-      try {
-        const model = await repo.findOne(id)
-        if (!model) {
-          return {
-            success: false,
-            message: `${modelClass.name} with id ${id} does not exist.`,
-          }
-        }
-
-        Can.check(context, ActionScope.Delete, modelClass).assert(
-          model,
-          context,
-        )
-
-        await repo.delete(model)
-        return {
-          success: true,
-          message: `${modelClass.name} deleted.`,
-        }
-      } catch (err) {
-        return {
-          success: false,
-          message: err.message,
-        }
-      }
-    }
-  }
-
   static Decorator<T>(
     modelClass: Type<T>,
     opts?: IActionResolverOptions,
@@ -101,9 +60,9 @@ export class Delete<T> implements IActionResolverBuilder {
     })
   }
 
-  build(innerClass: Type<any>): Type<IDeleteResolver<T>> {
-    const resolverHandle = this.resolver
-
+  build(
+    innerClass: Type<IServiceProvider<IDeleteService<T>>>,
+  ): Type<IDeleteResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class DeleteModelResolverClass extends innerClass
       implements IDeleteResolver<T> {
@@ -111,11 +70,12 @@ export class Delete<T> implements IActionResolverBuilder {
       repo: Repository<T>
 
       @(this.resolverDecorator)
-      async delete(
+      delete(
         @IdInput id: string,
         @Context() context: IContext,
-      ): Promise<DeletionResponse> {
-        return resolverHandle(this.repo, id, context)
+        @Info() info: GraphQLResolveInfo,
+      ): Promise<DeletionResponse> | DeletionResponse {
+        return this.service.delete(id, context, info)
       }
     }
 

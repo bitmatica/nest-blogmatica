@@ -3,17 +3,18 @@ import {
   Args,
   Context,
   Field,
+  Info,
   InputType,
   Mutation,
   ObjectType,
   OmitType,
   Resolver,
 } from '@nestjs/graphql'
-import { InjectRepository } from '@nestjs/typeorm'
-import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { ActionScope, Can } from '../../can'
+import { GraphQLResolveInfo } from 'graphql'
+import { getMetadataArgsStorage } from 'typeorm'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
+import { ICreateService, IServiceProvider } from '../../service/types'
 import {
   IActionOptions,
   IActionResolverArgsOptions,
@@ -27,14 +28,9 @@ export interface ICreateResolver<T> {
   create(
     input: ICreateModelInput<T>,
     context: IContext,
-  ): Promise<MutationResponse<T>>
+    info: GraphQLResolveInfo,
+  ): Promise<MutationResponse<T>> | MutationResponse<T>
 }
-
-export type ICreateActionResolver<T> = (
-  repo: Repository<T>,
-  input: ICreateModelInput<T>,
-  context: IContext,
-) => Promise<MutationResponse<T>>
 
 export class Create<T> implements IActionResolverBuilder {
   private readonly name: string
@@ -42,12 +38,8 @@ export class Create<T> implements IActionResolverBuilder {
   private readonly resolverDecorator: MethodDecorator
   private readonly input: Type<any>
   private readonly argDecorator: ParameterDecorator
-  private readonly resolver: ICreateActionResolver<T>
 
-  constructor(
-    private modelClass: Type<T>,
-    options?: IActionOptions<T, ICreateActionResolver<T>>,
-  ) {
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
     this.name = options?.name || Create.Name(modelClass)
     this.response = options?.response || Create.Response(modelClass)
 
@@ -61,8 +53,6 @@ export class Create<T> implements IActionResolverBuilder {
     this.input = options?.input || Create.Input(modelClass)
     this.argDecorator =
       options?.argDecorator || Create.Arg(modelClass, { type: this.input })
-
-    this.resolver = options?.resolver || Create.Resolver(modelClass)
   }
 
   static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
@@ -122,52 +112,19 @@ export class Create<T> implements IActionResolverBuilder {
     })
   }
 
-  static Resolver<T>(modelClass: Type<T>) {
-    return async (
-      repo: Repository<T>,
-      input: ICreateModelInput<T>,
-      context: IContext,
-    ): Promise<MutationResponse<T>> => {
-      try {
-        const model = new modelClass()
-        Object.assign(model, { ...input })
-
-        Can.check(context, ActionScope.Update, modelClass).assert(
-          model,
-          context,
-        )
-
-        const saved = await repo.save(model)
-
-        return {
-          success: true,
-          message: `${modelClass.name} created.`,
-          model: saved,
-        }
-      } catch (err) {
-        return {
-          success: false,
-          message: err.message,
-        }
-      }
-    }
-  }
-
-  build(innerClass: Type<any>): Type<ICreateResolver<T>> {
-    const resolverHandle = this.resolver
-
+  build(
+    innerClass: Type<IServiceProvider<ICreateService<T>>>,
+  ): Type<ICreateResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class CreateModelResolverClass extends innerClass
       implements ICreateResolver<T> {
-      @InjectRepository(this.modelClass)
-      repo: Repository<T>
-
       @(this.resolverDecorator)
-      async create(
+      create(
         @(this.argDecorator) input: ICreateModelInput<T>,
         @Context() context: IContext,
-      ): Promise<MutationResponse<T>> {
-        return resolverHandle(this.repo, input, context)
+        @Info() info: GraphQLResolveInfo,
+      ): Promise<MutationResponse<T>> | MutationResponse<T> {
+        return this.service.create(input, context, info)
       }
     }
 

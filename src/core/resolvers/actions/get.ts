@@ -2,8 +2,8 @@ import { Type } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../../context'
+import { IGetService, IServiceProvider } from '../../service/types'
 import { IdInput } from '../decorators'
-import { constructQueryWithRelations } from '../helpers/relations'
 import {
   IActionOptions,
   IActionResolverBuilder,
@@ -18,22 +18,12 @@ export interface IGetResolver<T> {
   ): Promise<T | undefined>
 }
 
-export type IGetActionResolver<T> = (
-  id: string,
-  context: IContext,
-  info: GraphQLResolveInfo,
-) => Promise<T | undefined>
-
 export class Get<T> implements IActionResolverBuilder {
   private readonly decorator: MethodDecorator
-  private readonly resolver: IGetActionResolver<T>
   private readonly response: Type<any>
   private readonly name: string
 
-  constructor(
-    private modelClass: Type<T>,
-    options?: IActionOptions<T, IGetActionResolver<T>>,
-  ) {
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
     this.name = options?.name || Get.Name(modelClass)
     this.response = options?.response || Get.Response(modelClass)
 
@@ -43,8 +33,6 @@ export class Get<T> implements IActionResolverBuilder {
         returns: this.response,
         name: this.name,
       })
-
-    this.resolver = options?.resolver || (Get.Resolver(modelClass) as any)
   }
 
   static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
@@ -70,19 +58,9 @@ export class Get<T> implements IActionResolverBuilder {
     })
   }
 
-  static Resolver<T>(modelClass: Type<T>) {
-    return (
-      id: string,
-      context: IContext,
-      info: GraphQLResolveInfo,
-    ): Promise<T | undefined> => {
-      return constructQueryWithRelations(modelClass, info, context).getOne()
-    }
-  }
-
-  build(innerClass: Type<any>): Type<IGetResolver<T>> {
-    const resolverHandle = this.resolver
-
+  build(
+    innerClass: Type<IServiceProvider<IGetService<T>>>,
+  ): Type<IGetResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class GetModelResolverClass extends innerClass implements IGetResolver<T> {
       @(this.decorator)
@@ -91,7 +69,7 @@ export class Get<T> implements IActionResolverBuilder {
         @Context() context: IContext,
         @Info() info: GraphQLResolveInfo,
       ) {
-        return resolverHandle(id, context, info)
+        return this.service.get(id, context, info)
       }
     }
 
