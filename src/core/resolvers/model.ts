@@ -1,7 +1,13 @@
 import { Type } from '@nestjs/common'
 import { Resolver } from '@nestjs/graphql'
 import { Create, Delete, Get, List, Update } from './actions'
-import { ActionMap, DynamicService, IAction, ResolverAction } from './types'
+import {
+  ActionMap,
+  DynamicService,
+  IAction,
+  IBaseResolver,
+  ResolverAction,
+} from './types'
 
 const defaultResolvers: Array<ResolverAction> = [
   Get,
@@ -17,7 +23,7 @@ function isAction(arg: any): arg is IAction {
 
 export function BaseModelResolver<T, U extends ActionMap<T>>(
   objectType: Type<T>,
-): DynamicService<T, U>
+): Type<IBaseResolver<T>>
 
 export function BaseModelResolver<T, U extends ActionMap<T>>(
   objectType: Type<T>,
@@ -27,10 +33,12 @@ export function BaseModelResolver<T, U extends ActionMap<T>>(
 export function BaseModelResolver<T, U extends ActionMap<T>>(
   modelClass: Type<T>,
   without?: U,
-): DynamicService<T, U> {
+): Type<IBaseResolver<T>> | DynamicService<T, U> {
   const allBaseResolvers = defaultResolvers.filter(
     resolver =>
-      !!without && Object.values(without).find(action => resolver === action),
+      !(
+        !!without && Object.values(without).find(action => resolver === action)
+      ),
   )
 
   @Resolver({ isAbstract: true })

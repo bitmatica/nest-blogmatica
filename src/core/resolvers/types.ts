@@ -93,7 +93,7 @@ export interface IAction {
   Default<T>(modelClass: Type<T>): IActionResolverBuilder
 }
 
-type IBaseResolver<T> = IGet<T> &
+export type IBaseResolver<T> = IGet<T> &
   IList<T> &
   ICreate<T> &
   IUpdate<T> &
