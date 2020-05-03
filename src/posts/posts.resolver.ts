@@ -6,12 +6,14 @@ import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { ICreateModelInput, IMutationResponse } from '../core/resolvers/types'
 import { Post } from './post.entity'
+import { PostsService } from './posts.service'
 
 type ICreatePostInput = Omit<ICreateModelInput<Post>, 'authorId'>
 const CreatePostInput = Create.Input(Post, ['authorId', ...BASE_MODEL_FIELDS])
 
 @Resolver(() => Post)
 export class PostsResolver extends BaseModelResolver(Post, {
+  service: PostsService,
   without: { Create },
 }) {
   @Create.Decorator(Post)
