@@ -6,12 +6,9 @@ import { Post } from './post.entity'
 import { PostsService } from './posts.service'
 
 const CreatePostInput = Create.Input(Post, ['authorId', ...BASE_MODEL_FIELDS])
-const CustomCreate = new Create(Post, { input: CreatePostInput })
 
 @Resolver(() => Post)
-export class PostsResolver extends CustomCreate.build(
-  BaseModelResolver(Post, {
-    service: PostsService,
-    without: { Create },
-  }),
-) {}
+export class PostsResolver extends BaseModelResolver(Post, {
+  service: PostsService,
+  with: { Create: new Create(Post, { input: CreatePostInput }) },
+}) {}

@@ -38,6 +38,7 @@ export function BaseModelResolver<
   objectType: Type<T>,
   options: {
     service: Type<V>
+    with?: U
   },
 ): Type<IBaseResolver<T> & IServiceProvider<V>>
 
@@ -69,15 +70,28 @@ export function BaseModelResolver<T, U extends ActionMap<T>>(
   options?: {
     service?: Type<DynamicService<T, U>>
     without?: U
+    with?: U
   },
 ) {
-  const allBaseResolvers = defaultResolvers.filter(
-    resolver =>
-      !(
-        !!options?.without &&
-        Object.values(options.without).find(action => resolver === action)
-      ),
-  )
+  const additionalResolvers = ((options?.with && Object.values(options.with)) ||
+    []) as Array<ResolverAction>
+
+  const allBaseResolvers = defaultResolvers
+    .filter(
+      resolver =>
+        !(
+          options?.without &&
+          Object.values(options.without).find(action => resolver === action)
+        ),
+    )
+    .filter(
+      resolver =>
+        !(
+          typeof resolver === 'function' &&
+          additionalResolvers.find(other => other instanceof resolver)
+        ),
+    )
+    .concat(additionalResolvers)
 
   let returnClass: Type<any>
 
