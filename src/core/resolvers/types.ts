@@ -76,3 +76,37 @@ export interface IBaseResolverOptions<T> {
   with?: Array<ResolverAction<T>>
   without?: Array<ResolverAction<T>>
 }
+
+export type ResolverFunction = (...args: any) => any
+
+export type RemovePromise<T> = T extends PromiseLike<infer U> ? U : T
+
+export type ResolverReturnType<T extends ResolverFunction> = RemovePromise<
+  ReturnType<T>
+>
+
+export interface IActionOptions<T, U extends ResolverFunction> {
+  name?: string
+  decorator?: MethodDecorator
+  input?: ParameterDecorator
+  response?: Type<ResolverReturnType<U>>
+  resolver?: U
+}
+
+export interface IAction {
+  build(innerClass: Type<any>): Type<any>
+}
+
+export interface IActionBuilder {
+  Name<T>(modelClass: Type<T>): string
+
+  Response<T>(modelClass: Type<T>): Type<any>
+
+  Decorator<T>(modelClass: Type<T>): MethodDecorator
+
+  Input<T>(modelClass: Type<T>): ParameterDecorator
+
+  Resolver<T>(modelClass: Type<T>): ResolverFunction
+
+  Default<T>(modelClass: Type<T>): IAction
+}
