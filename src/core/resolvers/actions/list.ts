@@ -23,7 +23,7 @@ export class List<T> implements IActionResolverBuilder {
     this.response = options?.response || List.Response(modelClass)
     this.resolverDecorator =
       options?.resolverDecorator ||
-      List.Decorator(modelClass, {
+      List.Resolver(modelClass, {
         name: this.name,
         returns: this.response,
       })
@@ -41,7 +41,7 @@ export class List<T> implements IActionResolverBuilder {
     return [modelClass]
   }
 
-  static Decorator<T>(
+  static Resolver<T>(
     modelClass: Type<T>,
     opts?: IActionResolverOptions,
   ): MethodDecorator {

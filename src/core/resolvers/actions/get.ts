@@ -29,7 +29,7 @@ export class Get<T> implements IActionResolverBuilder {
 
     this.decorator =
       options?.resolverDecorator ||
-      Get.Decorator(modelClass, {
+      Get.Resolver(modelClass, {
         returns: this.response,
         name: this.name,
       })
@@ -47,7 +47,7 @@ export class Get<T> implements IActionResolverBuilder {
     return modelClass
   }
 
-  static Decorator<T>(
+  static Resolver<T>(
     modelClass: Type<T>,
     opts?: IActionResolverOptions,
   ): MethodDecorator {

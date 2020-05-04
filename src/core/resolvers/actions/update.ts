@@ -48,7 +48,7 @@ export class Update<T> implements IActionResolverBuilder {
     this.response = options?.response || Update.Response(modelClass)
     this.decorator =
       options?.resolverDecorator ||
-      Update.Decorator(modelClass, {
+      Update.Resolver(modelClass, {
         name: this.name,
         returns: this.response,
       })
@@ -82,7 +82,7 @@ export class Update<T> implements IActionResolverBuilder {
     return ModelUpdateResponse
   }
 
-  static Decorator<T>(
+  static Resolver<T>(
     modelClass: Type<T>,
     opts?: IActionResolverOptions,
   ): MethodDecorator {

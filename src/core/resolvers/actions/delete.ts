@@ -32,7 +32,7 @@ export class Delete<T> implements IActionResolverBuilder {
     this.response = options?.response || Delete.Response(modelClass)
     this.resolverDecorator =
       options?.resolverDecorator ||
-      Delete.Decorator(modelClass, {
+      Delete.Resolver(modelClass, {
         returns: this.response,
         name: this.name,
       })
@@ -50,7 +50,7 @@ export class Delete<T> implements IActionResolverBuilder {
     return DeletionResponse
   }
 
-  static Decorator<T>(
+  static Resolver<T>(
     modelClass: Type<T>,
     opts?: IActionResolverOptions,
   ): MethodDecorator {

@@ -56,7 +56,7 @@ export class UsersResolver extends BaseModelResolver(User, {
   @InjectRepository(User)
   protected repo: Repository<User>
 
-  @Create.Decorator(User)
+  @Create.Resolver(User)
   async create(
     @Args('input', { type: () => CreateUserInput }) input: CreateUserInput,
   ) {

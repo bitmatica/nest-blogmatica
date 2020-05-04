@@ -45,7 +45,7 @@ export class Create<T> implements IActionResolverBuilder {
 
     this.resolverDecorator =
       options?.resolverDecorator ||
-      Create.Decorator(modelClass, {
+      Create.Resolver(modelClass, {
         returns: this.response,
         name: this.name,
       })
@@ -76,7 +76,7 @@ export class Create<T> implements IActionResolverBuilder {
     return ModelCreationResponse
   }
 
-  static Decorator<T>(
+  static Resolver<T>(
     modelClass: Type<T>,
     opts?: IActionResolverOptions,
   ): MethodDecorator {
