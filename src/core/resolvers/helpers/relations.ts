@@ -4,12 +4,10 @@ import { EntityMetadata, getConnection, SelectQueryBuilder } from 'typeorm'
 import { ActionScope, Can } from '../../can'
 import { IContext } from '../../context'
 
-function getFieldNodes(
-  selectionSet: SelectionSetNode | undefined,
-): Array<FieldNode> | undefined {
-  return selectionSet?.selections.filter(
-    selection => selection.kind === 'Field',
-  ) as Array<FieldNode> | undefined
+function getFieldNodes(selectionSet: SelectionSetNode | undefined): Array<FieldNode> | undefined {
+  return selectionSet?.selections.filter(selection => selection.kind === 'Field') as
+    | Array<FieldNode>
+    | undefined
 }
 
 function addNestedRelations<TModel>(
@@ -19,49 +17,41 @@ function addNestedRelations<TModel>(
   selections: Array<FieldNode>,
   context: IContext,
 ): SelectQueryBuilder<TModel> {
-  return selections.reduce(
-    (prevBuilder: SelectQueryBuilder<TModel>, field: FieldNode) => {
-      const selections = getFieldNodes(field.selectionSet)
-      if (!selections) {
-        return prevBuilder
-      }
+  return selections.reduce((prevBuilder: SelectQueryBuilder<TModel>, field: FieldNode) => {
+    const selections = getFieldNodes(field.selectionSet)
+    if (!selections) {
+      return prevBuilder
+    }
 
-      const relation = entityMetadata.relations.find(
-        rel => rel.propertyName === field.name.value,
-      )
-      if (!relation) {
-        return prevBuilder
-      }
+    const relation = entityMetadata.relations.find(rel => rel.propertyName === field.name.value)
+    if (!relation) {
+      return prevBuilder
+    }
 
-      const relationPath = `${parentAlias}.${relation.propertyName}`
-      const relationAlias = `${parentAlias}_${relation.propertyName}`
+    const relationPath = `${parentAlias}.${relation.propertyName}`
+    const relationAlias = `${parentAlias}_${relation.propertyName}`
 
-      const recordScope = Can.check(
-        context,
-        ActionScope.Read,
-        relation.inverseEntityMetadata.target as Type<any>,
-      )
-      const joinCondition = recordScope.where(
-        relationAlias,
-        context,
-      )(prevBuilder)
+    const recordScope = Can.check(
+      context,
+      ActionScope.Read,
+      relation.inverseEntityMetadata.target as Type<any>,
+    )
+    const joinCondition = recordScope.where(relationAlias, context)(prevBuilder)
 
-      const nextBuilder = prevBuilder.leftJoinAndSelect(
-        relationPath,
-        relationAlias,
-        joinCondition.query,
-        joinCondition.parameters,
-      )
-      return addNestedRelations(
-        nextBuilder,
-        relation.inverseEntityMetadata,
-        relationAlias,
-        selections,
-        context,
-      )
-    },
-    queryBuilder,
-  )
+    const nextBuilder = prevBuilder.leftJoinAndSelect(
+      relationPath,
+      relationAlias,
+      joinCondition.query,
+      joinCondition.parameters,
+    )
+    return addNestedRelations(
+      nextBuilder,
+      relation.inverseEntityMetadata,
+      relationAlias,
+      selections,
+      context,
+    )
+  }, queryBuilder)
 }
 
 export function constructQueryWithRelations<TModel>(
@@ -78,9 +68,7 @@ export function constructQueryWithRelations<TModel>(
     throw new Error('No selection set found in query')
   }
 
-  const rootMetadata = conn.entityMetadatas.find(
-    metadata => metadata.target === rootClass,
-  )
+  const rootMetadata = conn.entityMetadatas.find(metadata => metadata.target === rootClass)
   if (!rootMetadata) {
     throw new Error(
       `No entity metadata found for ${rootClass.name}, cannot construct relation with queries`,
