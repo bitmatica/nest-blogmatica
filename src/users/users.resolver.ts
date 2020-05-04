@@ -22,6 +22,8 @@ import { BaseModelResolver } from '../core/resolvers/model'
 import { MutationResponse } from '../core/resolvers/types'
 import { CurrentUser } from '../decorators/currentUser'
 import { User } from './user.entity'
+import { CanAuth } from '../core/can/decorators'
+import { ActionScope } from '../core/can'
 
 @InputType()
 export class CreateUserInput {
@@ -120,8 +122,10 @@ export class UsersResolver extends BaseModelResolver(User, {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Query(returns => User)
+  // TODO: If the user model Can.do permissions allows anyone to read,
+  // the JwtAuthGuard won't run and user will be null
+  @CanAuth(User, ActionScope.Read)
+  @Query(returns => User, { nullable: true })
   async whoAmI(@CurrentUser() user: User) {
     return user
   }
