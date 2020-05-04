@@ -97,28 +97,18 @@ export type AndOperator<T> = {
 
 export type BooleanOperator<T> = OrOperator<T> | AndOperator<T>
 
-export type AnyOperator<T> = {
-  $any: Array<QueryFilter<T>>
-}
-
-export type AllOperator<T> = {
-  $all: Array<QueryFilter<T>>
-}
-
-export type ArrayOperator<T> = AnyOperator<T> | AllOperator<T>
-
 export type QueryFilter<T> = {
   [P in keyof T]?: T[P] extends BaseModel
     ? QueryFilter<T[P]>
     : T[P] extends PromiseLike<infer U>
     ? U extends Array<infer V>
       ? V extends BaseModel
-        ? ArrayOperator<V>
+        ? QueryFilter<V>
         : DynamicComparator<V>
       : DynamicComparator<U> | QueryFilter<U>
     : T[P] extends Array<infer U>
     ? U extends BaseModel
-      ? ArrayOperator<U>
+      ? QueryFilter<U>
       : DynamicComparator<U> | QueryFilter<U>
     : DynamicComparator<T[P]> | ComparatorValue<T[P]>
 }

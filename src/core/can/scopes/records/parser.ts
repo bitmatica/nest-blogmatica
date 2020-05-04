@@ -1,8 +1,7 @@
-import { Type } from '@nestjs/common/interfaces/type.interface'
 import { SelectQueryBuilder } from 'typeorm'
+import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import * as guards from './guards'
 import {
-  ArrayOperator,
   BooleanOperator,
   Comparator,
   ComparatorKey,
@@ -19,6 +18,8 @@ enum BooleanJoiner {
   And = 'AND',
   Or = 'OR',
 }
+
+type EntityReference = Function | string
 
 export function mergeParsedQueries(
   queries: Array<ParsedQuery>,
@@ -41,8 +42,8 @@ export function mergeParsedQueries(
 }
 
 export function parseBooleanOperator<T>(
-  classType: Type<T>,
-  queryBuilder: SelectQueryBuilder<T>,
+  classType: EntityReference,
+  queryBuilder: SelectQueryBuilder<any>,
   alias: string,
   operator: BooleanOperator<T>,
 ): ParsedQuery {
@@ -206,35 +207,6 @@ export const comparatorToParser: Record<ComparatorKey, ComparatorParserFn> = {
   [ComparatorKey.Exists]: existsComparator,
 }
 
-export function parseArrayOperator<T>(
-  classType: Type<T>,
-  queryBuilder: SelectQueryBuilder<T>,
-  alias: string,
-  op: ArrayOperator<T>,
-): ParsedQuery {
-  if (guards.isAllOperator(op)) {
-    const queries = mergeParsedQueries(
-      op.$all.map(allOp =>
-        parseQueryFilter(classType, queryBuilder, alias, allOp),
-      ),
-    )
-    return {
-      query: `true = ALL(${queries.query})`,
-      params: queries.params,
-    }
-  } else {
-    const queries = mergeParsedQueries(
-      op.$any.map(anyOp =>
-        parseQueryFilter(classType, queryBuilder, alias, anyOp),
-      ),
-    )
-    return {
-      query: `true = ANY(${queries.query})`,
-      params: queries.params,
-    }
-  }
-}
-
 export function parseComparators(
   alias: string,
   fieldName: string,
@@ -253,14 +225,79 @@ export function parseComparators(
   )
 }
 
+export function handleManyToOneRelation<T>(
+  queryBuilder: SelectQueryBuilder<T>,
+  alias: string,
+  relationName: string,
+  relation: RelationMetadata,
+  value: QueryFilter<T>,
+): ParsedQuery {
+  const joinAlias = `${alias}_${relationName}`
+  const result = parseQueryFilter(relation.type, queryBuilder, joinAlias, value)
+
+  const joinCondition = relation.joinColumns
+    .map(joinColumn => {
+      const referenceColumn = joinColumn.referencedColumn?.propertyName || ''
+      return `${alias}.${relation.propertyName} = ${joinAlias}.${referenceColumn}`
+    })
+    .join(' AND ')
+
+  const query = queryBuilder
+    .subQuery()
+    .select('true')
+    .from(relation.type, joinAlias)
+    .where(joinCondition)
+    .andWhere(result.query)
+    .getQuery()
+
+  return {
+    query,
+    params: result.params,
+  }
+}
+
+export function handleOneToManyRelation<T>(
+  queryBuilder: SelectQueryBuilder<T>,
+  alias: string,
+  relationName: string,
+  relation: RelationMetadata,
+  filter: QueryFilter<T>,
+): ParsedQuery {
+  const joinAlias = `${alias}_${relationName}`
+  const result = parseQueryFilter(
+    relation.type,
+    queryBuilder,
+    joinAlias,
+    filter,
+  )
+
+  const joinColumns = relation.inverseRelation?.joinColumns || []
+  const joinCondition = joinColumns
+    .map(joinCol => {
+      const referenceColumn = joinCol.referencedColumn?.propertyName || ''
+      return `${alias}.${referenceColumn} = ${joinAlias}.${joinCol.propertyName}`
+    })
+    .join(' AND ')
+
+  const query = queryBuilder
+    .subQuery()
+    .select(`${result.query} as result`)
+    .from(relation.type, joinAlias)
+    .where(joinCondition)
+    .getQuery()
+
+  return {
+    query: `true = ALL(${query})`,
+    params: result.params,
+  }
+}
+
 export function parseQueryFilter<T>(
-  classType: Type<T>,
+  classType: EntityReference,
   queryBuilder: SelectQueryBuilder<T>,
   alias: string,
   filter: QueryFilter<T>,
 ): ParsedQuery {
-  console.log('Parsing QueryFilter', filter)
-
   return mergeParsedQueries(
     Object.keys(filter).map(fieldName => {
       const value = filter[fieldName as keyof QueryFilter<T>]
@@ -271,20 +308,56 @@ export function parseQueryFilter<T>(
         return eqComparator(alias, fieldName, value)
       }
 
-      if (guards.isArrayOperator(value)) {
-        return parseArrayOperator(classType, queryBuilder, alias, value)
+      // Relationship Handling
+      const entityMetadata = queryBuilder.connection.entityMetadatas.find(
+        em => em.target === classType,
+      )
+      if (!entityMetadata) {
+        throw `${classType} is not a TypeORM entity`
       }
 
-      // Relationship Handling
-      const newAlias = `${alias}_${fieldName}`
-      console.log('Recursing', newAlias, value)
-      return parseQueryFilter(classType, queryBuilder, newAlias, value)
+      const relation = entityMetadata.relations.find(
+        rel => rel.propertyName === fieldName,
+      )
+      if (!relation) {
+        console.log(
+          `${fieldName} not a relation on ${classType}. Probably an error.`,
+        )
+        return parseQueryFilter(
+          classType,
+          queryBuilder,
+          `${alias}_${fieldName}`,
+          value,
+        )
+      }
+
+      if (relation.relationType === 'many-to-one') {
+        return handleManyToOneRelation(
+          queryBuilder,
+          alias,
+          fieldName,
+          relation,
+          value,
+        )
+      }
+
+      if (relation.relationType === 'one-to-many') {
+        return handleOneToManyRelation(
+          queryBuilder,
+          alias,
+          fieldName,
+          relation,
+          value,
+        )
+      }
+
+      throw new Error(`Relation Type NYI: ${relation.relationType}`)
     }),
   )
 }
 
 export function parseScope<T>(
-  className: Type<T>,
+  className: EntityReference,
   queryBuilder: SelectQueryBuilder<T>,
   alias: string,
   filter: BooleanOperator<T> | QueryFilter<T>,

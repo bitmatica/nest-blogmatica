@@ -2,10 +2,7 @@ import isDate from 'lodash/isDate'
 import { BaseModel } from '../../../model'
 import { ComputedValue } from '../../computedValues'
 import {
-  AllOperator,
   AndOperator,
-  AnyOperator,
-  ArrayOperator,
   BooleanOperator,
   Comparator,
   ComparatorValue,
@@ -93,18 +90,6 @@ export function isAndOperator<T>(arg: any): arg is AndOperator<T> {
 
 export function isBooleanOperator<T>(arg: any): arg is BooleanOperator<T> {
   return isOrOperator(arg) || isAndOperator(arg)
-}
-
-export function isAnyOperator<T>(arg: any): arg is AnyOperator<T> {
-  return arg.hasOwnProperty('$any')
-}
-
-export function isAllOperator<T>(arg: any): arg is AllOperator<T> {
-  return arg.hasOwnProperty('$all')
-}
-
-export function isArrayOperator<T>(arg: any): arg is ArrayOperator<T> {
-  return isAnyOperator(arg) || isAllOperator(arg)
 }
 
 export function isModel<T>(arg: any): arg is BaseModel {

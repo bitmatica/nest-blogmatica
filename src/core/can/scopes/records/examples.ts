@@ -2,7 +2,6 @@ import { getConnection } from 'typeorm'
 import { Comment } from '../../../../comments/comment.entity'
 import { Post } from '../../../../posts/post.entity'
 import { User } from '../../../../users/user.entity'
-import { ComputedValue } from '../../computedValues'
 import { RecordScopeCustom } from './index'
 
 // RecordScopeCustom(Post, {
@@ -135,15 +134,21 @@ export async function scopedCommentsUserIdQuery() {
 }
 
 export async function RunExamples() {
-  RecordScopeCustom(Comment, {
-    authorId: {
-      $eq: ComputedValue.UserId,
-    },
-    id: '1234',
-    createdAt: {
-      $lt: new Date(),
+  await RecordScopeCustom(User, {
+    posts: {
+      authorId: 'af58075c-7f18-4312-90fb-a78ef1bb629a',
     },
   })
+
+  // await RecordScopeCustom(Comment, {
+  //   post: {
+  //     author: {
+  //       createdAt: {
+  //         $lte: new Date(),
+  //       },
+  //     },
+  //   },
+  // })
 }
 
 // export async function postsGreaterThan(filter: Date) {
