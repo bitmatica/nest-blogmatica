@@ -24,22 +24,29 @@ export function BaseModelResolver<T>(
   objectType: Type<T>,
 ): Type<IBaseResolver<T> & IServiceProvider<IBaseService<T>>>
 
-export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
+export function BaseModelResolver<T>(
+  objectType: Type<T>,
+  options: {
+    service: Type<IBaseService<T>>
+  },
+): Type<IBaseResolver<T> & IServiceProvider<IBaseService<T>>>
+
+export function BaseModelResolver<T, U extends ActionMap<T>>(
   objectType: Type<T>,
   options: {
     with: U
   },
-): Type<IBaseResolver<T> & IServiceProvider<V>>
+): Type<IBaseResolver<T> & IServiceProvider<IBaseService<T>>>
 
 export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
   objectType: Type<T>,
   options: {
     service: Type<V>
-    with?: U
+    with: U
   },
 ): Type<IBaseResolver<T> & IServiceProvider<V>>
 
-export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
+export function BaseModelResolver<T, U extends ActionMap<T>>(
   objectType: Type<T>,
   options: {
     without: U
@@ -53,6 +60,23 @@ export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicSe
     without: U
   },
 ): Type<DynamicResolver<T, U> & IServiceProvider<V>>
+
+export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
+  objectType: Type<T>,
+  options: {
+    service: Type<V>
+    without: U
+    with: U
+  },
+): Type<DynamicResolver<T, U> & IServiceProvider<V>>
+
+export function BaseModelResolver<T, U extends ActionMap<T>>(
+  objectType: Type<T>,
+  options: {
+    without: U
+    with: U
+  },
+): Type<DynamicResolver<T, U> & IServiceProvider<IBaseService<T>>>
 
 export function BaseModelResolver<T, U extends ActionMap<T>>(
   modelClass: Type<T>,
