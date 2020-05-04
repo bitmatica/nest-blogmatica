@@ -37,6 +37,17 @@ export function BaseModelResolver<
 >(
   objectType: Type<T>,
   options: {
+    with: U
+  },
+): Type<IBaseResolver<T> & IServiceProvider<V>>
+
+export function BaseModelResolver<
+  T,
+  U extends ActionMap<T>,
+  V extends DynamicService<T, U>
+>(
+  objectType: Type<T>,
+  options: {
     service: Type<V>
     with?: U
   },
