@@ -24,7 +24,6 @@ export function mergeParsedQueries(
   queries: Array<ParsedQuery>,
   joiner: BooleanJoiner = BooleanJoiner.And,
 ): ParsedQuery {
-  console.log('merging', queries)
   const mergedQuery = queries.reduce((prev, next) => {
     return {
       query: `${prev.query} ${joiner} ${next.query}`,
@@ -42,21 +41,21 @@ export function mergeParsedQueries(
 }
 
 export function parseBooleanOperator<T>(
-  classType: Type<any>,
+  classType: Type<T>,
+  queryBuilder: SelectQueryBuilder<T>,
   alias: string,
   operator: BooleanOperator<T>,
 ): ParsedQuery {
-  console.log('Parsing Boolean Operator', operator)
   if (guards.isAndOperator(operator)) {
     return mergeParsedQueries(
       operator.$and.map(query => {
-        return parseQueryFilter(classType, alias, query)
+        return parseQueryFilter(classType, queryBuilder, alias, query)
       }),
     )
   } else {
     return mergeParsedQueries(
       operator.$or.map(query => {
-        return parseQueryFilter(classType, alias, query)
+        return parseQueryFilter(classType, queryBuilder, alias, query)
       }),
       BooleanJoiner.Or,
     )
@@ -68,7 +67,6 @@ export function eqComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} = :${paramName}`,
@@ -83,7 +81,6 @@ export function neqComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} <> :${paramName}`,
@@ -98,7 +95,6 @@ export function gtComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} > :${paramName}`,
@@ -113,7 +109,6 @@ export function gteComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} >= :${paramName}`,
@@ -128,7 +123,6 @@ export function ltComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} < :${paramName}`,
@@ -143,7 +137,6 @@ export function lteComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} <= :${paramName}`,
@@ -158,7 +151,6 @@ export function inComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} in :(...${paramName})`,
@@ -173,7 +165,6 @@ export function containsComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} contains :${paramName}`,
@@ -188,7 +179,6 @@ export function existsComparator(
   fieldName: string,
   comp: ComparatorValue<any>,
 ): ParsedQuery {
-  console.log('eq comparator', alias, fieldName, comp)
   const paramName = `${alias}_${fieldName}`
   return {
     query: `(${alias}.${fieldName} IS NOT NULL) = ${paramName}`,
@@ -216,12 +206,40 @@ export const comparatorToParser: Record<ComparatorKey, ComparatorParserFn> = {
   [ComparatorKey.Exists]: existsComparator,
 }
 
+export function parseArrayOperator<T>(
+  classType: Type<T>,
+  queryBuilder: SelectQueryBuilder<T>,
+  alias: string,
+  op: ArrayOperator<T>,
+): ParsedQuery {
+  if (guards.isAllOperator(op)) {
+    const queries = mergeParsedQueries(
+      op.$all.map(allOp =>
+        parseQueryFilter(classType, queryBuilder, alias, allOp),
+      ),
+    )
+    return {
+      query: `true = ALL(${queries.query})`,
+      params: queries.params,
+    }
+  } else {
+    const queries = mergeParsedQueries(
+      op.$any.map(anyOp =>
+        parseQueryFilter(classType, queryBuilder, alias, anyOp),
+      ),
+    )
+    return {
+      query: `true = ANY(${queries.query})`,
+      params: queries.params,
+    }
+  }
+}
+
 export function parseComparators(
   alias: string,
   fieldName: string,
   comparators: Comparator<any>,
 ): ParsedQuery {
-  console.log('Parsing Comparators')
   return mergeParsedQueries(
     Object.keys(comparators).map(comp => {
       const value = comparators[comp]
@@ -235,33 +253,9 @@ export function parseComparators(
   )
 }
 
-export function parseArrayOperator(
-  classType: Type<any>,
-  alias: string,
-  op: ArrayOperator<any>,
-): ParsedQuery {
-  console.log('Parsing ArrayOperator', op)
-  if (guards.isAllOperator(op)) {
-    const queries = mergeParsedQueries(
-      op.$all.map(allOp => parseQueryFilter(classType, alias, allOp)),
-    )
-    return {
-      query: `true = ALL(${queries.query})`,
-      params: queries.params,
-    }
-  } else {
-    const queries = mergeParsedQueries(
-      op.$any.map(anyOp => parseQueryFilter(classType, alias, anyOp)),
-    )
-    return {
-      query: `true = ANY(${queries.query})`,
-      params: queries.params,
-    }
-  }
-}
-
 export function parseQueryFilter<T>(
-  classType: Type<any>,
+  classType: Type<T>,
+  queryBuilder: SelectQueryBuilder<T>,
   alias: string,
   filter: QueryFilter<T>,
 ): ParsedQuery {
@@ -270,9 +264,6 @@ export function parseQueryFilter<T>(
   return mergeParsedQueries(
     Object.keys(filter).map(fieldName => {
       const value = filter[fieldName as keyof QueryFilter<T>]
-      if (guards.isArrayOperator(value)) {
-        return parseArrayOperator(classType, alias, value)
-      }
       if (guards.isComparator(value)) {
         return parseComparators(alias, fieldName, value)
       }
@@ -280,10 +271,14 @@ export function parseQueryFilter<T>(
         return eqComparator(alias, fieldName, value)
       }
 
+      if (guards.isArrayOperator(value)) {
+        return parseArrayOperator(classType, queryBuilder, alias, value)
+      }
+
       // Relationship Handling
       const newAlias = `${alias}_${fieldName}`
       console.log('Recursing', newAlias, value)
-      return parseQueryFilter(classType, newAlias, value as QueryFilter<any>)
+      return parseQueryFilter(classType, queryBuilder, newAlias, value)
     }),
   )
 }
@@ -295,7 +290,7 @@ export function parseScope<T>(
 ): ParsedQuery {
   const rootAlias = className.name.toLocaleLowerCase()
   if (guards.isBooleanOperator(filter)) {
-    return parseBooleanOperator(className, rootAlias, filter)
+    return parseBooleanOperator(className, queryBuilder, rootAlias, filter)
   }
-  return parseQueryFilter(className, rootAlias, filter)
+  return parseQueryFilter(className, queryBuilder, rootAlias, filter)
 }

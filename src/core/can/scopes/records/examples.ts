@@ -2,6 +2,7 @@ import { getConnection } from 'typeorm'
 import { Comment } from '../../../../comments/comment.entity'
 import { Post } from '../../../../posts/post.entity'
 import { User } from '../../../../users/user.entity'
+import { ComputedValue } from '../../computedValues'
 import { RecordScopeCustom } from './index'
 
 // RecordScopeCustom(Post, {
@@ -136,7 +137,7 @@ export async function scopedCommentsUserIdQuery() {
 export async function RunExamples() {
   RecordScopeCustom(Comment, {
     authorId: {
-      $eq: 'asdf',
+      $eq: ComputedValue.UserId,
     },
     id: '1234',
     createdAt: {
