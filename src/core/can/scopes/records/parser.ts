@@ -1,13 +1,7 @@
 import { SelectQueryBuilder } from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
 import * as guards from './guards'
-import {
-  BooleanOperator,
-  Comparator,
-  ComparatorKey,
-  ComparatorValue,
-  QueryFilter,
-} from './types'
+import { BooleanOperator, Comparator, ComparatorKey, ComparatorValue, QueryFilter } from './types'
 
 type ParsedQuery = {
   query: string
@@ -264,12 +258,7 @@ export function handleOneToManyRelation<T>(
   filter: QueryFilter<T>,
 ): ParsedQuery {
   const joinAlias = `${alias}_${relationName}`
-  const result = parseQueryFilter(
-    relation.type,
-    queryBuilder,
-    joinAlias,
-    filter,
-  )
+  const result = parseQueryFilter(relation.type, queryBuilder, joinAlias, filter)
 
   const joinColumns = relation.inverseRelation?.joinColumns || []
   const joinCondition = joinColumns
@@ -316,39 +305,18 @@ export function parseQueryFilter<T>(
         throw `${classType} is not a TypeORM entity`
       }
 
-      const relation = entityMetadata.relations.find(
-        rel => rel.propertyName === fieldName,
-      )
+      const relation = entityMetadata.relations.find(rel => rel.propertyName === fieldName)
       if (!relation) {
-        console.log(
-          `${fieldName} not a relation on ${classType}. Probably an error.`,
-        )
-        return parseQueryFilter(
-          classType,
-          queryBuilder,
-          `${alias}_${fieldName}`,
-          value,
-        )
+        console.log(`${fieldName} not a relation on ${classType}. Probably an error.`)
+        return parseQueryFilter(classType, queryBuilder, `${alias}_${fieldName}`, value)
       }
 
       if (relation.relationType === 'many-to-one') {
-        return handleManyToOneRelation(
-          queryBuilder,
-          alias,
-          fieldName,
-          relation,
-          value,
-        )
+        return handleManyToOneRelation(queryBuilder, alias, fieldName, relation, value)
       }
 
       if (relation.relationType === 'one-to-many') {
-        return handleOneToManyRelation(
-          queryBuilder,
-          alias,
-          fieldName,
-          relation,
-          value,
-        )
+        return handleOneToManyRelation(queryBuilder, alias, fieldName, relation, value)
       }
 
       throw new Error(`Relation Type NYI: ${relation.relationType}`)

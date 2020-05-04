@@ -22,9 +22,7 @@ export function isEqualsComparator<T>(arg: any): arg is EqualsComparator<T> {
   return arg.hasOwnProperty('$eq')
 }
 
-export function isNotEqualsComparator<T>(
-  arg: any,
-): arg is NotEqualsComparator<T> {
+export function isNotEqualsComparator<T>(arg: any): arg is NotEqualsComparator<T> {
   return arg.hasOwnProperty('$neq')
 }
 
@@ -32,9 +30,7 @@ export function isInComparator<T>(arg: any): arg is InComparator<T> {
   return arg.hasOwnProperty('$in')
 }
 
-export function isContainsComparator<T>(
-  arg: any,
-): arg is ContainsComparator<T> {
+export function isContainsComparator<T>(arg: any): arg is ContainsComparator<T> {
   return arg.hasOwnProperty('$contains')
 }
 
@@ -42,21 +38,15 @@ export function isExistsComparator<T>(arg: any): arg is ExistsComparator<T> {
   return arg.hasOwnProperty('$exists')
 }
 
-export function isLessThanComparator<T>(
-  arg: any,
-): arg is LessThanComparator<T> {
+export function isLessThanComparator<T>(arg: any): arg is LessThanComparator<T> {
   return arg.hasOwnProperty('$lt')
 }
 
-export function isLessThanOrEqualsComparator<T>(
-  arg: any,
-): arg is LessThanOrEqualsComparator<T> {
+export function isLessThanOrEqualsComparator<T>(arg: any): arg is LessThanOrEqualsComparator<T> {
   return arg.hasOwnProperty('$lte')
 }
 
-export function isGreaterThanComparator<T>(
-  arg: any,
-): arg is GreaterThanComparator<T> {
+export function isGreaterThanComparator<T>(arg: any): arg is GreaterThanComparator<T> {
   return arg.hasOwnProperty('$gt')
 }
 
@@ -94,9 +84,7 @@ export function isBooleanOperator<T>(arg: any): arg is BooleanOperator<T> {
 
 export function isModel<T>(arg: any): arg is BaseModel {
   return (
-    arg.hasOwnProperty('id') &&
-    arg.hasOwnProperty('createdAt') &&
-    arg.hasOwnProperty('updatedAt')
+    arg.hasOwnProperty('id') && arg.hasOwnProperty('createdAt') && arg.hasOwnProperty('updatedAt')
   )
 }
 
@@ -105,9 +93,5 @@ export function isComputedValue<T>(arg: any): arg is ComputedValue<T> {
 }
 
 export function isComparatorValue<T>(arg: any): arg is ComparatorValue<T> {
-  return (
-    isComputedValue(arg) ||
-    typeof arg === ('string' || 'number' || 'boolean') ||
-    isDate(arg)
-  )
+  return isComputedValue(arg) || typeof arg === ('string' || 'number' || 'boolean') || isDate(arg)
 }
