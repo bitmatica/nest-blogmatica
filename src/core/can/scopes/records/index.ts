@@ -1,19 +1,24 @@
-import { User } from '../../../../users/user.entity'
+import { Type } from '@nestjs/common'
+import { getConnection } from 'typeorm'
 import { parseScope } from './parser'
-import { BooleanOperator, ComputedValue, QueryFilter } from './types'
+import { BooleanOperator, QueryFilter } from './types'
 
-export const RecordScopeCustom = <T>(filter: BooleanOperator<T> | QueryFilter<T>) => {
-  parseScope(filter)
-  return
+export const RecordScopeCustom = <T>(
+  className: Type<T>,
+  filter: BooleanOperator<T> | QueryFilter<T>,
+) => {
+  const conn = getConnection()
+  const rootAlias = className.name.toLocaleLowerCase()
+
+  const query = conn
+    .createQueryBuilder()
+    .select(rootAlias)
+    .from(className, rootAlias)
+
+  const whereFilter = parseScope(className, query, filter)
+  console.log('whereFilter', whereFilter)
+
+  query.where(whereFilter.query, whereFilter.params)
+
+  console.log(query.getQuery())
 }
-
-export const CurrentUser: ComputedValue<User> = {
-  value: (context: any): User => {
-    return {} as User
-  },
-  get: <T extends keyof User>(key: T): ComputedValue<T> => {
-    return {
-      computedField: key,
-    } as any
-  },
-} as ComputedValue<User>
