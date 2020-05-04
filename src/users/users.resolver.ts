@@ -9,7 +9,6 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql'
-import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import {
   AuthenticationService,
@@ -55,10 +54,10 @@ export class UserLoginResponse extends MutationResponse<User> {
 export class UsersResolver extends BaseModelResolver(User, {
   without: { Create },
 }) {
-  @InjectRepository(User)
-  protected repo: Repository<User>
-
-  constructor(private readonly authenticationService: AuthenticationService) {
+  constructor(
+    private readonly repo: Repository<User>,
+    private readonly authenticationService: AuthenticationService,
+  ) {
     super()
   }
 
@@ -90,9 +89,7 @@ export class UsersResolver extends BaseModelResolver(User, {
     try {
       const user = await this.authenticationService.validateUser(input.email, input.password)
       const token = await this.authenticationService.login(user!)
-
       setTokenCookie(context.res, token)
-
       return {
         success: true,
         message: 'Login successful!',
