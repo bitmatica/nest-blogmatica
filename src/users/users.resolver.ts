@@ -11,7 +11,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { IContext } from '../core/context'
-import { Create, CreateModelMutation } from '../core/resolvers/actions'
+import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { MutationResponse } from '../core/resolvers/types'
 import { CurrentUser } from '../decorators/currentUser'
@@ -51,12 +51,12 @@ export class UserLoginResponse extends MutationResponse<User> {
 
 @Resolver(() => User)
 export class UsersResolver extends BaseModelResolver(User, {
-  without: [Create],
+  without: { Create },
 }) {
   @InjectRepository(User)
   protected repo: Repository<User>
 
-  @CreateModelMutation(User)
+  @Create.Resolver(User)
   async create(
     @Args('input', { type: () => CreateUserInput }) input: CreateUserInput,
   ) {
