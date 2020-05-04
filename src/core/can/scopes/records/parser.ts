@@ -286,11 +286,11 @@ export function parseQueryFilter<T>(
 export function parseScope<T>(
   className: Type<T>,
   queryBuilder: SelectQueryBuilder<T>,
+  alias: string,
   filter: BooleanOperator<T> | QueryFilter<T>,
 ): ParsedQuery {
-  const rootAlias = className.name.toLocaleLowerCase()
   if (guards.isBooleanOperator(filter)) {
-    return parseBooleanOperator(className, queryBuilder, rootAlias, filter)
+    return parseBooleanOperator(className, queryBuilder, alias, filter)
   }
-  return parseQueryFilter(className, queryBuilder, rootAlias, filter)
+  return parseQueryFilter(className, queryBuilder, alias, filter)
 }

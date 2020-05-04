@@ -15,7 +15,7 @@ export const RecordScopeCustom = <T>(
     .select(rootAlias)
     .from(className, rootAlias)
 
-  const whereFilter = parseScope(className, query, filter)
+  const whereFilter = parseScope(className, query, rootAlias, filter)
   console.log('whereFilter', whereFilter)
 
   query.where(whereFilter.query, whereFilter.params)
