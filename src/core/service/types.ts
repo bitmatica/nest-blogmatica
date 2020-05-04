@@ -1,10 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../context'
-import {
-  ICreateModelInput,
-  IUpdateModelInput,
-  MutationResponse,
-} from '../resolvers/types'
+import { ICreateModelInput, IUpdateModelInput, MutationResponse } from '../resolvers/types'
 
 export interface ICreateService<T> {
   create(
@@ -23,10 +19,7 @@ export interface IGetService<T> {
 }
 
 export interface IListService<T> {
-  list(
-    context: IContext,
-    info: GraphQLResolveInfo,
-  ): Promise<Array<T>> | Array<T>
+  list(context: IContext, info: GraphQLResolveInfo): Promise<Array<T>> | Array<T>
 }
 
 export interface IUpdateService<T> {

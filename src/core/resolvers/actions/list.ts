@@ -5,11 +5,7 @@ import { ActionScope } from '../../can'
 import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { IListService, IServiceProvider } from '../../service/types'
-import {
-  IActionOptions,
-  IActionResolverBuilder,
-  IActionResolverOptions,
-} from '../types'
+import { IActionOptions, IActionResolverBuilder, IActionResolverOptions } from '../types'
 
 export interface IListResolver<T> {
   list(context: IContext, info: GraphQLResolveInfo): Promise<Array<T>>
@@ -43,18 +39,14 @@ export class List<T> implements IActionResolverBuilder {
     return [modelClass]
   }
 
-  static Resolver<T>(
-    modelClass: Type<T>,
-    opts?: IActionResolverOptions,
-  ): MethodDecorator {
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
     const returns = opts?.returns || List.Response(modelClass)
     return Query(ret => returns, { name: opts?.name || List.Name(modelClass) })
   }
 
   build(innerClass: Type<IServiceProvider<IListService<T>>>): Type<any> {
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class ListModelResolverClass extends innerClass
-      implements IListResolver<T> {
+    class ListModelResolverClass extends innerClass implements IListResolver<T> {
       @CanAuth(this.modelClass, ActionScope.Read)
       @(this.resolverDecorator)
       async list(

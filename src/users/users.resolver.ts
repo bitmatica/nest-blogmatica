@@ -63,9 +63,7 @@ export class UsersResolver extends BaseModelResolver(User, {
   }
 
   @Create.Resolver(User)
-  async create(
-    @Args('input', { type: () => CreateUserInput }) input: CreateUserInput,
-  ) {
+  async create(@Args('input', { type: () => CreateUserInput }) input: CreateUserInput) {
     try {
       const model = new User()
       model.email = input.email
@@ -90,10 +88,7 @@ export class UsersResolver extends BaseModelResolver(User, {
     @Context() context: IContext,
   ) {
     try {
-      const user = await this.authenticationService.validateUser(
-        input.email,
-        input.password,
-      )
+      const user = await this.authenticationService.validateUser(input.email, input.password)
       const token = await this.authenticationService.login(user!)
 
       setTokenCookie(context.res, token)

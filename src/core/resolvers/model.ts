@@ -14,13 +14,7 @@ import {
   ResolverAction,
 } from './types'
 
-const defaultResolvers: Array<ResolverAction> = [
-  Get,
-  List,
-  Create,
-  Update,
-  Delete,
-]
+const defaultResolvers: Array<ResolverAction> = [Get, List, Create, Update, Delete]
 
 function isAction(arg: any): arg is IAction {
   return arg.hasOwnProperty('Default')
@@ -30,22 +24,14 @@ export function BaseModelResolver<T>(
   objectType: Type<T>,
 ): Type<IBaseResolver<T> & IServiceProvider<IBaseService<T>>>
 
-export function BaseModelResolver<
-  T,
-  U extends ActionMap<T>,
-  V extends DynamicService<T, U>
->(
+export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
   objectType: Type<T>,
   options: {
     with: U
   },
 ): Type<IBaseResolver<T> & IServiceProvider<V>>
 
-export function BaseModelResolver<
-  T,
-  U extends ActionMap<T>,
-  V extends DynamicService<T, U>
->(
+export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
   objectType: Type<T>,
   options: {
     service: Type<V>
@@ -53,22 +39,14 @@ export function BaseModelResolver<
   },
 ): Type<IBaseResolver<T> & IServiceProvider<V>>
 
-export function BaseModelResolver<
-  T,
-  U extends ActionMap<T>,
-  V extends DynamicService<T, U>
->(
+export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
   objectType: Type<T>,
   options: {
     without: U
   },
 ): Type<DynamicResolver<T, U> & IServiceProvider<IBaseService<T>>>
 
-export function BaseModelResolver<
-  T,
-  U extends ActionMap<T>,
-  V extends DynamicService<T, U>
->(
+export function BaseModelResolver<T, U extends ActionMap<T>, V extends DynamicService<T, U>>(
   objectType: Type<T>,
   options: {
     service: Type<V>
@@ -84,16 +62,14 @@ export function BaseModelResolver<T, U extends ActionMap<T>>(
     with?: U
   },
 ) {
-  const additionalResolvers = ((options?.with && Object.values(options.with)) ||
-    []) as Array<ResolverAction>
+  const additionalResolvers = ((options?.with && Object.values(options.with)) || []) as Array<
+    ResolverAction
+  >
 
   const allBaseResolvers = defaultResolvers
     .filter(
       resolver =>
-        !(
-          options?.without &&
-          Object.values(options.without).find(action => resolver === action)
-        ),
+        !(options?.without && Object.values(options.without).find(action => resolver === action)),
     )
     .filter(
       resolver =>

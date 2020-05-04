@@ -10,7 +10,7 @@ export const ACCESS_TOKEN_COOKIE = 'access_token'
 export class AuthenticationService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<User | undefined> {

@@ -84,24 +84,16 @@ export class Update<T> implements IActionResolverBuilder {
     return ModelUpdateResponse
   }
 
-  static Resolver<T>(
-    modelClass: Type<T>,
-    opts?: IActionResolverOptions,
-  ): MethodDecorator {
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
     const returns = opts?.returns || Update.Response(modelClass)
     return Mutation(ret => returns, {
       name: opts?.name || Update.Name(modelClass),
     })
   }
 
-  static Input<T>(
-    modelClass: Type<T>,
-    without?: Array<keyof T>,
-  ): Type<IUpdateModelInput<T>> {
+  static Input<T>(modelClass: Type<T>, without?: Array<keyof T>): Type<IUpdateModelInput<T>> {
     const tormMetadata = getMetadataArgsStorage()
-    const relations = tormMetadata.relations.filter(
-      r => r.target === modelClass,
-    )
+    const relations = tormMetadata.relations.filter(r => r.target === modelClass)
     const fieldsToOmit = relations
       .map(r => r.propertyName)
       .concat((without as Array<string>) || BASE_MODEL_FIELDS)
@@ -122,12 +114,9 @@ export class Update<T> implements IActionResolverBuilder {
     })
   }
 
-  build(
-    innerClass: Type<IServiceProvider<IUpdateService<T>>>,
-  ): Type<IUpdateResolver<T>> {
+  build(innerClass: Type<IServiceProvider<IUpdateService<T>>>): Type<IUpdateResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class CreateModelResolverClass extends innerClass
-      implements IUpdateResolver<T> {
+    class CreateModelResolverClass extends innerClass implements IUpdateResolver<T> {
       @CanAuth(this.modelClass, ActionScope.Update)
       @(this.decorator)
       update(

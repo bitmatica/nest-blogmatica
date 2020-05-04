@@ -9,9 +9,7 @@ export interface WhereQueryResult {
   parameters?: ObjectLiteral
 }
 
-export type QueryBuilderFunction<T> = (
-  qb: SelectQueryBuilder<T>,
-) => WhereQueryResult
+export type QueryBuilderFunction<T> = (qb: SelectQueryBuilder<T>) => WhereQueryResult
 
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
@@ -20,11 +18,7 @@ export interface IRecordScope<T> {
 
   filter(records: Array<T>, context: IContext): Array<T>
 
-  where(
-    parentAlias: string,
-    context: IContext,
-    index?: number,
-  ): QueryBuilderFunction<T>
+  where(parentAlias: string, context: IContext, index?: number): QueryBuilderFunction<T>
 }
 
 export abstract class BaseRecordScope<T> implements IRecordScope<T> {
@@ -36,11 +30,7 @@ export abstract class BaseRecordScope<T> implements IRecordScope<T> {
     }
   }
 
-  abstract where(
-    parentAlias: string,
-    context: IContext,
-    index?: number,
-  ): QueryBuilderFunction<T>
+  abstract where(parentAlias: string, context: IContext, index?: number): QueryBuilderFunction<T>
 
   filter(records: Array<T>, context: IContext): Array<T> {
     return records.filter(record => this.validate(record, context))
@@ -77,9 +67,7 @@ export class AllRecordScope extends BaseRecordScope<any> {
 
 export type ComparatorValue<T> = ComputedValue<T> | T
 
-export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<
-  T
-> {
+export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<T> {
   constructor(public fieldName: U, public value: ComputedValue<T[U]> | T[U]) {
     super()
   }
@@ -91,16 +79,10 @@ export class EqualsRecordScope<T, U extends keyof T> extends BaseRecordScope<
     return fieldValue === compareToValue
   }
 
-  where(
-    parentAlias: string,
-    context: IContext,
-    index = 0,
-  ): QueryBuilderFunction<T> {
+  where(parentAlias: string, context: IContext, index = 0): QueryBuilderFunction<T> {
     return () => {
       const compareToValue =
-        this.value instanceof ComputedValue
-          ? this.value.get(context)
-          : this.value
+        this.value instanceof ComputedValue ? this.value.get(context) : this.value
 
       const paramName = `${parentAlias}_${this.fieldName}_${index}`
       return {
@@ -156,11 +138,8 @@ export abstract class RecordScope {
 
   static All = new AllRecordScope()
 
-  static Owned = <T>(fieldName: KeysOfType<T, ModelId>) =>
-    new OwnedRecordScope<T>(fieldName)
+  static Owned = <T>(fieldName: KeysOfType<T, ModelId>) => new OwnedRecordScope<T>(fieldName)
 
-  static Where = <T, U extends keyof T>(
-    fieldName: U,
-    compareTo: ComparatorValue<T[U]>,
-  ) => new EqualsRecordScope(fieldName, compareTo)
+  static Where = <T, U extends keyof T>(fieldName: U, compareTo: ComparatorValue<T[U]>) =>
+    new EqualsRecordScope(fieldName, compareTo)
 }

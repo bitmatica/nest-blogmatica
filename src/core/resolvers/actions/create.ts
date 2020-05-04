@@ -1,5 +1,15 @@
 import { Type } from '@nestjs/common'
-import { Args, Context, Field, Info, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
+import {
+  Args,
+  Context,
+  Field,
+  Info,
+  InputType,
+  Mutation,
+  ObjectType,
+  OmitType,
+  Resolver,
+} from '@nestjs/graphql'
 import { getMetadataArgsStorage } from 'typeorm'
 import { ActionScope } from '../../can'
 import { CanAuth } from '../../can/decorators'
@@ -43,8 +53,7 @@ export class Create<T> implements IActionResolverBuilder {
       })
 
     this.input = options?.input || Create.Input(modelClass)
-    this.argDecorator =
-      options?.argDecorator || Create.Arg(modelClass, { type: this.input })
+    this.argDecorator = options?.argDecorator || Create.Arg(modelClass, { type: this.input })
   }
 
   static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
@@ -68,10 +77,7 @@ export class Create<T> implements IActionResolverBuilder {
     return ModelCreationResponse
   }
 
-  static Resolver<T>(
-    modelClass: Type<T>,
-    opts?: IActionResolverOptions,
-  ): MethodDecorator {
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
     const returns = opts?.returns || Create.Response(modelClass)
     return Mutation(ret => returns, {
       name: opts?.name || Create.Name(modelClass),
@@ -80,19 +86,13 @@ export class Create<T> implements IActionResolverBuilder {
 
   static Input<T>(modelClass: Type<T>, without?: Array<keyof T>): Type<any> {
     const tormMetadata = getMetadataArgsStorage()
-    const relations = tormMetadata.relations.filter(
-      r => r.target === modelClass,
-    )
+    const relations = tormMetadata.relations.filter(r => r.target === modelClass)
     const fieldsToOmit = relations
       .map(r => r.propertyName)
       .concat((without as Array<string>) || BASE_MODEL_FIELDS)
 
     @InputType(`Create${modelClass.name}Input`)
-    class CreateModelInput extends OmitType(
-      modelClass as Type<any>,
-      fieldsToOmit,
-      InputType,
-    ) {}
+    class CreateModelInput extends OmitType(modelClass as Type<any>, fieldsToOmit, InputType) {}
 
     return CreateModelInput as Type<ICreateModelInput<T>>
   }
@@ -104,12 +104,9 @@ export class Create<T> implements IActionResolverBuilder {
     })
   }
 
-  build(
-    innerClass: Type<IServiceProvider<ICreateService<T>>>,
-  ): Type<ICreateResolver<T>> {
+  build(innerClass: Type<IServiceProvider<ICreateService<T>>>): Type<ICreateResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class CreateModelResolverClass extends innerClass
-      implements ICreateResolver<T> {
+    class CreateModelResolverClass extends innerClass implements ICreateResolver<T> {
       @CanAuth(this.modelClass, ActionScope.Create)
       @(this.resolverDecorator)
       create(

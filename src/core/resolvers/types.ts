@@ -50,9 +50,7 @@ export abstract class MutationResponse<T> implements IMutationResponse<T> {
   model?: T
 }
 
-type OmitBaseModelKeys<T, U extends keyof T> = U extends keyof BaseModel
-  ? never
-  : U
+type OmitBaseModelKeys<T, U extends keyof T> = U extends keyof BaseModel ? never : U
 
 type RemoveKeysOfType<T, U> = {
   [P in keyof T]: T[P] extends U ? never : P
@@ -60,10 +58,7 @@ type RemoveKeysOfType<T, U> = {
 
 type OmitRelationKeys<T> = RemoveKeysOfType<
   T,
-  | PromiseLike<BaseModel>
-  | PromiseLike<Array<BaseModel>>
-  | BaseModel
-  | Array<BaseModel>
+  PromiseLike<BaseModel> | PromiseLike<Array<BaseModel>> | BaseModel | Array<BaseModel>
 >
 
 type FilterInputKeys<T> = OmitBaseModelKeys<T, keyof T> & OmitRelationKeys<T>
@@ -131,15 +126,11 @@ export type ActionMap<T> = {
 }
 
 type SelectResolverActions<T, U> = {
-  [P in keyof U]: P extends keyof ResolverActionKeyMap<T>
-    ? ResolverActionKeyMap<T>[P]
-    : never
+  [P in keyof U]: P extends keyof ResolverActionKeyMap<T> ? ResolverActionKeyMap<T>[P] : never
 }[keyof U]
 
 type SelectServiceActions<T, U> = {
-  [P in keyof U]: P extends keyof ServiceActionKeyMap<T>
-    ? ServiceActionKeyMap<T>[P]
-    : never
+  [P in keyof U]: P extends keyof ServiceActionKeyMap<T> ? ServiceActionKeyMap<T>[P] : never
 }[keyof U]
 
 export type DynamicResolver<T, U extends ActionMap<T>> = Omit<

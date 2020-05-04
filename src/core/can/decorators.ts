@@ -8,5 +8,7 @@ function NoAuthDecorator() {
 }
 
 export function CanAuth<T>(classType: Type<T>, ...actionScopes: Array<ActionScope>) {
-  return Can.checkRequiresAuthentication(classType, ...actionScopes) ? UseGuards(JwtAuthGuard) : NoAuthDecorator
+  return Can.checkRequiresAuthentication(classType, ...actionScopes)
+    ? UseGuards(JwtAuthGuard)
+    : NoAuthDecorator
 }

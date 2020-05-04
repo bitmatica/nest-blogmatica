@@ -15,9 +15,9 @@ import { User } from '../users/user.entity'
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '60m' },
     }),
-    TypeOrmModule.forFeature([ User ])
+    TypeOrmModule.forFeature([User]),
   ],
-  providers: [AuthenticationService, JwtStrategy, UsersService ],
+  providers: [AuthenticationService, JwtStrategy, UsersService],
   exports: [AuthenticationService],
 })
 export class AuthenticationModule {}

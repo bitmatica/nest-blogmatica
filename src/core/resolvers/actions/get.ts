@@ -6,18 +6,10 @@ import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { IGetService, IServiceProvider } from '../../service/types'
 import { IdInput } from '../decorators'
-import {
-  IActionOptions,
-  IActionResolverBuilder,
-  IActionResolverOptions,
-} from '../types'
+import { IActionOptions, IActionResolverBuilder, IActionResolverOptions } from '../types'
 
 export interface IGetResolver<T> {
-  get(
-    id: string,
-    context: IContext,
-    info: GraphQLResolveInfo,
-  ): Promise<T | undefined>
+  get(id: string, context: IContext, info: GraphQLResolveInfo): Promise<T | undefined>
 }
 
 export class Get<T> implements IActionResolverBuilder {
@@ -49,10 +41,7 @@ export class Get<T> implements IActionResolverBuilder {
     return modelClass
   }
 
-  static Resolver<T>(
-    modelClass: Type<T>,
-    opts?: IActionResolverOptions,
-  ): MethodDecorator {
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
     const returns = opts?.returns || Get.Response(modelClass)
     return Query(ret => returns, {
       name: opts?.name || Get.Name(modelClass),
@@ -60,9 +49,7 @@ export class Get<T> implements IActionResolverBuilder {
     })
   }
 
-  build(
-    innerClass: Type<IServiceProvider<IGetService<T>>>,
-  ): Type<IGetResolver<T>> {
+  build(innerClass: Type<IServiceProvider<IGetService<T>>>): Type<IGetResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class GetModelResolverClass extends innerClass implements IGetResolver<T> {
       @CanAuth(this.modelClass, ActionScope.Read)
