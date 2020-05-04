@@ -4,50 +4,67 @@ import { GraphQLResolveInfo } from 'graphql'
 import { ActionScope } from '../../can'
 import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
-import { listModelsResolverName } from '../helpers/naming'
-import { constructQueryWithRelations } from '../helpers/relations'
-import { IActionResolverOptions } from '../types'
+import { IListService, IServiceProvider } from '../../service/types'
+import {
+  IActionOptions,
+  IActionResolverBuilder,
+  IActionResolverOptions,
+} from '../types'
 
-export interface IList<TModel> {
-  list(context: IContext, info: GraphQLResolveInfo): Promise<Array<TModel>>
+export interface IListResolver<T> {
+  list(context: IContext, info: GraphQLResolveInfo): Promise<Array<T>>
 }
 
-export function defaultListModelResponse<TModel>(modelClass: Type<TModel>) {
-  return [modelClass]
-}
+export class List<T> implements IActionResolverBuilder {
+  private readonly name: string
+  private readonly response: any
+  private readonly resolverDecorator: MethodDecorator
 
-export function defaultListModelQuery<TModel>(
-  modelClass: Type<TModel>,
-  context: IContext,
-  info: GraphQLResolveInfo,
-): Promise<Array<TModel>> {
-  return constructQueryWithRelations(modelClass, info, context).getMany()
-}
-
-export function ListModelQuery<TModel>(
-  modelClass: Type<TModel>,
-  opts?: IActionResolverOptions,
-) {
-  const returns = opts?.returns || defaultListModelResponse(modelClass)
-  return Query(ret => returns, { name: listModelsResolverName(modelClass) })
-}
-
-export function List<TModel>(
-  modelClass: Type<TModel>,
-  innerClass: Type<any>,
-): Type<IList<TModel>> {
-  @Resolver(() => modelClass, { isAbstract: true })
-  class ListModelResolverClass extends innerClass implements IList<TModel> {
-
-    @CanAuth(modelClass, ActionScope.Read)
-    @ListModelQuery(modelClass)
-    async list(
-      @Context() context: IContext,
-      @Info() info: GraphQLResolveInfo,
-    ): Promise<Array<TModel>> {
-      return defaultListModelQuery(modelClass, context, info)
-    }
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
+    this.name = options?.name || List.Name(modelClass)
+    this.response = options?.response || List.Response(modelClass)
+    this.resolverDecorator =
+      options?.resolverDecorator ||
+      List.Resolver(modelClass, {
+        name: this.name,
+        returns: this.response,
+      })
   }
 
-  return ListModelResolverClass
+  static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
+    return new List(modelClass)
+  }
+
+  static Name<T>(modelClass: Type<T>): string {
+    return `${modelClass.name.toLocaleLowerCase()}s`
+  }
+
+  static Response<T>(modelClass: Type<T>): Array<Type<T>> {
+    return [modelClass]
+  }
+
+  static Resolver<T>(
+    modelClass: Type<T>,
+    opts?: IActionResolverOptions,
+  ): MethodDecorator {
+    const returns = opts?.returns || List.Response(modelClass)
+    return Query(ret => returns, { name: opts?.name || List.Name(modelClass) })
+  }
+
+  build(innerClass: Type<IServiceProvider<IListService<T>>>): Type<any> {
+    @Resolver(() => this.modelClass, { isAbstract: true })
+    class ListModelResolverClass extends innerClass
+      implements IListResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Read)
+      @(this.resolverDecorator)
+      async list(
+        @Context() context: IContext,
+        @Info() info: GraphQLResolveInfo,
+      ): Promise<Array<T>> {
+        return this.service.list(context, info)
+      }
+    }
+
+    return ListModelResolverClass
+  }
 }

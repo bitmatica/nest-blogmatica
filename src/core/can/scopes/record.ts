@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common'
 import { ObjectLiteral, SelectQueryBuilder } from 'typeorm'
 import { IContext } from '../../context'
 import { ModelId } from '../../model'
@@ -15,6 +16,8 @@ export type QueryBuilderFunction<T> = (
 export interface IRecordScope<T> {
   validate(record: T, context: IContext): boolean
 
+  assert(record: T, context: IContext): void
+
   filter(records: Array<T>, context: IContext): Array<T>
 
   where(
@@ -26,6 +29,12 @@ export interface IRecordScope<T> {
 
 export abstract class BaseRecordScope<T> implements IRecordScope<T> {
   abstract validate(record: T, context: IContext): boolean
+
+  assert(record: T, context: IContext) {
+    if (!this.validate(record, context)) {
+      throw new ForbiddenException()
+    }
+  }
 
   abstract where(
     parentAlias: string,
