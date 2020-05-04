@@ -25,9 +25,7 @@ export class ComputedValue<T> {
   static UserId = ComputedValue.User.map(user => user.id)
 
   map<U>(transform: TransformFunction<T, U>): ComputedValue<U> {
-    return new ComputedValue(
-      transformContextMapper(this.contextMapper, transform),
-    )
+    return new ComputedValue(transformContextMapper(this.contextMapper, transform))
   }
 
   get(context: IContext): T | undefined {

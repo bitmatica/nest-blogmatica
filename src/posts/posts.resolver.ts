@@ -10,5 +10,7 @@ const CreatePostInput = Create.Input(Post, ['authorId', ...BASE_MODEL_FIELDS])
 @Resolver(() => Post)
 export class PostsResolver extends BaseModelResolver(Post, {
   service: PostsService,
-  with: { Create: new Create(Post, { input: CreatePostInput }) },
+  with: {
+    Create: new Create(Post, { input: CreatePostInput }),
+  },
 }) {}

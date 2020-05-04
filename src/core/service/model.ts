@@ -5,16 +5,10 @@ import { Repository } from 'typeorm'
 import { ActionScope, Can } from '../can'
 import { IContext } from '../context'
 import { constructQueryWithRelations } from '../resolvers/helpers/relations'
-import {
-  ICreateModelInput,
-  IUpdateModelInput,
-  MutationResponse,
-} from '../resolvers/types'
+import { ICreateModelInput, IUpdateModelInput, MutationResponse } from '../resolvers/types'
 import { IBaseService } from './types'
 
-export function BaseModelService<T>(
-  modelClass: Type<T>,
-): Type<IBaseService<T>> {
+export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> {
   class BaseService implements IBaseService<T> {
     constructor(@InjectRepository(modelClass) private repo: Repository<T>) {}
 
@@ -27,10 +21,7 @@ export function BaseModelService<T>(
         const model = new modelClass()
         Object.assign(model, { ...input })
 
-        Can.check(context, ActionScope.Update, modelClass).assert(
-          model,
-          context,
-        )
+        Can.check(context, ActionScope.Update, modelClass).assert(model, context)
 
         const saved = await this.repo.save(model)
 
@@ -68,10 +59,7 @@ export function BaseModelService<T>(
           }
         }
 
-        Can.check(context, ActionScope.Delete, modelClass).assert(
-          model,
-          context,
-        )
+        Can.check(context, ActionScope.Delete, modelClass).assert(model, context)
 
         await this.repo.delete(model)
         return {
@@ -86,11 +74,7 @@ export function BaseModelService<T>(
       }
     }
 
-    get(
-      id: string,
-      context: IContext,
-      info: GraphQLResolveInfo,
-    ): Promise<T | undefined> {
+    get(id: string, context: IContext, info: GraphQLResolveInfo): Promise<T | undefined> {
       return constructQueryWithRelations(modelClass, info, context).getOne()
     }
 
@@ -113,10 +97,7 @@ export function BaseModelService<T>(
           }
         }
 
-        Can.check(context, ActionScope.Update, modelClass).assert(
-          model,
-          context,
-        )
+        Can.check(context, ActionScope.Update, modelClass).assert(model, context)
 
         Object.assign(model, { ...input })
         await this.repo.save(model)

@@ -50,22 +50,16 @@ export class Delete<T> implements IActionResolverBuilder {
     return DeletionResponse
   }
 
-  static Resolver<T>(
-    modelClass: Type<T>,
-    opts?: IActionResolverOptions,
-  ): MethodDecorator {
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
     const returns = opts?.returns || Delete.Response(modelClass)
     return Mutation(ret => returns, {
       name: opts?.name || Delete.Name(modelClass),
     })
   }
 
-  build(
-    innerClass: Type<IServiceProvider<IDeleteService<T>>>,
-  ): Type<IDeleteResolver<T>> {
+  build(innerClass: Type<IServiceProvider<IDeleteService<T>>>): Type<IDeleteResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
-    class DeleteModelResolverClass extends innerClass
-      implements IDeleteResolver<T> {
+    class DeleteModelResolverClass extends innerClass implements IDeleteResolver<T> {
       @InjectRepository(this.modelClass)
       repo: Repository<T>
 

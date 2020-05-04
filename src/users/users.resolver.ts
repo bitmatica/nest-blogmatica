@@ -15,11 +15,7 @@ import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { MutationResponse } from '../core/resolvers/types'
 import { CurrentUser } from '../decorators/currentUser'
-import {
-  clearTokenCookie,
-  generateTokenForUserId,
-  setTokenCookie,
-} from './authentication'
+import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './authentication'
 import { User } from './user.entity'
 
 @InputType()
@@ -57,9 +53,7 @@ export class UsersResolver extends BaseModelResolver(User, {
   protected repo: Repository<User>
 
   @Create.Resolver(User)
-  async create(
-    @Args('input', { type: () => CreateUserInput }) input: CreateUserInput,
-  ) {
+  async create(@Args('input', { type: () => CreateUserInput }) input: CreateUserInput) {
     try {
       const model = new User()
       model.email = input.email
