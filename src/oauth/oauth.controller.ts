@@ -79,6 +79,12 @@ export class OAuthController {
     clientSecret: string,
     redirectUri: string,
   ): Promise<string | undefined> {
+    console.log('AUTH CALLBACK')
+    console.log(uri)
+    console.log(code)
+    console.log(clientId)
+    console.log(clientSecret)
+    console.log(redirectUri)
     const result = await this.httpService
       .post(
         uri,

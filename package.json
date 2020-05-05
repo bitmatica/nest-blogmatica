@@ -21,7 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -f src/database/config.ts ",
     "db:migration:generate": "npm run db -- migration:generate",
-    "db:migrate": "npm run db -- migration:run"
+    "db:migrate": "npm run db -- migration:run",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@creditkarma/dynamic-config": "^0.9.11",
