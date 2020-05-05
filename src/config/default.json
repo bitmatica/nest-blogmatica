@@ -86,7 +86,7 @@
     "redirectUri": {
       "_source": "env",
       "_key": "OUATH_REDIRECT_URI",
-      "_default": "http://gusto.apps.bitmatica.com/authCallback"
+      "_default": "https://gusto.apps.bitmatica.com/authCallback"
     }
   }
 }
