@@ -8,10 +8,7 @@ class AccessTokenResponse {
   refresh_token: string
 }
 
-const CLIENT_ID = 'CLIENT_ID_OVERRIDE_ME'
-const CLIENT_SECRET = 'CLIENT_SECRET_OVERRIDE_ME'
 const REDIRECT_URI = 'http://gusto.apps.bitmatica.com/authCallback'
-const REDIRECT_URI_ESCAPED = 'http:%2F%2Fgusto.apps.bitmatica.com%2FauthCallback'
 
 @Controller()
 export class OAuthController {
@@ -19,19 +16,18 @@ export class OAuthController {
 
   @Get('gustoLogin')
   async root() {
-    const CLIENT_ID = await config().get<string>('OAUTH_CLIENT_ID')
-    const OAUTH_URL =
-      'https://api.gusto.com/oauth/authorize?client_id=16b6990cb025f55a84a1a7110b3ab799b97f93aabd33b287cf3e4e77b28fc865&redirect_uri=http:%2F%2Fgusto.apps.bitmatica.com%2FauthCallback&response_type=code'
+    const OAUTH_URL = await config().get<string>('oauthUrl')
     return `<html><a href="${OAUTH_URL}">OAuth Login</a></html>`
   }
 
   @Get('authCallback')
   async authCallback(@Query('code') code: string) {
-    const CLIENT_ID = await config().get<string>('OAUTH_CLIENT_ID')
-    const CLIENT_SECRET = await config().get<string>('OAUTH_CLIENT_ID')
+    const CLIENT_ID = await config().get<string>('clientId')
+    const CLIENT_SECRET = await config().get<string>('clientSecret')
+    const ACCESS_TOKEN_URI = await config().get<string>('accessTokenUri')
     const result = await this.httpService
       .post(
-        'https://api.gusto.com/oauth/token',
+        ACCESS_TOKEN_URI,
         {},
         {
           params: {

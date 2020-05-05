@@ -62,17 +62,24 @@
       "_default": true
     }
   },
-
-  "oauth": {
-    "clientId": {
-      "_source": "env",
-      "_key": "OUATH_CLIENT_ID",
-      "_default": "CLIENT_ID_OVERRIDE_ME"
-    },
-    "clientSecret": {
-      "_source": "env",
-      "_key": "OUATH_CLIENT_SECRET",
-      "_default": "CLIENT_SECRET_OVERRIDE_ME"
-    }
+  "oauthUrl": {
+    "_source": "env",
+    "_key": "OUATH_URL",
+    "_default": "https://api.gusto.com/oauth/authorize?client_id=16b6990cb025f55a84a1a7110b3ab799b97f93aabd33b287cf3e4e77b28fc865&redirect_uri=http:%2F%2Fgusto.apps.bitmatica.com%2FauthCallback&response_type=code"
+  },
+  "clientId": {
+    "_source": "env",
+    "_key": "OUATH_CLIENT_ID",
+    "_default": "16b6990cb025f55a84a1a7110b3ab799b97f93aabd33b287cf3e4e77b28fc865"
+  },
+  "clientSecret": {
+    "_source": "env",
+    "_key": "OUATH_CLIENT_SECRET",
+    "_default": "5bfcbe5834ff4a33d6cca2c4894310b04e3490c02fcfb469f370409b4a9c8421"
+  },
+  "accessTokenUri": {
+    "_source": "env",
+    "_key": "OUATH_ACCESS_TOKEN_URI",
+    "_default": "https://api.gusto.com/oauth/token"
   }
 }
