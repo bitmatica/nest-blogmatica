@@ -6,9 +6,12 @@ import { PostsModule } from './posts/posts.module';
 import { UsersModule } from './users/users.module';
 import { getConnection } from 'typeorm';
 import { User } from './users/user.entity';
-import { getTokenFromRequest, getUserIdFromToken } from './users/authentication';
+import {
+  getTokenFromRequest,
+  getUserIdFromToken,
+} from './users/authentication';
 import { CommentsModule } from './comments/comments.module';
-import { OauthController } from './oauth/oauth.controller';
+import { OAuthController } from './oauth/oauth.controller';
 
 @Module({
   imports: [
@@ -19,24 +22,26 @@ import { OauthController } from './oauth/oauth.controller';
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
       context: async ({ req, res }) => {
-        const baseContext = { req, res }
+        const baseContext = { req, res };
         try {
-          const token = getTokenFromRequest(req)
-          if (!token) return baseContext
-          const userId = await getUserIdFromToken(token!)
-          const currentUser = await getConnection().getRepository(User).findOne(userId)
+          const token = getTokenFromRequest(req);
+          if (!token) return baseContext;
+          const userId = await getUserIdFromToken(token!);
+          const currentUser = await getConnection()
+            .getRepository(User)
+            .findOne(userId);
           return {
             ...baseContext,
-            currentUser
-          }
-        } catch(err) {
-          return baseContext
+            currentUser,
+          };
+        } catch (err) {
+          return baseContext;
         }
       },
     }),
     CommentsModule,
     HttpModule,
   ],
-  controllers: [OauthController],
+  controllers: [OAuthController],
 })
 export class AppModule {}

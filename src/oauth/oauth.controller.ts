@@ -13,7 +13,7 @@ const REDIRECT_URI = 'http://gusto.apps.bitmatica.com/authCallback'
 const REDIRECT_URI_ESCAPED = 'http:%2F%2Fgusto.apps.bitmatica.com%2FauthCallback'
 
 @Controller()
-export class OauthController {
+export class OAuthController {
   constructor(private httpService: HttpService) {}
 
   @Get('gustoLogin')
