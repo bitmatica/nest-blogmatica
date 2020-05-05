@@ -15,7 +15,10 @@ export class OAuthController {
   @Get('gustoLogin')
   async root() {
     const conf = await config().get<any>('oauth')
-    return `<html><a href="${conf.oauthUrl}">OAuth Login</a></html>`
+    const uri = `${conf.baseUri}?client_id=${conf.clientId}&redirect_uri=${encodeURIComponent(
+      conf.redirectUri,
+    )}&response_type=code`
+    return `<html><a href="${uri}">OAuth Login</a></html>`
   }
 
   @Get('authCallback')
@@ -36,7 +39,6 @@ export class OAuthController {
         },
       )
       .toPromise()
-
     console.log(result)
     // return result.data
   }

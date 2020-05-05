@@ -58,10 +58,10 @@
     }
   },
   "oauth": {
-    "oauthUrl": {
+    "baseUri": {
       "_source": "env",
-      "_key": "OUATH_URL",
-      "_default": "https://api.gusto.com/oauth/authorize?client_id=16b6990cb025f55a84a1a7110b3ab799b97f93aabd33b287cf3e4e77b28fc865&redirect_uri=http:%2F%2Fgusto.apps.bitmatica.com%2FauthCallback&response_type=code"
+      "_key": "OUATH_BASE_URI",
+      "_default": "https://api.gusto.com/oauth/authorize"
     },
     "clientId": {
       "_source": "env",
