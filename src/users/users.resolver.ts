@@ -85,6 +85,7 @@ export class UsersResolver extends BaseModelResolver(User, {
     try {
       const user = await this.authenticationService.validateUser(input.email, input.password)
       const token = await this.authenticationService.login(user!)
+      // TODO generate/store refresh token
       return {
         success: true,
         message: 'Login successful!',
@@ -101,8 +102,8 @@ export class UsersResolver extends BaseModelResolver(User, {
 
   @Mutation(returns => MutationResponse)
   async logout(@Context() context: IContext) {
+    // TODO clear refresh token
     try {
-      context.req.logOut()
       return {
         success: true,
         message: 'Logout successful!',
