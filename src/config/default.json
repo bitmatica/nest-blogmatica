@@ -61,7 +61,7 @@
     "baseUri": {
       "_source": "env",
       "_key": "OUATH_BASE_URI",
-      "_default": "https://api.gusto.com/oauth/authorize"
+      "_default": "https://api.gusto-demo.com/oauth/authorize"
     },
     "clientId": {
       "_source": "env",
@@ -76,12 +76,17 @@
     "accessTokenUri": {
       "_source": "env",
       "_key": "OUATH_ACCESS_TOKEN_URI",
-      "_default": "https://api.gusto.com/oauth/token"
+      "_default": "https://api.gusto-demo.com/oauth/token"
     },
     "redirectUri": {
       "_source": "env",
       "_key": "OAUTH_REDIRECT_URI",
       "_default": "https://gusto.apps.bitmatica.com/authCallback"
+    },
+    "getUserUri": {
+      "_source": "env",
+      "_key": "OAUTH_GET_USER_URI",
+      "_default": "https://api.gusto-demo.com/v1/me"
     }
   }
 }
