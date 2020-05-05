@@ -8,33 +8,29 @@ class AccessTokenResponse {
   refresh_token: string
 }
 
-const REDIRECT_URI = 'http://gusto.apps.bitmatica.com/authCallback'
-
 @Controller()
 export class OAuthController {
   constructor(private httpService: HttpService) {}
 
   @Get('gustoLogin')
   async root() {
-    const OAUTH_URL = await config().get<string>('oauthUrl')
-    return `<html><a href="${OAUTH_URL}">OAuth Login</a></html>`
+    const conf = await config().get<any>('oauth')
+    return `<html><a href="${conf.oauthUrl}">OAuth Login</a></html>`
   }
 
   @Get('authCallback')
   async authCallback(@Query('code') code: string) {
-    const CLIENT_ID = await config().get<string>('clientId')
-    const CLIENT_SECRET = await config().get<string>('clientSecret')
-    const ACCESS_TOKEN_URI = await config().get<string>('accessTokenUri')
+    const conf = await config().get<any>('oauth')
     const result = await this.httpService
       .post(
-        ACCESS_TOKEN_URI,
+        conf.accessTokenUri,
         {},
         {
           params: {
             code,
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-            redirect_uri: REDIRECT_URI,
+            client_id: conf.clientId,
+            client_secret: conf.clientSecret,
+            redirect_uri: conf.redirectUri,
             grant_type: 'authorization_code',
           },
         },
