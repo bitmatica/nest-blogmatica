@@ -58,35 +58,86 @@
     }
   },
   "oauth": {
-    "baseUri": {
-      "_source": "env",
-      "_key": "OUATH_BASE_URI",
-      "_default": "https://api.gusto-demo.com/oauth/authorize"
+    "gusto": {
+      "baseUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://api.gusto-demo.com/oauth/authorize"
+      },
+      "clientId": {
+        "_source": "env",
+        "_key": "",
+        "_default": "16b6990cb025f55a84a1a7110b3ab799b97f93aabd33b287cf3e4e77b28fc865"
+      },
+      "clientSecret": {
+        "_source": "env",
+        "_key": "",
+        "_default": "5bfcbe5834ff4a33d6cca2c4894310b04e3490c02fcfb469f370409b4a9c8421"
+      },
+      "accessTokenUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://api.gusto-demo.com/oauth/token"
+      },
+      "redirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://gusto.apps.bitmatica.com/authCallback"
+      }
     },
-    "clientId": {
-      "_source": "env",
-      "_key": "OUATH_CLIENT_ID",
-      "_default": "16b6990cb025f55a84a1a7110b3ab799b97f93aabd33b287cf3e4e77b28fc865"
+    "asana": {
+      "baseUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://app.asana.com/-/oauth_authorize"
+      },
+      "clientId": {
+        "_source": "env",
+        "_key": "",
+        "_default": "1174393706243296"
+      },
+      "clientSecret": {
+        "_source": "env",
+        "_key": "",
+        "_default": "be181713f9838ef3460792120780eab5"
+      },
+      "accessTokenUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://app.asana.com/-/oauth_token"
+      },
+      "redirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://gusto.apps.bitmatica.com/auth/asana/callback"
+      }
     },
-    "clientSecret": {
-      "_source": "env",
-      "_key": "OUATH_CLIENT_SECRET",
-      "_default": "5bfcbe5834ff4a33d6cca2c4894310b04e3490c02fcfb469f370409b4a9c8421"
-    },
-    "accessTokenUri": {
-      "_source": "env",
-      "_key": "OUATH_ACCESS_TOKEN_URI",
-      "_default": "https://api.gusto-demo.com/oauth/token"
-    },
-    "redirectUri": {
-      "_source": "env",
-      "_key": "OAUTH_REDIRECT_URI",
-      "_default": "https://gusto.apps.bitmatica.com/authCallback"
-    },
-    "getUserUri": {
-      "_source": "env",
-      "_key": "OAUTH_GET_USER_URI",
-      "_default": "https://api.gusto-demo.com/v1/me"
+    "google": {
+      "baseUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "TODO"
+      },
+      "clientId": {
+        "_source": "env",
+        "_key": "",
+        "_default": "TODO"
+      },
+      "clientSecret": {
+        "_source": "env",
+        "_key": "",
+        "_default": "TODO"
+      },
+      "accessTokenUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "TODO"
+      },
+      "redirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://gusto.apps.bitmatica.com/auth/google/callback"
+      }
     }
   }
 }
