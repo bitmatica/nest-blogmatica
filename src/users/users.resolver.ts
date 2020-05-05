@@ -8,15 +8,16 @@ import {
   Query,
   Resolver,
 } from '@nestjs/graphql'
-import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
+import { AuthenticationService } from '../authentication/authentication.service'
 import { IContext } from '../core/context'
 import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { MutationResponse } from '../core/resolvers/types'
 import { CurrentUser } from '../decorators/currentUser'
-import { clearTokenCookie, generateTokenForUserId, setTokenCookie } from './authentication'
 import { User } from './user.entity'
+import { CanAuth } from '../core/can/decorators'
+import { ActionScope } from '../core/can'
 
 @InputType()
 export class CreateUserInput {
@@ -49,8 +50,12 @@ export class UserLoginResponse extends MutationResponse<User> {
 export class UsersResolver extends BaseModelResolver(User, {
   without: { Create },
 }) {
-  @InjectRepository(User)
-  protected repo: Repository<User>
+  constructor(
+    private readonly repo: Repository<User>,
+    private readonly authenticationService: AuthenticationService,
+  ) {
+    super()
+  }
 
   @Create.Resolver(User)
   async create(@Args('input', { type: () => CreateUserInput }) input: CreateUserInput) {
@@ -78,24 +83,9 @@ export class UsersResolver extends BaseModelResolver(User, {
     @Context() context: IContext,
   ) {
     try {
-      const user: User | undefined = await this.repo.findOne({
-        email: input.email,
-      })
-      if (!user) {
-        return {
-          success: false,
-          message: 'User does not exist',
-        }
-      }
-      const correctPassword = await user.checkPassword(input.password)
-      if (!correctPassword) {
-        return {
-          success: false,
-          message: 'Incorrect password',
-        }
-      }
-      const token = await generateTokenForUserId(user.id)
-      setTokenCookie(context.res, token)
+      const user = await this.authenticationService.validateUser(input.email, input.password)
+      const token = await this.authenticationService.login(user!)
+      // TODO generate/store refresh token
       return {
         success: true,
         message: 'Login successful!',
@@ -112,8 +102,8 @@ export class UsersResolver extends BaseModelResolver(User, {
 
   @Mutation(returns => MutationResponse)
   async logout(@Context() context: IContext) {
+    // TODO clear refresh token
     try {
-      clearTokenCookie(context.res)
       return {
         success: true,
         message: 'Logout successful!',

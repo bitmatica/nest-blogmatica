@@ -11,8 +11,10 @@ import {
   PartialType,
   Resolver,
 } from '@nestjs/graphql'
-import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage } from 'typeorm'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
+import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IServiceProvider, IUpdateService } from '../../service/types'
@@ -115,6 +117,7 @@ export class Update<T> implements IActionResolverBuilder {
   build(innerClass: Type<IServiceProvider<IUpdateService<T>>>): Type<IUpdateResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class CreateModelResolverClass extends innerClass implements IUpdateResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Update)
       @(this.decorator)
       update(
         @IdInput id: string,

@@ -3,6 +3,8 @@ import { Context, Info, Mutation, Resolver } from '@nestjs/graphql'
 import { InjectRepository } from '@nestjs/typeorm'
 import { GraphQLResolveInfo } from 'graphql'
 import { Repository } from 'typeorm'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { IDeleteService, IServiceProvider } from '../../service/types'
 import { IdInput } from '../decorators'
@@ -62,7 +64,7 @@ export class Delete<T> implements IActionResolverBuilder {
     class DeleteModelResolverClass extends innerClass implements IDeleteResolver<T> {
       @InjectRepository(this.modelClass)
       repo: Repository<T>
-
+      @CanAuth(this.modelClass, ActionScope.Delete)
       @(this.resolverDecorator)
       delete(
         @IdInput id: string,

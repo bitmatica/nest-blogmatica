@@ -16,7 +16,7 @@ export class AnyoneUserScope extends BaseUserScope {
 
 export class AuthenticatedUserScope extends BaseUserScope {
   applies(context: IContext): boolean {
-    return !!context.user
+    return !!context.req.user
   }
 }
 
@@ -38,7 +38,7 @@ export abstract class UserScope {
   static Where = (checker: ApplyChecker) => new WhereUserScope(checker)
   static WithRole = (role: string) =>
     new WhereUserScope(context => {
-      const roles = context.user?.roles
+      const roles = context.req.user?.roles
       return !!roles && roles.indexOf(role) >= 0
     })
 }

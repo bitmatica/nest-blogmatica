@@ -1,5 +1,6 @@
 import { SetMetadata, Type } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import every from 'lodash/every'
 import isArray from 'lodash/isArray'
 import { IContext } from '../context'
 import { Permission } from './permission'
@@ -102,6 +103,21 @@ export class Can {
 
   static check<T>(context: IContext, action: ActionScope, to: Type<T>): IRecordScope<T> {
     return this.global.checkPermissions(context, action, to)
+  }
+
+  static checkRequiresAuthentication<T>(target: Type<T>, ...actions: Array<ActionScope>): boolean {
+    const permissions = this.global.getRegisteredPermissions(target)?.registeredPermissions
+    if (!permissions) {
+      return true // TODO: What to do by default when no registered permissions
+    }
+
+    return !every(
+      actions.map(action => {
+        return permissions.filter(
+          p => p.userScope === UserScope.Anyone && p.actions.indexOf(action) >= 0,
+        ).length
+      }),
+    )
   }
 
   everything(options?: IAllScopesOptions): Array<ActionScope> {
