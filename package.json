@@ -24,6 +24,7 @@
     "db:migrate": "npm run db -- migration:run"
   },
   "dependencies": {
+    "@creditkarma/dynamic-config": "^0.9.11",
     "@nestjs/common": "^7.0.0",
     "@nestjs/core": "^7.0.0",
     "@nestjs/graphql": "^7.3.4",
