@@ -1,56 +1,68 @@
-import { ForbiddenException, Type } from '@nestjs/common'
-import { Info, Query, Resolver } from '@nestjs/graphql'
+import { Type } from '@nestjs/common'
+import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
-import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
+import { IContext } from '../../context'
+import { IGetService, IServiceProvider } from '../../service/types'
 import { IdInput } from '../decorators'
-import { getModelResolverName } from '../helpers/naming'
-import { constructQueryWithRelations } from '../helpers/relations'
-import { IActionResolverOptions } from '../types'
+import { IActionOptions, IActionResolverBuilder, IActionResolverOptions } from '../types'
 
-export interface IGet<TModel> {
-  get(id: string, info: GraphQLResolveInfo): Promise<TModel | undefined>
+export interface IGetResolver<T> {
+  get(id: string, context: IContext, info: GraphQLResolveInfo): Promise<T | undefined>
 }
 
-export function defaultGetModelResponse<TModel>(modelClass: Type<TModel>) {
-  return modelClass
-}
+export class Get<T> implements IActionResolverBuilder {
+  private readonly decorator: MethodDecorator
+  private readonly response: Type<any>
+  private readonly name: string
 
-export function defaultGetModelQuery<TModel>(modelClass: Type<TModel>, id: string, info: GraphQLResolveInfo): Promise<TModel | undefined> {
-  const user = FAKE_CURRENT_USER
-  if (!user) throw new ForbiddenException()
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
+    this.name = options?.name || Get.Name(modelClass)
+    this.response = options?.response || Get.Response(modelClass)
 
-  const recordScope = Can.check(user, ActionScope.Read, modelClass)
-  if (recordScope === RecordScope.None) throw new ForbiddenException()
-
-  const filters: Record<string, string> = { id }
-  if (recordScope === RecordScope.Owned) {
-    const ownershipField = Can.ownedBy(modelClass)
-    filters[ownershipField] = user.id
+    this.decorator =
+      options?.resolverDecorator ||
+      Get.Resolver(modelClass, {
+        returns: this.response,
+        name: this.name,
+      })
   }
 
-  return constructQueryWithRelations(modelClass, info, user).where(filters).getOne()
-}
+  static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
+    return new Get(modelClass)
+  }
 
-export function GetModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
-  const returns = opts?.returns || defaultGetModelResponse(modelClass)
-  return Query(
-    ret => returns,
-    {
-      name: opts?.name || getModelResolverName(modelClass),
+  static Name<T>(modelClass: Type<T>): string {
+    return modelClass.name.toLocaleLowerCase()
+  }
+
+  static Response<T>(modelClass: Type<T>): Type<T | undefined> {
+    return modelClass
+  }
+
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
+    const returns = opts?.returns || Get.Response(modelClass)
+    return Query(ret => returns, {
+      name: opts?.name || Get.Name(modelClass),
       nullable: true,
-    },
-  )
-}
-
-export function Get<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IGet<TModel>> {
-  @Resolver(() => modelClass, { isAbstract: true })
-  class GetModelResolverClass extends innerClass implements IGet<TModel> {
-
-    @GetModelQuery(modelClass)
-    async get(@IdInput id: string, @Info() info: GraphQLResolveInfo): Promise<TModel | undefined> {
-      return defaultGetModelQuery(modelClass, id, info)
-    }
+    })
   }
 
-  return GetModelResolverClass
+  build(innerClass: Type<IServiceProvider<IGetService<T>>>): Type<IGetResolver<T>> {
+    @Resolver(() => this.modelClass, { isAbstract: true })
+    class GetModelResolverClass extends innerClass implements IGetResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Read)
+      @(this.decorator)
+      async get(
+        @IdInput id: string,
+        @Context() context: IContext,
+        @Info() info: GraphQLResolveInfo,
+      ) {
+        return this.service.get(id, context, info)
+      }
+    }
+
+    return GetModelResolverClass
+  }
 }

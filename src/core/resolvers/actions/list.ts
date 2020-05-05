@@ -1,51 +1,62 @@
-import { ForbiddenException, Type } from '@nestjs/common'
-import { Info, Query, Resolver } from '@nestjs/graphql'
+import { Type } from '@nestjs/common'
+import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
-import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
-import { listModelsResolverName } from '../helpers/naming'
-import { constructQueryWithRelations } from '../helpers/relations'
-import { IActionResolverOptions } from '../types'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
+import { IContext } from '../../context'
+import { IListService, IServiceProvider } from '../../service/types'
+import { IActionOptions, IActionResolverBuilder, IActionResolverOptions } from '../types'
 
-export interface IList<TModel> {
-  list(info: GraphQLResolveInfo): Promise<Array<TModel>>
+export interface IListResolver<T> {
+  list(context: IContext, info: GraphQLResolveInfo): Promise<Array<T>>
 }
 
-export function defaultListModelResponse<TModel>(modelClass: Type<TModel>) {
-  return [ modelClass ]
-}
+export class List<T> implements IActionResolverBuilder {
+  private readonly name: string
+  private readonly response: any
+  private readonly resolverDecorator: MethodDecorator
 
-export function defaultListModelQuery<TModel>(modelClass: Type<TModel>, info: GraphQLResolveInfo): Promise<Array<TModel>> {
-  const user = FAKE_CURRENT_USER
-  if (!user) throw new ForbiddenException()
-
-  const recordScope = Can.check(user, ActionScope.Read, modelClass)
-  if (recordScope === RecordScope.None) throw new ForbiddenException()
-
-  const filters: Record<string, string> = {}
-  if (recordScope === RecordScope.Owned) {
-    const ownershipField = Can.ownedBy(modelClass)
-    filters[ownershipField] = user.id
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
+    this.name = options?.name || List.Name(modelClass)
+    this.response = options?.response || List.Response(modelClass)
+    this.resolverDecorator =
+      options?.resolverDecorator ||
+      List.Resolver(modelClass, {
+        name: this.name,
+        returns: this.response,
+      })
   }
 
-  return constructQueryWithRelations(modelClass, info, user).where(filters).getMany()
-}
+  static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
+    return new List(modelClass)
+  }
 
-export function ListModelQuery<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
-  const returns = opts?.returns || defaultListModelResponse(modelClass)
-  return Query(
-    ret => returns,
-    { name: listModelsResolverName(modelClass) },
-  )
-}
+  static Name<T>(modelClass: Type<T>): string {
+    return `${modelClass.name.toLocaleLowerCase()}s`
+  }
 
-export function List<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<IList<TModel>> {
-  @Resolver(() => modelClass, { isAbstract: true })
-  class ListModelResolverClass extends innerClass implements IList<TModel> {
-    @ListModelQuery(modelClass)
-    async list(@Info() info: GraphQLResolveInfo): Promise<Array<TModel>> {
-      return defaultListModelQuery(modelClass, info)
+  static Response<T>(modelClass: Type<T>): Array<Type<T>> {
+    return [modelClass]
+  }
+
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
+    const returns = opts?.returns || List.Response(modelClass)
+    return Query(ret => returns, { name: opts?.name || List.Name(modelClass) })
+  }
+
+  build(innerClass: Type<IServiceProvider<IListService<T>>>): Type<any> {
+    @Resolver(() => this.modelClass, { isAbstract: true })
+    class ListModelResolverClass extends innerClass implements IListResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Read)
+      @(this.resolverDecorator)
+      async list(
+        @Context() context: IContext,
+        @Info() info: GraphQLResolveInfo,
+      ): Promise<Array<T>> {
+        return this.service.list(context, info)
+      }
     }
-  }
 
-  return ListModelResolverClass
+    return ListModelResolverClass
+  }
 }

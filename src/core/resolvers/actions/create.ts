@@ -1,106 +1,123 @@
-import { ForbiddenException, Type } from '@nestjs/common'
-import { Args, Field, InputType, Mutation, ObjectType, OmitType, Resolver } from '@nestjs/graphql'
-import { InjectRepository } from '@nestjs/typeorm'
-import { getMetadataArgsStorage, Repository } from 'typeorm'
-import { ActionScope, Can, FAKE_CURRENT_USER, RecordScope } from '../../can'
+import { Type } from '@nestjs/common'
+import {
+  Args,
+  Context,
+  Field,
+  Info,
+  InputType,
+  Mutation,
+  ObjectType,
+  OmitType,
+  Resolver,
+} from '@nestjs/graphql'
+import { getMetadataArgsStorage } from 'typeorm'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
+import { GraphQLResolveInfo } from 'graphql'
+import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
-import { createModelResolverName } from '../helpers/naming'
-import { IActionResolverArgsOptions, IActionResolverOptions, ICreateModelInput, MutationResponse } from '../types'
+import { ICreateService, IServiceProvider } from '../../service/types'
+import {
+  IActionOptions,
+  IActionResolverArgsOptions,
+  IActionResolverBuilder,
+  IActionResolverOptions,
+  ICreateModelInput,
+  MutationResponse,
+} from '../types'
 
-export interface ICreate<TModel> {
-  create(input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>>
+export interface ICreateResolver<T> {
+  create(
+    input: ICreateModelInput<T>,
+    context: IContext,
+    info: GraphQLResolveInfo,
+  ): Promise<MutationResponse<T>> | MutationResponse<T>
 }
 
-export function defaultCreateModelInput<TModel>(modelClass: Type<TModel>, without?: Array<keyof TModel>): Type<ICreateModelInput<TModel>> {
-  const tormMetadata = getMetadataArgsStorage()
-  const relations = tormMetadata.relations.filter(r => r.target === modelClass)
-  const fieldsToOmit = relations
-    .map(r => r.propertyName)
-    .concat(without as Array<string> || BASE_MODEL_FIELDS)
+export class Create<T> implements IActionResolverBuilder {
+  private readonly name: string
+  private readonly response: Type<any>
+  private readonly resolverDecorator: MethodDecorator
+  private readonly input: Type<any>
+  private readonly argDecorator: ParameterDecorator
 
-  @InputType(`Create${modelClass.name}Input`)
-  class CreateModelInput extends OmitType(modelClass as Type<any>, fieldsToOmit, InputType) {}
+  constructor(private modelClass: Type<T>, options?: IActionOptions<T>) {
+    this.name = options?.name || Create.Name(modelClass)
+    this.response = options?.response || Create.Response(modelClass)
 
-  return CreateModelInput as Type<ICreateModelInput<TModel>>
-}
+    this.resolverDecorator =
+      options?.resolverDecorator ||
+      Create.Resolver(modelClass, {
+        returns: this.response,
+        name: this.name,
+      })
 
-export function defaultCreateModelResponse<TModel>(modelClass: Type<TModel>): Type<MutationResponse<TModel>> {
-  @ObjectType(`${modelClass.name}CreationResponse`)
-  class ModelCreationResponse extends MutationResponse<TModel> {
-    @Field(type => modelClass, { name: modelClass.name.toLocaleLowerCase(), nullable: true })
-    model?: TModel
+    this.input = options?.input || Create.Input(modelClass)
+    this.argDecorator = options?.argDecorator || Create.Arg(modelClass, { type: this.input })
   }
 
-  return ModelCreationResponse
-}
+  static Default<T>(modelClass: Type<T>): IActionResolverBuilder {
+    return new Create(modelClass)
+  }
 
-export async function defaultCreateModelMutation<TModel>(
-  modelClass: Type<TModel>,
-  repo: Repository<TModel>,
-  input: ICreateModelInput<TModel>,
-): Promise<MutationResponse<TModel>> {
-  try {
-    const user = FAKE_CURRENT_USER
-    if (!user) throw new ForbiddenException()
+  static Name<T>(modelClass: Type<T>): string {
+    return `create${modelClass.name}`
+  }
 
-    const model = new modelClass()
-    Object.assign(model, { ...input })
+  static Response<T>(modelClass: Type<T>): Type<MutationResponse<T>> {
+    @ObjectType(`${modelClass.name}CreationResponse`)
+    class ModelCreationResponse extends MutationResponse<T> {
+      @Field(type => modelClass, {
+        name: modelClass.name.toLocaleLowerCase(),
+        nullable: true,
+      })
+      model?: T
+    }
 
-    const recordScope = Can.check(user, ActionScope.Create, modelClass)
-    if (recordScope === RecordScope.None) throw new ForbiddenException()
-    if (recordScope === RecordScope.Owned) {
-      // TODO: Need to figure out if we can get better type safety here, this is correct but strict mode is sad
-      const ownershipField = model[Can.ownedBy(modelClass) as keyof TModel] as unknown as string
-      if (ownershipField !== user.id) {
-        throw new ForbiddenException(`Can not delete ${modelClass.name} for other users.`)
+    return ModelCreationResponse
+  }
+
+  static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
+    const returns = opts?.returns || Create.Response(modelClass)
+    return Mutation(ret => returns, {
+      name: opts?.name || Create.Name(modelClass),
+    })
+  }
+
+  static Input<T>(modelClass: Type<T>, without?: Array<keyof T>): Type<any> {
+    const tormMetadata = getMetadataArgsStorage()
+    const relations = tormMetadata.relations.filter(r => r.target === modelClass)
+    const fieldsToOmit = relations
+      .map(r => r.propertyName)
+      .concat((without as Array<string>) || BASE_MODEL_FIELDS)
+
+    @InputType(`Create${modelClass.name}Input`)
+    class CreateModelInput extends OmitType(modelClass as Type<any>, fieldsToOmit, InputType) {}
+
+    return CreateModelInput as Type<ICreateModelInput<T>>
+  }
+
+  static Arg<T>(modelClass: Type<T>, opts?: IActionResolverArgsOptions) {
+    const argType = opts?.type || Create.Input(modelClass)
+    return Args(opts?.name || 'input', {
+      type: () => argType,
+    })
+  }
+
+  build(innerClass: Type<IServiceProvider<ICreateService<T>>>): Type<ICreateResolver<T>> {
+    @Resolver(() => this.modelClass, { isAbstract: true })
+    class CreateModelResolverClass extends innerClass implements ICreateResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Create)
+      @(this.resolverDecorator)
+      create(
+        @(this.argDecorator) input: ICreateModelInput<T>,
+        @Context() context: IContext,
+        @Info() info: GraphQLResolveInfo,
+      ): Promise<MutationResponse<T>> | MutationResponse<T> {
+        return this.service.create(input, context, info)
       }
     }
 
-
-    const saved = await repo.save(model)
-
-    return {
-      success: true,
-      message: `${modelClass.name} created.`,
-      model: saved,
-    }
-  } catch (err) {
-    return {
-      success: false,
-      message: err.message,
-    }
+    return CreateModelResolverClass
   }
-}
-
-export function CreateModelMutation<TModel>(modelClass: Type<TModel>, opts?: IActionResolverOptions) {
-  const returns = opts?.returns || defaultCreateModelResponse(modelClass)
-  return Mutation(
-    ret => returns,
-    { name: opts?.name || createModelResolverName(modelClass) },
-  )
-}
-
-export function CreateModelArgs<TModel>(modelClass: Type<TModel>, opts?: IActionResolverArgsOptions) {
-  const argType = opts?.type || defaultCreateModelInput(modelClass)
-  return Args(
-    opts?.name || 'input',
-    {
-      type: () => argType,
-    },
-  )
-}
-
-export function Create<TModel>(modelClass: Type<TModel>, innerClass: Type<any>): Type<ICreate<TModel>> {
-  @Resolver(() => modelClass, { isAbstract: true })
-  class CreateModelResolverClass extends innerClass implements ICreate<TModel> {
-    @InjectRepository(modelClass)
-    repo: Repository<TModel>
-
-    @CreateModelMutation(modelClass)
-    async create(@CreateModelArgs(modelClass) input: ICreateModelInput<TModel>): Promise<MutationResponse<TModel>> {
-      return defaultCreateModelMutation(modelClass, this.repo, input)
-    }
-  }
-
-  return CreateModelResolverClass
 }
