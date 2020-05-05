@@ -1,13 +1,14 @@
-import { Module } from '@nestjs/common'
+import { HttpModule, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { getConnection } from 'typeorm'
-import { CommentsModule } from './comments/comments.module'
-import { IContext } from './core/context'
 import * as databaseConfig from './database/config'
 import { PostsModule } from './posts/posts.module'
-import { User } from './users/user.entity'
 import { UsersModule } from './users/users.module'
+import { getConnection } from 'typeorm'
+import { User } from './users/user.entity'
+import { CommentsModule } from './comments/comments.module'
+import { OAuthController } from './oauth/oauth.controller'
+import { IContext } from './core/context'
 import { ExtractJwt } from 'passport-jwt'
 import { JwtPayload } from './authentication/strategies/jwt.strategy'
 import { JwtService } from '@nestjs/jwt'
@@ -56,6 +57,8 @@ import { jwtServiceOptions } from './authentication/constants'
       },
     }),
     CommentsModule,
+    HttpModule,
   ],
+  controllers: [OAuthController],
 })
 export class AppModule {}
