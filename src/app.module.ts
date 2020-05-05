@@ -49,7 +49,8 @@ import { jwtServiceOptions } from './authentication/constants'
             res,
           }
         } catch (err) {
-          // TODO throwing here leads to context creation failure, not desired UnauthorizedException
+          // TODO throwing here leads to context creation failure.
+          //  Figure out how to throw an UnauthorizedException but let context creation succeed.
           return baseContext
         }
       },
