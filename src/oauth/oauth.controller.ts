@@ -1,4 +1,5 @@
-import { Controller, Get, HttpService, Query } from '@nestjs/common';
+import { Controller, Get, HttpService, Query } from '@nestjs/common'
+import { config } from '@creditkarma/dynamic-config'
 
 class AccessTokenResponse {
   access_token: string
@@ -17,27 +18,32 @@ export class OAuthController {
   constructor(private httpService: HttpService) {}
 
   @Get('gustoLogin')
-  root() {
-    return `<html><a href="https://api.gusto.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI_ESCAPED}&response_type=code">Authorize with Gusto</a></html>`
+  async root() {
+    const CLIENT_ID = await config().get<string>('OAUTH_CLIENT_ID')
+    const OAUTH_URL =
+      'https://api.gusto.com/oauth/authorize?client_id=16b6990cb025f55a84a1a7110b3ab799b97f93aabd33b287cf3e4e77b28fc865&redirect_uri=http:%2F%2Fgusto.apps.bitmatica.com%2FauthCallback&response_type=code'
+    return `<html><a href="${OAUTH_URL}">OAuth Login</a></html>`
   }
 
   @Get('authCallback')
-  async authCallback(
-    @Query('code') code: string,
-  ) {
-    const result = await this.httpService.post(
-      'https://api.gusto.com/oauth/token',
-      {},
-      {
-        params: {
-          code,
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
-          redirect_uri: REDIRECT_URI,
-          grant_type: 'authorization_code'
-        }
-      }
-    ).toPromise()
+  async authCallback(@Query('code') code: string) {
+    const CLIENT_ID = await config().get<string>('OAUTH_CLIENT_ID')
+    const CLIENT_SECRET = await config().get<string>('OAUTH_CLIENT_ID')
+    const result = await this.httpService
+      .post(
+        'https://api.gusto.com/oauth/token',
+        {},
+        {
+          params: {
+            code,
+            client_id: CLIENT_ID,
+            client_secret: CLIENT_SECRET,
+            redirect_uri: REDIRECT_URI,
+            grant_type: 'authorization_code',
+          },
+        },
+      )
+      .toPromise()
 
     console.log(result)
     // return result.data

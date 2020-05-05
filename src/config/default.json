@@ -1,0 +1,78 @@
+{
+  "port": {
+    "_source": "env",
+    "_key": "SERVICE_PORT",
+    "_default": 3000
+  },
+
+  "basePath": {
+    "_source": "env",
+    "_key": "BASE_PATH",
+    "_default": "/"
+  },
+
+  "secret": {
+    "_source": "env",
+    "_key": "APPLICATION_SECRET"
+  },
+
+  "allowCors": {
+    "_source": "env",
+    "_key": "ALLOW_CORS",
+    "_default": true
+  },
+
+  "database": {
+    "host": {
+      "_source": "env",
+      "_key": "DB_HOST",
+      "_default": "localhost"
+    },
+    "port": {
+      "_source": "env",
+      "_key": "DB_PORT",
+      "_default": 5432
+    },
+    "username": {
+      "_source": "env",
+      "_key": "DB_USERNAME",
+      "_default": "appstarter"
+    },
+    "password": {
+      "_source": "env",
+      "_key": "DB_PASSWORD",
+      "_default": "password"
+    },
+    "database": {
+      "_source": "env",
+      "_key": "DB_NAME",
+      "_default": "appstarter"
+    },
+    "migrationsRun": {
+      "_source": "env",
+      "_key": "DB_RUN_MIGRATIONS",
+      "_default": true
+    }
+  },
+
+  "graphql": {
+    "enablePlayground": {
+      "_source": "env",
+      "_key": "ENABLE_GRAPHQL_PLAYGROUND",
+      "_default": true
+    }
+  },
+
+  "oauth": {
+    "clientId": {
+      "_source": "env",
+      "_key": "OUATH_CLIENT_ID",
+      "_default": "CLIENT_ID_OVERRIDE_ME"
+    },
+    "clientSecret": {
+      "_source": "env",
+      "_key": "OUATH_CLIENT_SECRET",
+      "_default": "CLIENT_SECRET_OVERRIDE_ME"
+    }
+  }
+}
