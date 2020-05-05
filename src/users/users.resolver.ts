@@ -1,4 +1,3 @@
-import { UseGuards } from '@nestjs/common'
 import {
   Args,
   Context,
@@ -10,12 +9,7 @@ import {
   Resolver,
 } from '@nestjs/graphql'
 import { Repository } from 'typeorm'
-import {
-  AuthenticationService,
-  clearTokenCookie,
-  setTokenCookie,
-} from '../authentication/authentication.service'
-import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
+import { AuthenticationService } from '../authentication/authentication.service'
 import { IContext } from '../core/context'
 import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
@@ -91,7 +85,6 @@ export class UsersResolver extends BaseModelResolver(User, {
     try {
       const user = await this.authenticationService.validateUser(input.email, input.password)
       const token = await this.authenticationService.login(user!)
-      setTokenCookie(context.res, token)
       return {
         success: true,
         message: 'Login successful!',
@@ -109,7 +102,7 @@ export class UsersResolver extends BaseModelResolver(User, {
   @Mutation(returns => MutationResponse)
   async logout(@Context() context: IContext) {
     try {
-      clearTokenCookie(context.res)
+      context.req.logOut()
       return {
         success: true,
         message: 'Logout successful!',
@@ -122,9 +115,6 @@ export class UsersResolver extends BaseModelResolver(User, {
     }
   }
 
-  // TODO: If the user model Can.do permissions allows anyone to read,
-  // the JwtAuthGuard won't run and user will be null
-  @CanAuth(User, ActionScope.Read)
   @Query(returns => User, { nullable: true })
   async whoAmI(@CurrentUser() user: User) {
     return user

@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { Repository } from 'typeorm'
 import { User } from './user.entity'
-import { InjectRepository } from '@nestjs/typeorm'
+import { BaseModelService } from '../core/service/model'
 
 @Injectable()
-export class UsersService {
-  @InjectRepository(User)
-  protected repo: Repository<User>
+export class UsersService extends BaseModelService(User) {
+  constructor(private readonly repo: Repository<User>) {
+    super()
+  }
 
-  async findOne(email: string): Promise<User | undefined> {
+  async getByEmail(email: string): Promise<User | undefined> {
     return this.repo.findOne({ email })
   }
 }

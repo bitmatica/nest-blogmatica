@@ -10,7 +10,7 @@ import { IBaseService } from './types'
 
 export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> {
   class BaseService implements IBaseService<T> {
-    constructor(@InjectRepository(modelClass) private repo: Repository<T>) {}
+    constructor(@InjectRepository(modelClass) protected repo: Repository<T>) {}
 
     async create(
       input: ICreateModelInput<T>,
