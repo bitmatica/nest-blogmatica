@@ -21,6 +21,14 @@ export class OAuthController {
   @Get('authCallback')
   async authCallback(@Query('code') code: string) {
     const conf = await config().get<any>('oauth')
+
+    console.log('AUTH CALLBACK')
+    console.log(code)
+    console.log(conf.clientId)
+    console.log(conf.clientSecret)
+    console.log(conf.redirectUri)
+    console.log(conf.accessTokenUri)
+
     const result = await this.httpService
       .post(
         conf.accessTokenUri,
