@@ -54,7 +54,7 @@ export class PermissionGroup<T> {
     } else if (isArray(actionOrOptions)) {
       actions.push(...actionOrOptions)
     } else {
-      actions.concat(...(actionOrOptions.do || []))
+      actions.push(...(actionOrOptions.do || []))
     }
 
     const perm = new Permission<T>().do(...actions)
