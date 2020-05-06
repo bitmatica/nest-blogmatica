@@ -52,10 +52,11 @@ export class PermissionGroup<T> {
     if (actionOrOptions instanceof ActionScope) {
       actions.push(actionOrOptions)
     } else if (isArray(actionOrOptions)) {
-      actions.concat(actionOrOptions)
+      actions.push(...actionOrOptions)
     } else {
-      actions.concat(actionOrOptions.do || [])
+      actions.concat(...(actionOrOptions.do || []))
     }
+
     const perm = new Permission<T>().do(...actions)
 
     const mergedOptions =
