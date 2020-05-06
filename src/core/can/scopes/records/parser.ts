@@ -163,7 +163,7 @@ export function inComparator(
 ): ParsedQuery {
   const paramName = `${alias}_${fieldName}`
   return {
-    query: `${alias}.${fieldName} IN :(...${paramName})`,
+    query: `${alias}.${fieldName} IN (:...${paramName})`,
     params: {
       [paramName]: comp,
     },

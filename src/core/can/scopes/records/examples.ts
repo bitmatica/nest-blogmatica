@@ -150,7 +150,7 @@ export async function RunExamples() {
 
   await RecordScopeCustom(Comment, {
     body: {
-      $contains: 'z',
+      $in: ['helloz'],
     },
   })
 }
