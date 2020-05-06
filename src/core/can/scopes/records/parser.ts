@@ -299,6 +299,35 @@ export function handleOneToManyRelation<T>(
   }
 }
 
+function handleRelations<T>(
+  classType: EntityReference,
+  queryBuilder: SelectQueryBuilder<T>,
+  alias: string,
+  fieldName: string,
+  fieldValue: QueryFilter<T>,
+): ParsedQuery {
+  const entityMetadata = queryBuilder.connection.entityMetadatas.find(em => em.target === classType)
+  if (!entityMetadata) {
+    throw `${classType} is not a TypeORM entity`
+  }
+
+  const relation = entityMetadata.relations.find(rel => rel.propertyName === fieldName)
+  if (!relation) {
+    console.log(`${fieldName} not a relation on ${classType}. Probably an error.`)
+    return parseQueryFilter(classType, queryBuilder, `${alias}_${fieldName}`, fieldValue)
+  }
+
+  if (relation.relationType === 'many-to-one') {
+    return handleManyToOneRelation(queryBuilder, alias, fieldName, relation, fieldValue)
+  }
+
+  if (relation.relationType === 'one-to-many') {
+    return handleOneToManyRelation(queryBuilder, alias, fieldName, relation, fieldValue)
+  }
+
+  throw new Error(`Relation Type NYI: ${relation.relationType}`)
+}
+
 export function parseQueryFilter<T>(
   classType: EntityReference,
   queryBuilder: SelectQueryBuilder<T>,
@@ -315,29 +344,7 @@ export function parseQueryFilter<T>(
         return eqComparator(alias, fieldName, value)
       }
 
-      // Relationship Handling
-      const entityMetadata = queryBuilder.connection.entityMetadatas.find(
-        em => em.target === classType,
-      )
-      if (!entityMetadata) {
-        throw `${classType} is not a TypeORM entity`
-      }
-
-      const relation = entityMetadata.relations.find(rel => rel.propertyName === fieldName)
-      if (!relation) {
-        console.log(`${fieldName} not a relation on ${classType}. Probably an error.`)
-        return parseQueryFilter(classType, queryBuilder, `${alias}_${fieldName}`, value)
-      }
-
-      if (relation.relationType === 'many-to-one') {
-        return handleManyToOneRelation(queryBuilder, alias, fieldName, relation, value)
-      }
-
-      if (relation.relationType === 'one-to-many') {
-        return handleOneToManyRelation(queryBuilder, alias, fieldName, relation, value)
-      }
-
-      throw new Error(`Relation Type NYI: ${relation.relationType}`)
+      return handleRelations(classType, queryBuilder, alias, fieldName, value)
     }),
   )
 }
