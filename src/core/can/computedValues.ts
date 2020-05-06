@@ -21,7 +21,7 @@ export class ComputedValue<T> {
 
   static Context = new ComputedValue(ctx => ctx)
   static Now = new ComputedValue(() => new Date())
-  static User = ComputedValue.Context.map(ctx => ctx.user)
+  static User = ComputedValue.Context.map(ctx => ctx.req.user)
   static UserId = ComputedValue.User.map(user => user.id)
 
   map<U>(transform: TransformFunction<T, U>): ComputedValue<U> {

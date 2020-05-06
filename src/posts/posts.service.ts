@@ -12,7 +12,7 @@ export class PostsService extends BaseModelService(Post) {
     context: IContext,
     info?: GraphQLResolveInfo,
   ): Promise<MutationResponse<Post>> | MutationResponse<Post> {
-    const user = context.user
+    const user = context.req.user
     if (!user) {
       throw new ForbiddenException()
     }

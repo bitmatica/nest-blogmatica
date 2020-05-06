@@ -1,6 +1,8 @@
 import { Type } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { IGetService, IServiceProvider } from '../../service/types'
 import { IdInput } from '../decorators'
@@ -50,6 +52,7 @@ export class Get<T> implements IActionResolverBuilder {
   build(innerClass: Type<IServiceProvider<IGetService<T>>>): Type<IGetResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class GetModelResolverClass extends innerClass implements IGetResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Read)
       @(this.decorator)
       async get(
         @IdInput id: string,

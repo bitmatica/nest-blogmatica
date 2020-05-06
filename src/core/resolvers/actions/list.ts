@@ -1,6 +1,8 @@
 import { Type } from '@nestjs/common'
 import { Context, Info, Query, Resolver } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
 import { IContext } from '../../context'
 import { IListService, IServiceProvider } from '../../service/types'
 import { IActionOptions, IActionResolverBuilder, IActionResolverOptions } from '../types'
@@ -45,6 +47,7 @@ export class List<T> implements IActionResolverBuilder {
   build(innerClass: Type<IServiceProvider<IListService<T>>>): Type<any> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class ListModelResolverClass extends innerClass implements IListResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Read)
       @(this.resolverDecorator)
       async list(
         @Context() context: IContext,

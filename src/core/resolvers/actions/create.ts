@@ -10,8 +10,10 @@ import {
   OmitType,
   Resolver,
 } from '@nestjs/graphql'
-import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage } from 'typeorm'
+import { ActionScope } from '../../can'
+import { CanAuth } from '../../can/decorators'
+import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { ICreateService, IServiceProvider } from '../../service/types'
@@ -105,6 +107,7 @@ export class Create<T> implements IActionResolverBuilder {
   build(innerClass: Type<IServiceProvider<ICreateService<T>>>): Type<ICreateResolver<T>> {
     @Resolver(() => this.modelClass, { isAbstract: true })
     class CreateModelResolverClass extends innerClass implements ICreateResolver<T> {
+      @CanAuth(this.modelClass, ActionScope.Create)
       @(this.resolverDecorator)
       create(
         @(this.argDecorator) input: ICreateModelInput<T>,

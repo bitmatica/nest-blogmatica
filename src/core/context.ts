@@ -7,7 +7,16 @@ export interface IUser {
 }
 
 export interface IContext {
-  user?: IUser
   req: Request
   res: Response
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface User {
+      id: ModelId
+      roles: Array<string>
+    }
+  }
 }
