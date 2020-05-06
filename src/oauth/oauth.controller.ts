@@ -33,7 +33,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
 
   @Get('authCallback')
   async gustoAuthCallback(@Query('code') code: string) {
-    return this.getAccessTokenWithConf('oauth.asana', code)
+    return this.getAccessTokenWithConf('oauth.gusto', code)
   }
 
   @Get('auth/asana/callback')
