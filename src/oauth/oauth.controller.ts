@@ -47,6 +47,7 @@ export class OAuthController {
   @Get('oauth/apps')
   async apps() {
     const conf = await config().get<any>('oauth')
+    console.log('this is the new apps endpoint')
     return [
       this.buildAuthorizationUri(
         conf.gusto.authorizationUri,
