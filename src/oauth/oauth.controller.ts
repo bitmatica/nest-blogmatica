@@ -1,8 +1,5 @@
-import { Controller, Get, HttpService, Query, Redirect } from '@nestjs/common'
+import { Controller, Get, HttpService, Query } from '@nestjs/common'
 import { config } from '@creditkarma/dynamic-config'
-import { OAuthToken, OAuthProvider } from './oauthtoken.entity'
-import { getConnection } from 'typeorm'
-import { User } from '../users/user.entity'
 
 class AccessTokenResponse {
   access_token: string
@@ -20,104 +17,48 @@ interface IOAuthUser {
 @Controller()
 export class OAuthController {
   constructor(private httpService: HttpService) {}
+  @Get('oauth/apps')
+  async apps() {
+    return this.getOAuthRedirectUris()
+  }
 
   @Get('oauth/login')
   async root() {
-    const conf = await config().get<any>('oauth')
     return `<html><ul>
-<li><a href="${this.buildAuthorizationUri(
-      conf.gusto.authorizationUri,
-      conf.gusto.clientId,
-      conf.gusto.redirectUri,
-    )}">Gusto Login</a></li>
-<li><a href="${this.buildAuthorizationUri(
-      conf.asana.authorizationUri,
-      conf.asana.clientId,
-      conf.asana.redirectUri,
-    )}">Asana Login</a></li>
-<li><a href="${this.buildAuthorizationUri(
-      conf.google.authorizationUri,
-      conf.google.clientId,
-      conf.google.redirectUri,
-    )}">Google Login</a></li>
-</ul>
-</html>`
-  }
-
-  @Get('oauth/apps')
-  async apps() {
-    const conf = await config().get<any>('oauth')
-    return [
-      this.buildAuthorizationUri(
-        conf.gusto.authorizationUri,
-        conf.gusto.clientId,
-        conf.gusto.redirectUri,
-      ),
-      this.buildAuthorizationUri(
-        conf.asana.authorizationUri,
-        conf.asana.clientId,
-        conf.asana.redirectUri,
-      ),
-      this.buildAuthorizationUri(
-        conf.google.authorizationUri,
-        conf.google.clientId,
-        conf.google.redirectUri,
-      ),
-    ]
+${(await this.getOAuthRedirectUris()).map(uri => {
+  return `<li><a href="${uri}">${uri}</a></li>`
+})}
+</ul></html>`
   }
 
   @Get('authCallback')
-  @Redirect('/gusto/v1/me')
   async gustoAuthCallback(@Query('code') code: string) {
-    const conf = await config().get<any>('oauth')
-    const response: AccessTokenResponse = (await this.getAccessToken(
-      conf.gusto.accessTokenUri,
-      code,
-      conf.gusto.clientId,
-      conf.gusto.clientSecret,
-      conf.gusto.redirectUri,
-    ))!
-    const userRepository = getConnection().getRepository(User)
-    const oauthRepository = getConnection().getRepository(OAuthToken)
-    console.log('gusto response: ', response)
-    const gustoUser = await this.getGustoUser(response.access_token)
-    console.log('gusto user.email: ' + gustoUser.email)
-    // Try to match on email
-    const dbUser = await userRepository.findOne({ email: gustoUser.email })
-    console.log('db user: ' + dbUser)
-    const oAuth: OAuthToken = new OAuthToken()
-    oAuth.accessToken = response.access_token
-    oAuth.refreshToken = response.refresh_token
-    oAuth.createdAt = response.created_at
-    oAuth.expiresIn = response.expires_in
-    oAuth.tokenType = response.token_type
-    oAuth.provider = OAuthProvider.GUSTO
-    oAuth.userId = dbUser!.id
-    await oauthRepository.save(oAuth)
-    return oAuth
+    return this.getAccessTokenWithConf('oauth.asana', code)
   }
 
   @Get('auth/asana/callback')
   async asanaAuthCallback(@Query('code') code: string) {
-    const conf = await config().get<any>('oauth')
-    return this.getAccessToken(
-      conf.asana.accessTokenUri,
-      code,
-      conf.asana.clientId,
-      conf.asana.clientSecret,
-      conf.asana.redirectUri,
-    )
+    return this.getAccessTokenWithConf('oauth.asana', code)
   }
 
-  @Get('auth/google/callback')
-  async googleAuthCallback(@Query('code') code: string) {
-    const conf = await config().get<any>('oauth')
+  @Get('auth/zoom/callback')
+  async zoomAuthCallback(@Query('code') code: string) {
+    return this.getAccessTokenWithConf('oauth.zoom', code)
+  }
+
+  @Get('auth/slack/callback')
+  async slackAuthCallback(@Query('code') code: string) {
+    return this.getAccessTokenWithConf('oauth.slack', code)
+  }
+
+  async getAccessTokenWithConf(configPath: string, code: string) {
+    const conf = await config().get<any>('oauth.zoom')
     return this.getAccessToken(
-      conf.asana.accessTokenUri,
+      conf.accessTokenUri,
       code,
-      conf.asana.clientId,
-      conf.asana.clientSecret,
-      conf.asana.redirectUri,
+      conf.clientId,
+      conf.clientSecret,
+      conf.redirectUri,
     )
   }
 
@@ -127,6 +68,7 @@ export class OAuthController {
     clientId: string,
     clientSecret: string,
     redirectUri: string,
+    scope?: string,
   ): Promise<AccessTokenResponse | undefined> {
     console.log('AUTH CALLBACK')
     console.log(uri)
@@ -145,6 +87,7 @@ export class OAuthController {
             client_secret: clientSecret,
             redirect_uri: redirectUri,
             grant_type: 'authorization_code',
+            scope,
           },
         },
       )
@@ -158,21 +101,29 @@ export class OAuthController {
     }
   }
 
-  buildAuthorizationUri(authorizationUri: string, clientId: string, redirectUri: string) {
+  buildAuthorizationUri(
+    authorizationUri: string,
+    clientId: string,
+    redirectUri: string,
+    scope?: string,
+  ) {
     return `${authorizationUri}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
-    )}&response_type=code`
+    )}&response_type=code${scope ? `&scope=${scope}` : ''}`
   }
 
-  async getGustoUser(token: string): Promise<IOAuthUser> {
-    const conf = await config().get<any>('oauth')
-    const result = await this.httpService
-      .get(`${conf.gusto.baseApiUri}v1/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .toPromise()
-    return result.data
+  async getOAuthRedirectUris() {
+    const configPaths = ['oauth.gusto', 'oauth.zoom', 'oauth.asana', 'oauth.slack']
+    return Promise.all(
+      configPaths.map(async configPath => {
+        const conf = await config().get<any>(configPath)
+        return this.buildAuthorizationUri(
+          conf.authorizationUri,
+          conf.clientId,
+          conf.redirectUri,
+          conf.scope,
+        )
+      }),
+    )
   }
 }

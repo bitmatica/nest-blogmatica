@@ -88,6 +88,12 @@
         "_source": "env",
         "_key": "",
         "_default": "https://gusto.apps.bitmatica.com/authCallback"
+      },
+      "scope": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": ""
       }
     },
     "asana": {
@@ -120,33 +126,87 @@
         "_source": "env",
         "_key": "",
         "_default": "https://gusto.apps.bitmatica.com/auth/asana/callback"
+      },
+      "scope": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": ""
       }
     },
-    "google": {
+    "zoom": {
+      "baseApiUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://api.zoom.us/v2/"
+      },
       "authorizationUri": {
         "_source": "env",
         "_key": "",
-        "_default": "TODO"
+        "_default": "https://zoom.us/oauth/authorize"
       },
       "clientId": {
         "_source": "env",
         "_key": "",
-        "_default": "TODO"
+        "_default": "PMSL6UGQmuWdSAjpaRxQw"
       },
       "clientSecret": {
         "_source": "env",
         "_key": "",
-        "_default": "TODO"
+        "_default": "2OS3ou3b5GCP1EZ3zuLk37dfRL1eLV5D"
       },
       "accessTokenUri": {
         "_source": "env",
         "_key": "",
-        "_default": "TODO"
+        "_default": "https://zoom.us/oauth/token"
       },
       "redirectUri": {
         "_source": "env",
         "_key": "",
-        "_default": "https://gusto.apps.bitmatica.com/auth/google/callback"
+        "_default": "https://gusto.apps.bitmatica.com/auth/zoom/callback"
+      },
+      "scope": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": ""
+      }
+    },
+    "slack": {
+      "baseApiUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://slack.com/"
+      },
+      "authorizationUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://slack.com/oauth/authorize"
+      },
+      "clientId": {
+        "_source": "env",
+        "_key": "",
+        "_default": "4000071981.1108243359506"
+      },
+      "clientSecret": {
+        "_source": "env",
+        "_key": "",
+        "_default": "22db2214d0de26e81577320ee8e090e6"
+      },
+      "accessTokenUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://slack.com/api/oauth.access"
+      },
+      "redirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://gusto.apps.bitmatica.com/auth/slack/callback"
+      },
+      "scope": {
+        "_source": "env",
+        "_key": "",
+        "_default": "users:read"
       }
     }
   }
