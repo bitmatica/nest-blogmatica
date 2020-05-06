@@ -47,34 +47,23 @@ export class OAuthController {
   @Get('oauth/apps')
   async apps() {
     const conf = await config().get<any>('oauth')
-    return {
-      apps: [
-        {
-          name: 'Gusto',
-          uri: this.buildAuthorizationUri(
-            conf.gusto.authorizationUri,
-            conf.gusto.clientId,
-            conf.gusto.redirectUri,
-          ),
-        },
-        {
-          name: 'Asana',
-          uri: this.buildAuthorizationUri(
-            conf.asana.authorizationUri,
-            conf.asana.clientId,
-            conf.asana.redirectUri,
-          ),
-        },
-        {
-          name: 'Google',
-          uri: this.buildAuthorizationUri(
-            conf.google.authorizationUri,
-            conf.google.clientId,
-            conf.google.redirectUri,
-          ),
-        },
-      ],
-    }
+    return [
+      this.buildAuthorizationUri(
+        conf.gusto.authorizationUri,
+        conf.gusto.clientId,
+        conf.gusto.redirectUri,
+      ),
+      this.buildAuthorizationUri(
+        conf.asana.authorizationUri,
+        conf.asana.clientId,
+        conf.asana.redirectUri,
+      ),
+      this.buildAuthorizationUri(
+        conf.google.authorizationUri,
+        conf.google.clientId,
+        conf.google.redirectUri,
+      ),
+    ]
   }
 
   @Get('authCallback')
