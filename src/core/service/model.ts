@@ -21,7 +21,7 @@ export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> 
         const model = new modelClass()
         Object.assign(model, { ...input })
 
-        Can.check(context, ActionScope.Update, modelClass).assert(model, context)
+        Can.check(context, ActionScope.Create, modelClass).assert(model, context)
 
         const saved = await this.repo.save(model)
 
