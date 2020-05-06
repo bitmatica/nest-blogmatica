@@ -1,4 +1,4 @@
-import { Controller, Get, HttpService, Query } from '@nestjs/common'
+import { Controller, Get, HttpService, Query, Redirect } from '@nestjs/common'
 import { config } from '@creditkarma/dynamic-config'
 import { OAuthToken, OAuthProvider } from './oauthtoken.entity'
 import { getConnection } from 'typeorm'
@@ -47,7 +47,6 @@ export class OAuthController {
   @Get('oauth/apps')
   async apps() {
     const conf = await config().get<any>('oauth')
-    console.log('this is the new apps endpoint')
     return [
       this.buildAuthorizationUri(
         conf.gusto.authorizationUri,
@@ -68,6 +67,7 @@ export class OAuthController {
   }
 
   @Get('authCallback')
+  @Redirect('/gusto/v1/me')
   async gustoAuthCallback(@Query('code') code: string) {
     const conf = await config().get<any>('oauth')
     const response: AccessTokenResponse = (await this.getAccessToken(
