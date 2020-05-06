@@ -1,5 +1,6 @@
 import { SelectQueryBuilder } from 'typeorm'
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata'
+import { ComputedValue } from '../../computedValues'
 import * as guards from './guards'
 import { BooleanOperator, Comparator, ComparatorKey, ComparatorValue, QueryFilter } from './types'
 
@@ -65,6 +66,20 @@ export function eqComparator(
   const paramName = `${alias}_${fieldName}`
   return {
     query: `${alias}.${fieldName} = :${paramName}`,
+    params: {
+      [paramName]: comp,
+    },
+  }
+}
+
+export function likeComparator(
+  alias: string,
+  fieldName: string,
+  comp: ComparatorValue<any>,
+): ParsedQuery {
+  const paramName = `${alias}_${fieldName}`
+  return {
+    query: `${alias}.${fieldName} LIKE :${paramName}`,
     params: {
       [paramName]: comp,
     },
@@ -148,7 +163,7 @@ export function inComparator(
 ): ParsedQuery {
   const paramName = `${alias}_${fieldName}`
   return {
-    query: `${alias}.${fieldName} in :(...${paramName})`,
+    query: `${alias}.${fieldName} IN :(...${paramName})`,
     params: {
       [paramName]: comp,
     },
@@ -158,13 +173,15 @@ export function inComparator(
 export function containsComparator(
   alias: string,
   fieldName: string,
-  comp: ComparatorValue<any>,
+  comp: ComparatorValue<string>,
 ): ParsedQuery {
   const paramName = `${alias}_${fieldName}`
+  const compWithWildcards =
+    comp instanceof ComputedValue ? comp.map(prev => `%${prev}%`) : `%${comp}%`
   return {
-    query: `${alias}.${fieldName} contains :${paramName}`,
+    query: `${alias}.${fieldName} LIKE :${paramName}`,
     params: {
-      [paramName]: comp,
+      [paramName]: compWithWildcards,
     },
   }
 }
@@ -191,6 +208,7 @@ export type ComparatorParserFn = (
 
 export const comparatorToParser: Record<ComparatorKey, ComparatorParserFn> = {
   [ComparatorKey.Equals]: eqComparator,
+  [ComparatorKey.Like]: likeComparator,
   [ComparatorKey.NotEquals]: neqComparator,
   [ComparatorKey.Contains]: containsComparator,
   [ComparatorKey.GreaterThan]: gtComparator,

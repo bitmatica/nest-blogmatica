@@ -14,12 +14,17 @@ import {
   InComparator,
   LessThanComparator,
   LessThanOrEqualsComparator,
+  LikeComparator,
   NotEqualsComparator,
   OrOperator,
 } from './types'
 
 export function isEqualsComparator<T>(arg: any): arg is EqualsComparator<T> {
   return arg.hasOwnProperty('$eq')
+}
+
+export function isLikeComparator<T>(arg: any): arg is LikeComparator<T> {
+  return arg.hasOwnProperty('$like')
 }
 
 export function isNotEqualsComparator<T>(arg: any): arg is NotEqualsComparator<T> {
@@ -60,6 +65,7 @@ export function isComparator<T>(arg: any): arg is Comparator<T> {
   return (
     isNotEqualsComparator(arg) ||
     isEqualsComparator(arg) ||
+    isLikeComparator(arg) ||
     isInComparator(arg) ||
     isContainsComparator(arg) ||
     isExistsComparator(arg) ||

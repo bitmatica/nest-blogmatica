@@ -5,6 +5,7 @@ export type ComparatorValue<T> = T | ComputedValue<T>
 
 export enum ComparatorKey {
   Equals = '$eq',
+  Like = '$like',
   NotEquals = '$neq',
   In = '$in',
   Contains = '$contains',
@@ -29,6 +30,10 @@ export type InComparator<T> = {
 
 export type ContainsComparator<T> = {
   $contains: ComparatorValue<T>
+}
+
+export type LikeComparator<T> = {
+  $like: ComparatorValue<T>
 }
 
 export type ExistsComparator<T> = {
@@ -56,8 +61,7 @@ export type GenericComparator<T> =
   | EqualsComparator<T>
   | InComparator<T>
   | NotEqualsComparator<T>
-export type ArrayComparator<T> = ContainsComparator<T>
-export type StringComparator<T> = GenericComparator<T> | ContainsComparator<T>
+export type StringComparator<T> = GenericComparator<T> | LikeComparator<T> | ContainsComparator<T>
 export type NumberComparator<T> =
   | GenericComparator<T>
   | LessThanComparator<T>
@@ -67,7 +71,6 @@ export type NumberComparator<T> =
 export type BooleanComparator<T> = GenericComparator<T>
 
 export type Comparator<T> =
-  | ArrayComparator<T>
   | StringComparator<T>
   | BooleanComparator<T>
   | NumberComparator<T>
@@ -102,13 +105,9 @@ export type QueryFilter<T> = {
     ? QueryFilter<T[P]>
     : T[P] extends PromiseLike<infer U>
     ? U extends Array<infer V>
-      ? V extends BaseModel
-        ? QueryFilter<V>
-        : DynamicComparator<V>
+      ? QueryFilter<V>
       : DynamicComparator<U> | QueryFilter<U>
     : T[P] extends Array<infer U>
-    ? U extends BaseModel
-      ? QueryFilter<U>
-      : DynamicComparator<U> | QueryFilter<U>
+    ? QueryFilter<U>
     : DynamicComparator<T[P]> | ComparatorValue<T[P]>
 }

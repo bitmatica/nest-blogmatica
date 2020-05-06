@@ -134,21 +134,25 @@ export async function scopedCommentsUserIdQuery() {
 }
 
 export async function RunExamples() {
-  await RecordScopeCustom(User, {
-    posts: {
-      authorId: 'af58075c-7f18-4312-90fb-a78ef1bb629a',
-    },
-  })
+  // await RecordScopeCustom(User, {
+  //   posts: {
+  //     authorId: 'af58075c-7f18-4312-90fb-a78ef1bb629a',
+  //   },
+  // })
 
-  // await RecordScopeCustom(Comment, {
-  //   post: {
+  // await RecordScopeCustom(Post, {
+  //   comments: {
   //     author: {
-  //       createdAt: {
-  //         $lte: new Date(),
-  //       },
+  //       id: 'af58075c-7f18-4312-90fb-a78ef1bb629a',
   //     },
   //   },
   // })
+
+  await RecordScopeCustom(Comment, {
+    body: {
+      $contains: 'z',
+    },
+  })
 }
 
 // export async function postsGreaterThan(filter: Date) {
