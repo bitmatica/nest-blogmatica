@@ -52,7 +52,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
   }
 
   async getAccessTokenWithConf(configPath: string, code: string) {
-    const conf = await config().get<any>('oauth.zoom')
+    const conf = await config().get<any>(configPath)
     return this.getAccessToken(
       conf.accessTokenUri,
       code,
