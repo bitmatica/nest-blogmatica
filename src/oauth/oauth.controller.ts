@@ -7,6 +7,7 @@ import { User } from '../users/user.entity'
 class AccessTokenResponse {
   access_token: string
   refresh_token: string
+  created_at: number
   expires_in: number
   token_type: string
 }
@@ -23,10 +24,6 @@ export class OAuthController {
   @Get('oauth/login')
   async root() {
     const conf = await config().get<any>('oauth')
-    const uri = `${conf.authorizationUri}?client_id=${
-      conf.clientId
-    }&redirect_uri=${encodeURIComponent(conf.redirectUri)}&response_type=code`
-
     return `<html><ul>
 <li><a href="${this.buildAuthorizationUri(
       conf.gusto.authorizationUri,
@@ -61,13 +58,14 @@ export class OAuthController {
     const oauthRepository = getConnection().getRepository(OAuthToken)
     console.log('gusto response: ', response)
     const gustoUser = await this.getGustoUser(response.access_token)
-    console.log('gusto user: ' + gustoUser)
+    console.log('gusto user.email: ' + gustoUser.email)
     // Try to match on email
     const dbUser = await userRepository.findOne({ email: gustoUser.email })
     console.log('db user: ' + dbUser)
     const oAuth: OAuthToken = new OAuthToken()
     oAuth.accessToken = response.access_token
     oAuth.refreshToken = response.refresh_token
+    oAuth.createdAt = response.created_at
     oAuth.expiresIn = response.expires_in
     oAuth.tokenType = response.token_type
     oAuth.provider = OAuthProvider.GUSTO

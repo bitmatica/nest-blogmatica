@@ -1,5 +1,5 @@
-import { Field } from '@nestjs/graphql'
-import { Column, Entity, ManyToOne } from 'typeorm'
+import { Field, ID } from '@nestjs/graphql'
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { BaseModel, ModelId } from '../core/model'
 import { User } from '../users/user.entity'
 
@@ -10,7 +10,10 @@ export enum OAuthProvider {
 }
 
 @Entity()
-export class OAuthToken extends BaseModel {
+export class OAuthToken {
+  @PrimaryGeneratedColumn('uuid')
+  id: string
+
   @Column({
     type: 'enum',
     enum: OAuthProvider,
@@ -22,6 +25,9 @@ export class OAuthToken extends BaseModel {
 
   @Column()
   refreshToken: string
+
+  @Column()
+  createdAt: number
 
   @Column()
   expiresIn: number
