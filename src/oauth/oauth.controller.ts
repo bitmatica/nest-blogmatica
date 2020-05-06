@@ -60,7 +60,7 @@ export class OAuthController {
     const userRepository = getConnection().getRepository(User)
     const oauthRepository = getConnection().getRepository(OAuthToken)
     console.log('gusto response: ', response)
-    const gustoUser = await this.getUser(response.access_token)
+    const gustoUser = await this.getGustoUser(response.access_token)
     console.log('gusto user: ' + gustoUser)
     // Try to match on email
     const dbUser = await userRepository.findOne({ email: gustoUser.email })
@@ -143,10 +143,10 @@ export class OAuthController {
     )}&response_type=code`
   }
 
-  async getUser(token: string): Promise<IOAuthUser> {
+  async getGustoUser(token: string): Promise<IOAuthUser> {
     const conf = await config().get<any>('oauth')
     const result = await this.httpService
-      .get(conf.getUserUri, {
+      .get(`${conf.gusto.baseApiUri}v1/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
