@@ -59,7 +59,12 @@
   },
   "oauth": {
     "gusto": {
-      "baseUri": {
+      "baseApiUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://api.gusto-demo.com/"
+      },
+      "authorizationUri": {
         "_source": "env",
         "_key": "",
         "_default": "https://api.gusto-demo.com/oauth/authorize"
@@ -86,7 +91,12 @@
       }
     },
     "asana": {
-      "baseUri": {
+      "baseApiUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://app.asana.com/-/"
+      },
+      "authorizationUri": {
         "_source": "env",
         "_key": "",
         "_default": "https://app.asana.com/-/oauth_authorize"
@@ -113,7 +123,7 @@
       }
     },
     "google": {
-      "baseUri": {
+      "authorizationUri": {
         "_source": "env",
         "_key": "",
         "_default": "TODO"

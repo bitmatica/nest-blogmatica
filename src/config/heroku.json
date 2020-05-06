@@ -1,0 +1,34 @@
+{
+  "database": {
+    "host": {
+      "_source": "env",
+      "_key": "DB_HOST",
+      "_default": "ec2-54-86-170-8.compute-1.amazonaws.com"
+    },
+    "port": {
+      "_source": "env",
+      "_key": "DB_PORT",
+      "_default": 5432
+    },
+    "username": {
+      "_source": "env",
+      "_key": "DB_USERNAME",
+      "_default": "tbvjvgfaxkotep"
+    },
+    "password": {
+      "_source": "env",
+      "_key": "DB_PASSWORD",
+      "_default": "ef83fe91fdf6d185a9291939a59cadf68bfb016fc03502cf7eb46f6307dc60e7"
+    },
+    "database": {
+      "_source": "env",
+      "_key": "DB_NAME",
+      "_default": "d33rt69nhfd134"
+    },
+    "migrationsRun": {
+      "_source": "env",
+      "_key": "DB_RUN_MIGRATIONS",
+      "_default": true
+    }
+  }
+}

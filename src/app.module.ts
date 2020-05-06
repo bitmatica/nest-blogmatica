@@ -13,6 +13,7 @@ import { ExtractJwt } from 'passport-jwt'
 import { JwtPayload } from './authentication/strategies/jwt.strategy'
 import { JwtService } from '@nestjs/jwt'
 import { jwtServiceOptions } from './authentication/constants'
+import { GustoController } from './gusto/gusto.controller'
 
 @Module({
   imports: [
@@ -59,6 +60,6 @@ import { jwtServiceOptions } from './authentication/constants'
     CommentsModule,
     HttpModule,
   ],
-  controllers: [OAuthController],
+  controllers: [OAuthController, GustoController],
 })
 export class AppModule {}
