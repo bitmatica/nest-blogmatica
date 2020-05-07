@@ -18,17 +18,13 @@ interface IOAuthUser {
 @Controller()
 export class OAuthController {
   constructor(private httpService: HttpService) {}
-  @Get('oauth/apps')
-  async apps() {
-    return this.getOAuthRedirectUris()
-  }
 
-  // @UseGuards(RestJwtAuthGuard)
+  @UseGuards(RestJwtAuthGuard)
   @Get('oauth/login')
   async root(@Request() request: Express.Request) {
-    // console.log('user: ' + request.user!.id)
+    const state = btoa(request.user!.id)
     return `<html><ul>
-${(await this.getOAuthRedirectUris()).map(uri => {
+${(await this.getOAuthRedirectUris(state)).map(uri => {
   return `<li><a href="${uri}">${uri}</a></li>`
 })}
 </ul></html>`
@@ -118,7 +114,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     }
   }
 
-  async getOAuthRedirectUris() {
+  async getOAuthRedirectUris(state: string) {
     const oauthConf = await config().get<any>('oauth')
     const configPaths = Object.keys(oauthConf)
     return Promise.all(
@@ -129,6 +125,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
           conf.clientId,
           conf.redirectUri,
           conf.percentEncodeRedirectUri,
+          state,
           conf.scope,
         )
       }),
@@ -140,10 +137,11 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     clientId: string,
     redirectUri: string,
     percentEncodeRedirectUri: boolean,
+    state?: string,
     scope?: string,
   ) {
     return `${authorizationUri}?client_id=${clientId}&redirect_uri=${
       percentEncodeRedirectUri ? encodeURIComponent(redirectUri) : redirectUri
-    }&response_type=code${scope ? `&scope=${scope}` : ''}`
+    }&response_type=code${scope ? `&scope=${scope}` : ''}${state ? `&state=${state}` : ''}`
   }
 }
