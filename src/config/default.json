@@ -208,6 +208,43 @@
         "_key": "",
         "_default": "users:read"
       }
+    },
+    "google": {
+      "baseApiUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://slack.com/"
+      },
+      "authorizationUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://accounts.google.com/o/oauth2/v2/auth"
+      },
+      "clientId": {
+        "_source": "env",
+        "_key": "",
+        "_default": "1017533088026-02cv04rjjkk9c4fnqous07n6r8ejpfug.apps.googleusercontent.com"
+      },
+      "clientSecret": {
+        "_source": "env",
+        "_key": "",
+        "_default": "QXUqrYgjEWQUnbr8oT4KwFGX"
+      },
+      "accessTokenUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://oauth2.googleapis.com/token"
+      },
+      "redirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://gusto.apps.bitmatica.com/auth/google/callback"
+      },
+      "scope": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://www.googleapis.com/auth/admin.reports.usage.readonly"
+      }
     }
   }
 }

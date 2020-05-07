@@ -51,6 +51,11 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     return this.getAccessTokenWithConf('oauth.slack', code)
   }
 
+  @Get('auth/google/callback')
+  async googleAuthCallback(@Query('code') code: string) {
+    return this.getAccessTokenWithConf('oauth.google', code)
+  }
+
   async getAccessTokenWithConf(configPath: string, code: string) {
     const conf = await config().get<any>(configPath)
     return this.getAccessToken(
@@ -113,7 +118,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
   }
 
   async getOAuthRedirectUris() {
-    const configPaths = ['oauth.gusto', 'oauth.zoom', 'oauth.asana', 'oauth.slack']
+    const configPaths = ['oauth.gusto', 'oauth.zoom', 'oauth.asana', 'oauth.slack', 'oauth.google']
     return Promise.all(
       configPaths.map(async configPath => {
         const conf = await config().get<any>(configPath)
