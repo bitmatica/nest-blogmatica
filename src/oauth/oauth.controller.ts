@@ -79,7 +79,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     clientId: string,
     clientSecret: string,
     redirectUri: string,
-    contentType?: string,
+    contentType: string,
   ): Promise<AccessTokenResponse | undefined> {
     console.log('AUTH CALLBACK')
     console.log(uri)
@@ -87,16 +87,15 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     console.log(clientId)
     console.log(clientSecret)
     console.log(redirectUri)
+    console.log(contentType)
     const result = await this.httpService
       .post(
         uri,
         {},
         {
-          headers: contentType
-            ? {
-                'Content-Type': contentType,
-              }
-            : {},
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
           params: {
             code,
             client_id: clientId,
