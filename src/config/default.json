@@ -94,6 +94,12 @@
         "_key": "",
         "_nullable": true,
         "_default": ""
+      },
+      "contentType": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": "application/json"
       }
     },
     "asana": {
@@ -127,6 +133,12 @@
         "_key": "",
         "_nullable": true,
         "_default": ""
+      },
+      "contentType": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": "application/json"
       }
     },
     "zoom": {
@@ -160,6 +172,12 @@
         "_key": "",
         "_nullable": true,
         "_default": ""
+      },
+      "contentType": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": "application/json"
       }
     },
     "slack": {
@@ -192,6 +210,12 @@
         "_source": "env",
         "_key": "",
         "_default": "users:read"
+      },
+      "contentType": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": "application/json"
       }
     },
     "google": {
@@ -224,6 +248,12 @@
         "_source": "env",
         "_key": "",
         "_default": "https://www.googleapis.com/auth/admin.reports.usage.readonly,https://www.googleapis.com/auth/gmail.readonly"
+      },
+      "contentType": {
+        "_source": "env",
+        "_key": "",
+        "_nullable": true,
+        "_default": "application/json"
       }
     },
     "hubspot": {
@@ -256,6 +286,11 @@
         "_source": "env",
         "_key": "",
         "_default": "oauth"
+      },
+      "contentType": {
+        "_source": "env",
+        "_key": "",
+        "_default": "application/x-www-form-urlencoded"
       }
     }
   }

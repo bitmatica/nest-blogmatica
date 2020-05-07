@@ -69,6 +69,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
       conf.clientId,
       conf.clientSecret,
       conf.redirectUri,
+      conf.contentType,
     )
   }
 
@@ -78,7 +79,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     clientId: string,
     clientSecret: string,
     redirectUri: string,
-    scope?: string,
+    contentType?: string,
   ): Promise<AccessTokenResponse | undefined> {
     console.log('AUTH CALLBACK')
     console.log(uri)
@@ -91,13 +92,17 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
         uri,
         {},
         {
+          headers: contentType
+            ? {
+                'Content-Type': contentType,
+              }
+            : {},
           params: {
             code,
             client_id: clientId,
             client_secret: clientSecret,
             redirect_uri: redirectUri,
             grant_type: 'authorization_code',
-            scope,
           },
         },
       )
@@ -106,7 +111,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     try {
       return result.data
     } catch (err) {
-      console.log('Unable to parse access_token from response')
+      console.log('Unable to parse access_token from response: ' + err)
       return err
     }
   }
