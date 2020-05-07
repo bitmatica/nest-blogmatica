@@ -1,6 +1,7 @@
 import { Controller, Get, HttpService, Query, Request, UseGuards } from '@nestjs/common'
 import { config } from '@creditkarma/dynamic-config'
 import { RestJwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
+import { Base64 } from 'js-base64'
 
 class AccessTokenResponse {
   access_token: string
@@ -22,7 +23,9 @@ export class OAuthController {
   @UseGuards(RestJwtAuthGuard)
   @Get('oauth/login')
   async root(@Request() request: Express.Request) {
-    const state = btoa(request.user!.id)
+    const state = Base64.encode(`{ "userId": "${request.user!.id}" }`)
+    console.log('userId: ' + request.user!.id)
+    console.log('encoded state: ' + state)
     return `<html><ul>
 ${(await this.getOAuthRedirectUris(state)).map(uri => {
   return `<li><a href="${uri}">${uri}</a></li>`
@@ -32,7 +35,8 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
 
   @Get('authCallback')
   async gustoAuthCallback(@Query('code') code: string, @Query('state') state: string) {
-    console.log('state: ' + state)
+    console.log('encoded state: ' + state)
+    console.log('decoded state: ' + Base64.decode(state))
     return this.getAccessTokenWithConf('oauth.gusto', code)
   }
 
