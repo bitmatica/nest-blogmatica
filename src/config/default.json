@@ -100,6 +100,11 @@
         "_key": "",
         "_nullable": true,
         "_default": "application/json"
+      },
+      "percentEncodeRedirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": true
       }
     },
     "asana": {
@@ -139,6 +144,11 @@
         "_key": "",
         "_nullable": true,
         "_default": "application/json"
+      },
+      "percentEncodeRedirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": true
       }
     },
     "zoom": {
@@ -178,6 +188,11 @@
         "_key": "",
         "_nullable": true,
         "_default": "application/json"
+      },
+      "percentEncodeRedirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": true
       }
     },
     "slack": {
@@ -216,6 +231,11 @@
         "_key": "",
         "_nullable": true,
         "_default": "application/json"
+      },
+      "percentEncodeRedirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": true
       }
     },
     "google": {
@@ -254,6 +274,11 @@
         "_key": "",
         "_nullable": true,
         "_default": "application/json"
+      },
+      "percentEncodeRedirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": true
       }
     },
     "hubspot": {
@@ -291,6 +316,11 @@
         "_source": "env",
         "_key": "",
         "_default": "application/x-www-form-urlencoded"
+      },
+      "percentEncodeRedirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": false
       }
     }
   }

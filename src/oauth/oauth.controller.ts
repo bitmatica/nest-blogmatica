@@ -119,11 +119,12 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     authorizationUri: string,
     clientId: string,
     redirectUri: string,
+    percentEncodeRedirectUri: boolean,
     scope?: string,
   ) {
-    return `${authorizationUri}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri,
-    )}&response_type=code${scope ? `&scope=${scope}` : ''}`
+    return `${authorizationUri}?client_id=${clientId}&redirect_uri=${
+      percentEncodeRedirectUri ? encodeURIComponent(redirectUri) : redirectUri
+    }&response_type=code${scope ? `&scope=${scope}` : ''}`
   }
 
   async getOAuthRedirectUris() {
@@ -142,6 +143,7 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
           conf.authorizationUri,
           conf.clientId,
           conf.redirectUri,
+          conf.percentEncodeRedirectUri,
           conf.scope,
         )
       }),
