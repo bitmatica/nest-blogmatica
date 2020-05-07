@@ -160,12 +160,12 @@
       "clientId": {
         "_source": "env",
         "_key": "",
-        "_default": "PMSL6UGQmuWdSAjpaRxQw"
+        "_default": "RtuZrQ71RVqTYVITACYaA"
       },
       "clientSecret": {
         "_source": "env",
         "_key": "",
-        "_default": "2OS3ou3b5GCP1EZ3zuLk37dfRL1eLV5D"
+        "_default": "5iJslAsYJ6eW86SAAfTNp06nQO0kPLTi"
       },
       "accessTokenUri": {
         "_source": "env",
