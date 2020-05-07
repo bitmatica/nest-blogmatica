@@ -315,7 +315,7 @@
       "contentType": {
         "_source": "env",
         "_key": "",
-        "_default": "application/x-www-form-urlencoded"
+        "_default": "application/x-www-form-urlencoded;charset=utf-8"
       },
       "percentEncodeRedirectUri": {
         "_source": "env",

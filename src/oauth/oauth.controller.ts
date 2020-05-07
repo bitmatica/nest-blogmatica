@@ -88,30 +88,30 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     console.log(clientSecret)
     console.log(redirectUri)
     console.log(contentType)
-    const result = await this.httpService
-      .post(
-        uri,
-        {},
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          params: {
-            code,
-            client_id: clientId,
-            client_secret: clientSecret,
-            redirect_uri: redirectUri,
-            grant_type: 'authorization_code',
-          },
-        },
-      )
-      .toPromise()
-    console.log('getAccessToken result: ' + result)
     try {
-      return result.data
+      const response = await this.httpService
+        .post(
+          uri,
+          {},
+          {
+            headers: {
+              'Content-Type': contentType,
+            },
+            params: {
+              code,
+              client_id: clientId,
+              client_secret: clientSecret,
+              grant_type: 'authorization_code',
+              redirect_uri: redirectUri,
+            },
+          },
+        )
+        .toPromise()
+      console.log('getAccessToken result: ' + response)
+      return response.data
     } catch (err) {
       console.log('Unable to parse access_token from response: ' + err)
-      return err
+      return err.response.data
     }
   }
 
