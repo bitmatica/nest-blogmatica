@@ -56,6 +56,11 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     return this.getAccessTokenWithConf('oauth.google', code)
   }
 
+  @Get('auth/hubspot/callback')
+  async hubspotAuthCallback(@Query('code') code: string) {
+    return this.getAccessTokenWithConf('oauth.hubspot', code)
+  }
+
   async getAccessTokenWithConf(configPath: string, code: string) {
     const conf = await config().get<any>(configPath)
     return this.getAccessToken(
@@ -118,7 +123,14 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
   }
 
   async getOAuthRedirectUris() {
-    const configPaths = ['oauth.gusto', 'oauth.zoom', 'oauth.asana', 'oauth.slack', 'oauth.google']
+    const configPaths = [
+      'oauth.gusto',
+      'oauth.zoom',
+      'oauth.asana',
+      'oauth.slack',
+      'oauth.google',
+      'oauth.hubspot',
+    ]
     return Promise.all(
       configPaths.map(async configPath => {
         const conf = await config().get<any>(configPath)

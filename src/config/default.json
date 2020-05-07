@@ -97,11 +97,6 @@
       }
     },
     "asana": {
-      "baseApiUri": {
-        "_source": "env",
-        "_key": "",
-        "_default": "https://app.asana.com/-/"
-      },
       "authorizationUri": {
         "_source": "env",
         "_key": "",
@@ -135,11 +130,6 @@
       }
     },
     "zoom": {
-      "baseApiUri": {
-        "_source": "env",
-        "_key": "",
-        "_default": "https://api.zoom.us/v2/"
-      },
       "authorizationUri": {
         "_source": "env",
         "_key": "",
@@ -173,11 +163,6 @@
       }
     },
     "slack": {
-      "baseApiUri": {
-        "_source": "env",
-        "_key": "",
-        "_default": "https://slack.com/"
-      },
       "authorizationUri": {
         "_source": "env",
         "_key": "",
@@ -210,11 +195,6 @@
       }
     },
     "google": {
-      "baseApiUri": {
-        "_source": "env",
-        "_key": "",
-        "_default": "https://slack.com/"
-      },
       "authorizationUri": {
         "_source": "env",
         "_key": "",
@@ -244,6 +224,38 @@
         "_source": "env",
         "_key": "",
         "_default": "https://www.googleapis.com/auth/admin.reports.usage.readonly,https://www.googleapis.com/auth/gmail.readonly"
+      }
+    },
+    "hubspot": {
+      "authorizationUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://app.hubspot.com/oauth/authorize"
+      },
+      "clientId": {
+        "_source": "env",
+        "_key": "",
+        "_default": "020bc358-f7d9-4872-87d3-5ce55810a060"
+      },
+      "clientSecret": {
+        "_source": "env",
+        "_key": "",
+        "_default": "aa0092b8-83aa-4f6a-a7fd-97a7401cdbc4"
+      },
+      "accessTokenUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://api.hubapi.com/oauth/v1/token"
+      },
+      "redirectUri": {
+        "_source": "env",
+        "_key": "",
+        "_default": "https://gusto.apps.bitmatica.com/auth/hubspot/callback"
+      },
+      "scope": {
+        "_source": "env",
+        "_key": "",
+        "_default": "contacts%20content%20reports%20social%20automation%20actions%20timeline%20business-intelligence%20oauth%20forms%20files%20hubdb%20transactional-email%20integration-sync%20tickets%20e-commerce%20sales-email-read%20forms-uploaded-files%20crm.import"
       }
     }
   }
