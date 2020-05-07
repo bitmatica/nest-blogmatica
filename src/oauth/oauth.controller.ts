@@ -1,5 +1,6 @@
-import { Controller, Get, HttpService, Query } from '@nestjs/common'
+import { Controller, Get, HttpService, Query, Request, UseGuards } from '@nestjs/common'
 import { config } from '@creditkarma/dynamic-config'
+import { RestJwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 
 class AccessTokenResponse {
   access_token: string
@@ -23,7 +24,7 @@ export class OAuthController {
   }
 
   @Get('oauth/login')
-  async root() {
+  async root(@Request() request: Express.Request) {
     return `<html><ul>
 ${(await this.getOAuthRedirectUris()).map(uri => {
   return `<li><a href="${uri}">${uri}</a></li>`
@@ -115,6 +116,23 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     }
   }
 
+  async getOAuthRedirectUris() {
+    const oauthConf = await config().get<any>('oauth')
+    const configPaths = Object.keys(oauthConf)
+    return Promise.all(
+      configPaths.map(async configPath => {
+        const conf = await oauthConf[configPath]
+        return this.buildAuthorizationUri(
+          conf.authorizationUri,
+          conf.clientId,
+          conf.redirectUri,
+          conf.percentEncodeRedirectUri,
+          conf.scope,
+        )
+      }),
+    )
+  }
+
   buildAuthorizationUri(
     authorizationUri: string,
     clientId: string,
@@ -125,28 +143,5 @@ ${(await this.getOAuthRedirectUris()).map(uri => {
     return `${authorizationUri}?client_id=${clientId}&redirect_uri=${
       percentEncodeRedirectUri ? encodeURIComponent(redirectUri) : redirectUri
     }&response_type=code${scope ? `&scope=${scope}` : ''}`
-  }
-
-  async getOAuthRedirectUris() {
-    const configPaths = [
-      'oauth.gusto',
-      'oauth.zoom',
-      'oauth.asana',
-      'oauth.slack',
-      'oauth.google',
-      'oauth.hubspot',
-    ]
-    return Promise.all(
-      configPaths.map(async configPath => {
-        const conf = await config().get<any>(configPath)
-        return this.buildAuthorizationUri(
-          conf.authorizationUri,
-          conf.clientId,
-          conf.redirectUri,
-          conf.percentEncodeRedirectUri,
-          conf.scope,
-        )
-      }),
-    )
   }
 }
