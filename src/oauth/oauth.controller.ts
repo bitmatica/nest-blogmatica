@@ -23,8 +23,10 @@ export class OAuthController {
     return this.getOAuthRedirectUris()
   }
 
+  @UseGuards(RestJwtAuthGuard)
   @Get('oauth/login')
   async root(@Request() request: Express.Request) {
+    console.log('user: ' + request.user!.id)
     return `<html><ul>
 ${(await this.getOAuthRedirectUris()).map(uri => {
   return `<li><a href="${uri}">${uri}</a></li>`
