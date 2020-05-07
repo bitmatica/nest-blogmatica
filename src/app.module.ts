@@ -13,11 +13,13 @@ import { ExtractJwt } from 'passport-jwt'
 import { JwtPayload } from './authentication/strategies/jwt.strategy'
 import { JwtService } from '@nestjs/jwt'
 import { jwtServiceOptions } from './authentication/constants'
+import { EmployeesModule } from './employees/employees.module'
 
 @Module({
   imports: [
     UsersModule,
     PostsModule,
+    EmployeesModule,
     TypeOrmModule.forRoot(databaseConfig),
     GraphQLModule.forRoot({
       installSubscriptionHandlers: true,
