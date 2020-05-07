@@ -255,7 +255,7 @@
       "scope": {
         "_source": "env",
         "_key": "",
-        "_default": "contacts%20content%20reports%20social%20automation%20actions%20timeline%20business-intelligence%20oauth%20forms%20files%20hubdb%20transactional-email%20integration-sync%20tickets%20e-commerce%20sales-email-read%20forms-uploaded-files%20crm.import"
+        "_default": "oauth"
       }
     }
   }
