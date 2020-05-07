@@ -243,7 +243,7 @@
       "scope": {
         "_source": "env",
         "_key": "",
-        "_default": "https://www.googleapis.com/auth/admin.reports.usage.readonly"
+        "_default": "https://www.googleapis.com/auth/admin.reports.usage.readonly,https://www.googleapis.com/auth/gmail.readonly"
       }
     }
   }
