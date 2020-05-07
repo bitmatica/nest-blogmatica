@@ -31,7 +31,8 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
   }
 
   @Get('authCallback')
-  async gustoAuthCallback(@Query('code') code: string) {
+  async gustoAuthCallback(@Query('code') code: string, @Query('state') state: string) {
+    console.log('state: ' + state)
     return this.getAccessTokenWithConf('oauth.gusto', code)
   }
 
