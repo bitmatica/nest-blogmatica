@@ -2,18 +2,24 @@ import { Controller, Get, HttpService, Query, Request, UseGuards } from '@nestjs
 import { config } from '@creditkarma/dynamic-config'
 import { RestJwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { Base64 } from 'js-base64'
+import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
+import { getConnection } from 'typeorm'
 
 class AccessTokenResponse {
   access_token: string
   refresh_token: string
-  created_at: number
   expires_in: number
   token_type: string
+  created_at?: number
 }
 
 interface IOAuthUser {
   id: string
   email: string
+}
+
+interface IOAuthStateParam {
+  nonce: string
 }
 
 @Controller()
@@ -23,8 +29,12 @@ export class OAuthController {
   @UseGuards(RestJwtAuthGuard)
   @Get('oauth/login')
   async root(@Request() request: Express.Request) {
-    const state = Base64.encode(`{ "userId": "${request.user!.id}" }`)
-    console.log('userId: ' + request.user!.id)
+    const oauthRepo = getConnection().getRepository(OAuthToken)
+    const oauthRecord = new OAuthToken()
+    oauthRecord.userId = request.user!.id
+    oauthRecord.provider = OAuthProvider.GUSTO
+    await oauthRepo.save(oauthRecord)
+    const state = Base64.encode(JSON.stringify({ nonce: oauthRecord.id }))
     console.log('encoded state: ' + state)
     return `<html><ul>
 ${(await this.getOAuthRedirectUris(state)).map(uri => {
@@ -36,8 +46,22 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
   @Get('authCallback')
   async gustoAuthCallback(@Query('code') code: string, @Query('state') state: string) {
     console.log('encoded state: ' + state)
+    const decodedState: IOAuthStateParam = JSON.parse(Base64.decode(state))
     console.log('decoded state: ' + Base64.decode(state))
-    return this.getAccessTokenWithConf('oauth.gusto', code)
+    const accessTokenResponse = (await this.getAccessTokenWithConf('oauth.gusto', code))!
+    const oauthRepo = getConnection().getRepository(OAuthToken)
+    const oauthRecord = await oauthRepo.findOne({ id: decodedState.nonce })
+    if (!oauthRecord) {
+      console.error('Failed to find oauth request nonce: ' + decodedState.nonce)
+      return accessTokenResponse
+    } else {
+      oauthRecord.accessToken = accessTokenResponse.access_token
+      oauthRecord.refreshToken = accessTokenResponse.refresh_token
+      oauthRecord.expiresIn = accessTokenResponse.expires_in
+      oauthRecord.tokenType = accessTokenResponse.token_type
+      await oauthRepo.save(oauthRecord)
+      return accessTokenResponse
+    }
   }
 
   @Get('auth/asana/callback')

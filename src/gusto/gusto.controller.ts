@@ -89,13 +89,13 @@ export class GustoController {
   async get(path: string, userId: string) {
     const token = await this.getToken(userId)
     const url = await this.buildUri(path)
-    return (await this.getWithAuthentication(url, token)).data
+    return (await this.getWithAuthentication(url, token!)).data
   }
 
   async post(path: string, userId: string) {
     const token = await this.getToken(userId)
     const url = await this.buildUri(path)
-    return (await this.postWithAuthentication(url, token)).data
+    return (await this.postWithAuthentication(url, token!)).data
   }
 
   async getWithAuthentication(url: string, token: string) {

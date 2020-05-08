@@ -1,18 +1,28 @@
-import { Field, ID } from '@nestjs/graphql'
+import { Field } from '@nestjs/graphql'
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
-import { BaseModel, ModelId } from '../core/model'
+import { ModelId } from '../core/model'
 import { User } from '../users/user.entity'
 
 export enum OAuthProvider {
-  GUSTO = 'gusto',
-  ASANA = 'asana',
-  GOOGLE = 'google',
+  GUSTO = 'GUSTO',
+  ASANA = 'ASANA',
+  GOOGLE = 'GOOGLE',
+  ZOOM = 'ZOOM',
+  SLACK = 'SLACK',
+  HUBSPOT = 'HUBSPOT',
 }
 
 @Entity()
 export class OAuthToken {
   @PrimaryGeneratedColumn('uuid')
   id: string
+
+  @Field(type => User)
+  @ManyToOne(type => User, { nullable: false, lazy: true })
+  user: Promise<User>
+
+  @Column()
+  userId: ModelId
 
   @Column({
     type: 'enum',
@@ -21,24 +31,17 @@ export class OAuthToken {
   provider: OAuthProvider
 
   @Column()
-  accessToken: string
+  accessToken?: string
 
   @Column()
-  refreshToken: string
+  refreshToken?: string
 
   @Column()
-  createdAt: number
+  tokenType?: string
 
   @Column()
-  expiresIn: number
+  tokenCreatedAt?: number //unix timestamp
 
   @Column()
-  tokenType: string
-
-  @Field(type => User)
-  @ManyToOne(type => User, { nullable: false, lazy: true })
-  user: Promise<User>
-
-  @Column()
-  userId: ModelId
+  expiresIn?: number
 }
