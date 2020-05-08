@@ -1,9 +1,20 @@
-import { Controller, Get, HttpService, Query, Request, UseGuards } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  HttpService,
+  Query,
+  Request,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common'
 import { config } from '@creditkarma/dynamic-config'
 import { RestJwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { Base64 } from 'js-base64'
 import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
 import { getConnection } from 'typeorm'
+import { randomBytes } from 'crypto'
+import { Response } from 'express'
 
 class AccessTokenResponse {
   access_token: string
@@ -19,6 +30,7 @@ interface IOAuthUser {
 }
 
 interface IOAuthStateParam {
+  id: string
   nonce: string
 }
 
@@ -43,17 +55,45 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
 </ul></html>`
   }
 
+  @UseGuards(RestJwtAuthGuard)
+  @Get('auth/gusto')
+  async gustoLogin(@Request() request: Express.Request, @Res() response: Response) {
+    const oauthRepo = getConnection().getRepository(OAuthToken)
+    const nonce = this.generateNonce()
+    const oauthRecord = new OAuthToken()
+    oauthRecord.userId = request.user!.id
+    oauthRecord.nonce = nonce
+    oauthRecord.provider = OAuthProvider.GUSTO
+    await oauthRepo.save(oauthRecord)
+    const state = Base64.encode(JSON.stringify({ id: oauthRecord.id, nonce }))
+    const conf = await config().get<any>('oauth.gusto')
+    const uri = this.buildAuthorizationUri(
+      conf.authorizationUri,
+      conf.clientId,
+      conf.redirectUri,
+      conf.percentEncodeRedirectUri,
+      state,
+      conf.scope,
+    )
+    console.log('uri: ' + uri)
+    // return uri
+    return response.redirect(uri)
+  }
+
   @Get('authCallback')
   async gustoAuthCallback(@Query('code') code: string, @Query('state') state: string) {
     console.log('encoded state: ' + state)
     const decodedState: IOAuthStateParam = JSON.parse(Base64.decode(state))
-    console.log('decoded state: ' + Base64.decode(state))
+    console.log('decoded state: ' + decodedState)
     const accessTokenResponse = (await this.getAccessTokenWithConf('oauth.gusto', code))!
     const oauthRepo = getConnection().getRepository(OAuthToken)
-    const oauthRecord = await oauthRepo.findOne({ id: decodedState.nonce })
+    const oauthRecord = await oauthRepo.findOne({ id: decodedState.id })
     if (!oauthRecord) {
-      console.error('Failed to find oauth request nonce: ' + decodedState.nonce)
-      return accessTokenResponse
+      console.error('Could not find oauth request record')
+      throw new UnauthorizedException()
+    } else if (oauthRecord.nonce !== decodedState.nonce) {
+      console.error('Nonce in state does not match request nonce')
+      throw new UnauthorizedException()
     } else {
       oauthRecord.accessToken = accessTokenResponse.access_token
       oauthRecord.refreshToken = accessTokenResponse.refresh_token
@@ -175,5 +215,9 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
     return `${authorizationUri}?client_id=${clientId}&redirect_uri=${
       percentEncodeRedirectUri ? encodeURIComponent(redirectUri) : redirectUri
     }&response_type=code${scope ? `&scope=${scope}` : ''}${state ? `&state=${state}` : ''}`
+  }
+
+  generateNonce() {
+    return randomBytes(48).toString('base64')
   }
 }

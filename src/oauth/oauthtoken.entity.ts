@@ -17,7 +17,9 @@ export class OAuthToken {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Field(type => User)
+  @Column()
+  nonce: string // intended to be cryptographically secure (unguessable), perhaps unlike uuid
+
   @ManyToOne(type => User, { nullable: false, lazy: true })
   user: Promise<User>
 
