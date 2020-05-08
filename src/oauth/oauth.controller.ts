@@ -59,6 +59,9 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
       oauthRecord.refreshToken = accessTokenResponse.refresh_token
       oauthRecord.expiresIn = accessTokenResponse.expires_in
       oauthRecord.tokenType = accessTokenResponse.token_type
+      oauthRecord.tokenCreatedAt = accessTokenResponse.created_at
+        ? accessTokenResponse.created_at
+        : Math.floor(Date.now() / 1000)
       await oauthRepo.save(oauthRecord)
       return accessTokenResponse
     }
