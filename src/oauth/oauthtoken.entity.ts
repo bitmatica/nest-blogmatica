@@ -30,18 +30,18 @@ export class OAuthToken {
   })
   provider: OAuthProvider
 
-  @Column()
+  @Column({ nullable: true })
   accessToken?: string
 
-  @Column()
+  @Column({ nullable: true })
   refreshToken?: string
 
-  @Column()
+  @Column({ nullable: true })
   tokenType?: string
 
-  @Column()
+  @Column({ nullable: true })
   tokenCreatedAt?: number //unix timestamp
 
-  @Column()
+  @Column({ nullable: true })
   expiresIn?: number
 }
