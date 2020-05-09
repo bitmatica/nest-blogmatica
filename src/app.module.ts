@@ -63,7 +63,7 @@ import { join } from 'path'
     HttpModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
-      exclude: ['/rest*', '/graphql*'],
+      exclude: ['/oauth*', '/graphql*', '/authCallback'],
     }),
   ],
   controllers: [OAuthController, GustoController],

@@ -4,7 +4,6 @@ import {
   HttpService,
   Query,
   Request,
-  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common'
@@ -14,7 +13,6 @@ import { Base64 } from 'js-base64'
 import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
 import { getConnection } from 'typeorm'
 import { randomBytes } from 'crypto'
-import { Response } from 'express'
 
 class AccessTokenResponse {
   access_token: string
@@ -34,7 +32,7 @@ interface IOAuthStateParam {
   nonce: string
 }
 
-@Controller('rest')
+@Controller()
 export class OAuthController {
   constructor(private httpService: HttpService) {}
 
@@ -56,7 +54,7 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
   }
 
   @UseGuards(RestJwtAuthGuard)
-  @Get('auth/gusto')
+  @Get('oauth/gusto')
   async gustoLogin(@Request() request: Express.Request) {
     const oauthRepo = getConnection().getRepository(OAuthToken)
     const nonce = this.generateNonce()
@@ -109,27 +107,27 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
     }
   }
 
-  @Get('auth/asana/callback')
+  @Get('oauth/asana/callback')
   async asanaAuthCallback(@Query('code') code: string) {
     return this.getAccessTokenWithConf('oauth.asana', code)
   }
 
-  @Get('auth/zoom/callback')
+  @Get('oauth/zoom/callback')
   async zoomAuthCallback(@Query('code') code: string) {
     return this.getAccessTokenWithConf('oauth.zoom', code)
   }
 
-  @Get('auth/slack/callback')
+  @Get('oauth/slack/callback')
   async slackAuthCallback(@Query('code') code: string) {
     return this.getAccessTokenWithConf('oauth.slack', code)
   }
 
-  @Get('auth/google/callback')
+  @Get('oauth/google/callback')
   async googleAuthCallback(@Query('code') code: string) {
     return this.getAccessTokenWithConf('oauth.google', code)
   }
 
-  @Get('auth/hubspot/callback')
+  @Get('oauth/hubspot/callback')
   async hubspotAuthCallback(@Query('code') code: string) {
     return this.getAccessTokenWithConf('oauth.hubspot', code)
   }
