@@ -34,7 +34,7 @@ interface IOAuthStateParam {
   nonce: string
 }
 
-@Controller()
+@Controller('rest')
 export class OAuthController {
   constructor(private httpService: HttpService) {}
 
@@ -57,7 +57,7 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
 
   @UseGuards(RestJwtAuthGuard)
   @Get('auth/gusto')
-  async gustoLogin(@Request() request: Express.Request, @Res() response: Response) {
+  async gustoLogin(@Request() request: Express.Request) {
     const oauthRepo = getConnection().getRepository(OAuthToken)
     const nonce = this.generateNonce()
     const oauthRecord = new OAuthToken()
@@ -76,8 +76,10 @@ ${(await this.getOAuthRedirectUris(state)).map(uri => {
       conf.scope,
     )
     console.log('uri: ' + uri)
-    // return uri
-    return response.redirect(uri)
+    return {
+      uri,
+    }
+    // return response.redirect(uri)
   }
 
   @Get('authCallback')

@@ -14,6 +14,8 @@ import { JwtPayload } from './authentication/strategies/jwt.strategy'
 import { JwtService } from '@nestjs/jwt'
 import { jwtServiceOptions } from './authentication/constants'
 import { GustoController } from './gusto/gusto.controller'
+import { ServeStaticModule } from '@nestjs/serve-static'
+import { join } from 'path'
 
 @Module({
   imports: [
@@ -59,6 +61,10 @@ import { GustoController } from './gusto/gusto.controller'
     }),
     CommentsModule,
     HttpModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+      exclude: ['/rest*', '/graphql*'],
+    }),
   ],
   controllers: [OAuthController, GustoController],
 })
