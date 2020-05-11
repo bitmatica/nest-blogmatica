@@ -15,6 +15,7 @@ import { jwtServiceOptions } from './authentication/constants'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
 import { OAuthModule } from './oauth/oauth.module'
+import { GustoModule } from './gusto/gusto.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { OAuthModule } from './oauth/oauth.module'
       rootPath: join(__dirname, '..', 'client'),
       exclude: ['/oauth*', '/graphql*', '/authCallback'],
     }),
+    GustoModule,
   ],
 })
 export class AppModule {}

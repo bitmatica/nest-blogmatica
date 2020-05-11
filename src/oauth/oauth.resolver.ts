@@ -18,12 +18,6 @@ import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 export class GenerateAuthorizationUriInput {
   @Field(type => OAuthProvider)
   provider: OAuthProvider
-
-  @Field()
-  onSuccessRoute: string
-
-  @Field()
-  onFailedRoute: string
 }
 
 @ObjectType()
@@ -43,7 +37,7 @@ registerEnumType(OAuthProvider, {
 })
 
 @Resolver()
-export class OauthResolver {
+export class OAuthResolver {
   constructor(private readonly oauthService: OAuthService) {}
 
   @UseGuards(JwtAuthGuard)

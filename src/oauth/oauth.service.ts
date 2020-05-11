@@ -11,11 +11,9 @@ import { GenerateAuthorizationUriInput } from './oauth.resolver'
 interface IOAuthStateParam {
   id: string
   nonce: string
-  onSuccessRoute: string
-  onFailedRoute: string
 }
 
-class AccessTokenResponse {
+class IAccessTokenResponse {
   access_token: string
   refresh_token: string
   expires_in: number
@@ -43,8 +41,6 @@ export class OAuthService {
     const state = this.encodeState({
       id: oauthRecord.id,
       nonce,
-      onSuccessRoute: input.onSuccessRoute,
-      onFailedRoute: input.onFailedRoute,
     })
     const conf = await config().get<any>(this.configPath(input.provider))
     return this.buildAuthorizationUri(
@@ -86,6 +82,20 @@ export class OAuthService {
     } catch (err) {
       return Promise.reject(err)
     }
+  }
+
+  async getAccessToken(userId: string, provider: OAuthProvider) {
+    const queryBuilder = this.oauthRepo.createQueryBuilder('token')
+    const token = await queryBuilder
+      .select()
+      .where('token.userId = :userId', { userId })
+      .andWhere('token.provider = :provider', { provider })
+      .andWhere('token.accessToken IS NOT NULL')
+      .addOrderBy('tokenCreatedAt', 'DESC', 'NULLS LAST')
+      .getOne()
+
+    // TODO refresh token if expired or response is unauthorized
+    return token
   }
 
   now_unix_seconds() {
@@ -152,7 +162,7 @@ export class OAuthService {
     clientSecret: string,
     redirectUri: string,
     contentType: string,
-  ): Promise<AccessTokenResponse | undefined> {
+  ): Promise<IAccessTokenResponse | undefined> {
     try {
       const response = await this.httpService
         .post(
@@ -177,6 +187,12 @@ export class OAuthService {
     } catch (err) {
       console.log('Unable to parse access_token from response: ' + err)
       return err.response.data
+    }
+  }
+
+  bearerTokenHeader(token: string) {
+    return {
+      Authorization: `Bearer ${token}`,
     }
   }
 }
