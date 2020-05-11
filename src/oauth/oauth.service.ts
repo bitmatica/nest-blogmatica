@@ -91,7 +91,7 @@ export class OAuthService {
       .where('token.userId = :userId', { userId })
       .andWhere('token.provider = :provider', { provider })
       .andWhere('token.accessToken IS NOT NULL')
-      .addOrderBy('tokenCreatedAt', 'DESC', 'NULLS LAST')
+      .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
 
     // TODO refresh token if expired or response is unauthorized
