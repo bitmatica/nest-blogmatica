@@ -6,10 +6,13 @@ import { Base64 } from 'js-base64'
 import { config } from '@creditkarma/dynamic-config'
 import { randomBytes } from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
+import { GenerateAuthorizationUriInput } from './oauth.resolver'
 
 interface IOAuthStateParam {
   id: string
   nonce: string
+  onSuccessRoute: string
+  onFailedRoute: string
 }
 
 class AccessTokenResponse {
@@ -27,15 +30,23 @@ export class OAuthService {
     private readonly httpService: HttpService,
   ) {}
 
-  async generateAuthorizationUri(provider: OAuthProvider, userId: ModelId): Promise<string> {
+  async generateAuthorizationUri(
+    input: GenerateAuthorizationUriInput,
+    userId: ModelId,
+  ): Promise<string> {
     const nonce = this.generateNonce()
     const oauthRecord = new OAuthToken()
     oauthRecord.userId = userId
     oauthRecord.nonce = nonce
-    oauthRecord.provider = provider
+    oauthRecord.provider = input.provider
     await this.oauthRepo.save(oauthRecord)
-    const state = this.encodeState({ id: oauthRecord.id, nonce })
-    const conf = await config().get<any>(this.configPath(provider))
+    const state = this.encodeState({
+      id: oauthRecord.id,
+      nonce,
+      onSuccessRoute: input.onSuccessRoute,
+      onFailedRoute: input.onFailedRoute,
+    })
+    const conf = await config().get<any>(this.configPath(input.provider))
     return this.buildAuthorizationUri(
       conf.authorizationUri,
       conf.clientId,
@@ -70,10 +81,14 @@ export class OAuthService {
       oauthRecord.tokenType = accessTokenResponse.token_type
       oauthRecord.tokenCreatedAt = accessTokenResponse.created_at
         ? accessTokenResponse.created_at
-        : Math.floor(Date.now() / 1000)
+        : this.now_utc()
       await this.oauthRepo.save(oauthRecord)
       return accessTokenResponse
     }
+  }
+
+  now_utc() {
+    return Math.floor(Date.now() / 1000)
   }
 
   generateNonce() {
@@ -81,7 +96,7 @@ export class OAuthService {
   }
 
   encodeState(input: IOAuthStateParam): string {
-    return Base64.encode(JSON.stringify({ id: input.id, nonce: input.nonce }))
+    return Base64.encode(JSON.stringify({ ...input }))
   }
 
   decodeState(state: string): IOAuthStateParam | undefined {

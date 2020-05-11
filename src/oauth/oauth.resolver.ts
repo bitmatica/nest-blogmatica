@@ -18,6 +18,12 @@ import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 export class GenerateAuthorizationUriInput {
   @Field(type => OAuthProvider)
   provider: OAuthProvider
+
+  @Field()
+  onSuccessRoute: string
+
+  @Field()
+  onFailedRoute: string
 }
 
 @ObjectType()
@@ -47,7 +53,7 @@ export class OauthResolver {
     @CurrentUser() user: User,
   ) {
     try {
-      const uri = await this.oauthService.generateAuthorizationUri(input.provider, user.id)
+      const uri = await this.oauthService.generateAuthorizationUri(input, user.id)
       return {
         success: true,
         message: 'Successfully generated authorization uri',
