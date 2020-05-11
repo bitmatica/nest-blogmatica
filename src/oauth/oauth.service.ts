@@ -23,8 +23,6 @@ class AccessTokenResponse {
   created_at?: number
 }
 
-type Route = string
-
 @Injectable()
 export class OAuthService {
   constructor(
@@ -59,33 +57,38 @@ export class OAuthService {
     )
   }
 
-  async getAccessToken(provider: OAuthProvider, code: string, state: string): Promise<Route> {
-    const decodedState: IOAuthStateParam = this.decodeState(state)!
-    const accessTokenResponse = (await this.getAccessTokenWithConf(
-      this.configPath(provider),
-      code,
-    ))!
-    const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
-    if (!oauthRecord) {
-      console.error('Could not find oauth request record')
-      return decodedState.onFailedRoute
-    } else if (oauthRecord.nonce !== decodedState.nonce) {
-      console.error('Nonce in state does not match request nonce')
-      return decodedState.onFailedRoute
-    } else {
+  async getAndSaveAccessToken(
+    provider: OAuthProvider,
+    code: string,
+    state: string,
+  ): Promise<OAuthToken> {
+    try {
+      const decodedState = this.decodeState(state)
+      if (!decodedState) {
+        return Promise.reject(new UnauthorizedException())
+      }
+      const accessTokenResponse = (await this.getAccessTokenWithConf(
+        this.configPath(provider),
+        code,
+      ))!
+      const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
+      if (!oauthRecord || oauthRecord.nonce !== decodedState.nonce) {
+        return Promise.reject(new UnauthorizedException())
+      }
       oauthRecord.accessToken = accessTokenResponse.access_token
       oauthRecord.refreshToken = accessTokenResponse.refresh_token
       oauthRecord.expiresIn = accessTokenResponse.expires_in
       oauthRecord.tokenType = accessTokenResponse.token_type
       oauthRecord.tokenCreatedAt = accessTokenResponse.created_at
         ? accessTokenResponse.created_at
-        : this.now_utc()
-      await this.oauthRepo.save(oauthRecord)
-      return decodedState.onSuccessRoute
+        : this.now_unix_seconds()
+      return await this.oauthRepo.save(oauthRecord)
+    } catch (err) {
+      return Promise.reject(err)
     }
   }
 
-  now_utc() {
+  now_unix_seconds() {
     return Math.floor(Date.now() / 1000)
   }
 
@@ -124,7 +127,7 @@ export class OAuthService {
 
   async getAccessTokenWithConf(configPath: string, code: string) {
     const conf = await config().get<any>(configPath)
-    return this.requestAccessToken(
+    return this.fetchAccessToken(
       conf.accessTokenUri,
       code,
       conf.clientId,
@@ -134,7 +137,7 @@ export class OAuthService {
     )
   }
 
-  async requestAccessToken(
+  async fetchAccessToken(
     uri: string,
     code: string,
     clientId: string,

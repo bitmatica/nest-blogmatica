@@ -1,7 +1,5 @@
 import { HttpModule, Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { UsersService } from '../users/users.service'
-import { User } from '../users/user.entity'
 import { OAuthToken } from './oauthtoken.entity'
 import { OAuthService } from './oauth.service'
 import { OauthResolver } from './oauth.resolver'
