@@ -1,4 +1,3 @@
-import { Field } from '@nestjs/graphql'
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { ModelId } from '../core/model'
 import { User } from '../users/user.entity'

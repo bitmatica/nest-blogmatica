@@ -7,22 +7,24 @@ import { UsersModule } from './users/users.module'
 import { getConnection } from 'typeorm'
 import { User } from './users/user.entity'
 import { CommentsModule } from './comments/comments.module'
-import { OAuthController } from './oauth/oauth.controller'
 import { IContext } from './core/context'
 import { ExtractJwt } from 'passport-jwt'
 import { JwtPayload } from './authentication/strategies/jwt.strategy'
 import { JwtService } from '@nestjs/jwt'
 import { jwtServiceOptions } from './authentication/constants'
-import { GustoController } from './gusto/gusto.controller'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
+import { OAuthModule } from './oauth/oauth.module'
 
 @Module({
   imports: [
+    CommentsModule,
     UsersModule,
     PostsModule,
+    OAuthModule,
     TypeOrmModule.forRoot(databaseConfig),
     GraphQLModule.forRoot({
+      playground: true,
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
       context: async ({ req, res }): Promise<IContext> => {
@@ -59,13 +61,10 @@ import { join } from 'path'
         }
       },
     }),
-    CommentsModule,
-    HttpModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
       exclude: ['/oauth*', '/graphql*', '/authCallback'],
     }),
   ],
-  controllers: [OAuthController, GustoController],
 })
 export class AppModule {}
