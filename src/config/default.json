@@ -89,6 +89,16 @@
         "_key": "",
         "_default": "https://gusto.apps.bitmatica.com/authCallback"
       },
+      "onSuccessRedirectPath": {
+        "_source": "env",
+        "_key": "GUSTO_ON_SUCCESS_PATH",
+        "_default": "/gusto/success"
+      },
+      "onFailedRedirectPath": {
+        "_source": "env",
+        "_key": "GUSTO_ON_FAILED_PATH",
+        "_default": "/gusto/failed"
+      },
       "scope": {
         "_source": "env",
         "_key": "",

@@ -112,6 +112,14 @@ export class OAuthService {
     return `oauth.${provider.toLocaleLowerCase()}`
   }
 
+  async onSuccessRedirectPath(provider: OAuthProvider) {
+    return (await config().get<any>(this.configPath(provider))).onSuccessRedirectPath
+  }
+
+  async onFailedRedirectPath(provider: OAuthProvider) {
+    return (await config().get<any>(this.configPath(provider))).onFailedRedirectPath
+  }
+
   buildAuthorizationUri(
     authorizationUri: string,
     clientId: string,

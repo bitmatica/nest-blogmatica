@@ -3,9 +3,6 @@ import { OAuthProvider } from './oauthtoken.entity'
 import { OAuthService } from './oauth.service'
 import { Response } from 'express'
 
-const ON_SUCCESS_PATH = '/gusto/success'
-const ON_FAILED_PATH = '/gusto/failed'
-
 @Controller()
 export class OAuthController {
   constructor(private readonly oauthService: OAuthService) {}
@@ -18,10 +15,12 @@ export class OAuthController {
   ) {
     try {
       await this.oauthService.getAndSaveAccessToken(OAuthProvider.GUSTO, code, state)
-      return response.redirect(ON_SUCCESS_PATH)
+      const redirectUri = await this.oauthService.onSuccessRedirectPath(OAuthProvider.GUSTO)
+      return response.redirect(redirectUri)
     } catch (err) {
       console.error('Error: ' + err)
-      return response.redirect(ON_FAILED_PATH)
+      const redirectUri = await this.oauthService.onFailedRedirectPath(OAuthProvider.GUSTO)
+      return response.redirect(redirectUri)
     }
   }
 }
