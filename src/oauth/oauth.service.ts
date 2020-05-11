@@ -23,6 +23,8 @@ class AccessTokenResponse {
   created_at?: number
 }
 
+type Route = string
+
 @Injectable()
 export class OAuthService {
   constructor(
@@ -57,11 +59,7 @@ export class OAuthService {
     )
   }
 
-  async getAccessToken(
-    provider: OAuthProvider,
-    code: string,
-    state: string,
-  ): Promise<AccessTokenResponse> {
+  async getAccessToken(provider: OAuthProvider, code: string, state: string): Promise<Route> {
     const decodedState: IOAuthStateParam = this.decodeState(state)!
     const accessTokenResponse = (await this.getAccessTokenWithConf(
       this.configPath(provider),
@@ -70,10 +68,10 @@ export class OAuthService {
     const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
     if (!oauthRecord) {
       console.error('Could not find oauth request record')
-      throw new UnauthorizedException()
+      return decodedState.onFailedRoute
     } else if (oauthRecord.nonce !== decodedState.nonce) {
       console.error('Nonce in state does not match request nonce')
-      throw new UnauthorizedException()
+      return decodedState.onFailedRoute
     } else {
       oauthRecord.accessToken = accessTokenResponse.access_token
       oauthRecord.refreshToken = accessTokenResponse.refresh_token
@@ -83,7 +81,7 @@ export class OAuthService {
         ? accessTokenResponse.created_at
         : this.now_utc()
       await this.oauthRepo.save(oauthRecord)
-      return accessTokenResponse
+      return decodedState.onSuccessRoute
     }
   }
 
