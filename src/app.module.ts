@@ -25,6 +25,7 @@ import { OAuthModule } from './oauth/oauth.module'
     TypeOrmModule.forRoot(databaseConfig),
     GraphQLModule.forRoot({
       playground: true,
+      introspection: true,
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
       context: async ({ req, res }): Promise<IContext> => {
