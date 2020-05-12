@@ -199,6 +199,7 @@ export class OAuthService {
       console.log(
         'uri: ' +
           this.httpService.axiosRef.getUri({
+            url: uri,
             headers: {
               'Content-Type': contentType,
             },

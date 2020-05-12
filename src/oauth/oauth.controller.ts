@@ -14,11 +14,11 @@ export class OAuthController {
     @Res() response: Response,
   ) {
     try {
-      await this.oauthService.getAccessTokenWithCode(OAuthProvider.GUSTO, code, state)
+      await this.oauthService.getAccessToken(OAuthProvider.GUSTO, code, state)
       const redirectUri = await this.oauthService.onSuccessRedirectPath(OAuthProvider.GUSTO)
       return response.redirect(redirectUri)
     } catch (err) {
-      console.error('Error: ' + err)
+      console.error(err)
       const redirectUri = await this.oauthService.onFailedRedirectPath(OAuthProvider.GUSTO)
       return response.redirect(redirectUri)
     }
