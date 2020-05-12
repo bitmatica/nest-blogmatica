@@ -1,4 +1,4 @@
-import { HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
+import { HttpService, Injectable } from '@nestjs/common'
 import { ModelId } from '../core/model'
 import { OAuthService } from '../oauth/oauth.service'
 import { OAuthProvider } from '../oauth/oauthtoken.entity'

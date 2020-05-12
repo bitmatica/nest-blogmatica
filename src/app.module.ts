@@ -1,4 +1,4 @@
-import { HttpModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import * as databaseConfig from './database/config'
@@ -15,7 +15,7 @@ import { jwtServiceOptions } from './authentication/constants'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
 import { OAuthModule } from './oauth/oauth.module'
-import { GustoModule } from './gusto/gusto.module';
+import { GustoModule } from './gusto/gusto.module'
 
 @Module({
   imports: [
@@ -25,8 +25,8 @@ import { GustoModule } from './gusto/gusto.module';
     OAuthModule,
     TypeOrmModule.forRoot(databaseConfig),
     GraphQLModule.forRoot({
-      playground: true,
-      introspection: true,
+      playground: true, // TODO get from config
+      introspection: true, // TODO get from config
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
       context: async ({ req, res }): Promise<IContext> => {

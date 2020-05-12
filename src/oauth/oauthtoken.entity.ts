@@ -1,7 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { ModelId } from '../core/model'
 import { User } from '../users/user.entity'
-import { create } from 'domain'
 
 export enum OAuthProvider {
   GUSTO = 'GUSTO',
