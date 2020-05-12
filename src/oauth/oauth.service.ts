@@ -21,6 +21,12 @@ class IAccessTokenResponse {
   created_at?: number
 }
 
+class OAuthUnauthorizedException extends UnauthorizedException {
+  getStatus(): number {
+    return 403
+  }
+}
+
 @Injectable()
 export class OAuthService {
   constructor(
@@ -73,10 +79,7 @@ export class OAuthService {
     }
   }
 
-  async getSavedAccessToken(
-    userId: string,
-    provider: OAuthProvider,
-  ): Promise<OAuthToken | undefined> {
+  async getSavedAccessToken(userId: string, provider: OAuthProvider): Promise<OAuthToken> {
     const queryBuilder = this.oauthRepo.createQueryBuilder('token')
     const token = await queryBuilder
       .select()
@@ -86,10 +89,8 @@ export class OAuthService {
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
     if (!token) {
-      console.log('no access token available')
-      return undefined
+      throw new OAuthUnauthorizedException(`provider ${provider} is not authorized`)
     } else if (token.isExpired()) {
-      console.log('attempting to refresh token')
       const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
       await this.saveAccessToken(token, response)
       return token

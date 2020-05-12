@@ -5,12 +5,6 @@ import { OAuthProvider } from '../oauth/oauthtoken.entity'
 import { config } from '@creditkarma/dynamic-config'
 import { GustoCompany, GustoUser } from './gusto.resolver'
 
-class GustoUnauthorizedException extends UnauthorizedException {
-  getStatus(): number {
-    return 403
-  }
-}
-
 @Injectable()
 export class GustoService {
   constructor(
@@ -20,17 +14,11 @@ export class GustoService {
 
   async currentUser(userId: ModelId): Promise<GustoUser> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
-    if (!oauthToken) {
-      return Promise.reject(new GustoUnauthorizedException())
-    }
     return await this.get('v1/me', oauthToken!.accessToken!)
   }
 
   async companyById(userId: ModelId, id: number): Promise<GustoCompany> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
-    if (!oauthToken) {
-      return Promise.reject(new GustoUnauthorizedException())
-    }
     return await this.get(`v1/companies/${id}`, oauthToken!.accessToken!)
   }
 
