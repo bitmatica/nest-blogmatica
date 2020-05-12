@@ -187,7 +187,7 @@ export class OAuthService {
               'Content-Type': contentType,
             },
             params: {
-              codeOrRefreshToken,
+              ...codeOrRefreshToken,
               client_id: clientId,
               client_secret: clientSecret,
               grant_type: grantType,

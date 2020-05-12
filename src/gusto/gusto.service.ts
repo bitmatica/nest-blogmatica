@@ -1,9 +1,11 @@
-import { HttpService, Injectable } from '@nestjs/common'
+import { HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModelId } from '../core/model'
 import { OAuthService } from '../oauth/oauth.service'
 import { OAuthProvider } from '../oauth/oauthtoken.entity'
 import { config } from '@creditkarma/dynamic-config'
 import { GustoCompany, GustoUser } from './gusto.resolver'
+
+class GustoUnauthorizedException extends UnauthorizedException {}
 
 @Injectable()
 export class GustoService {
@@ -14,11 +16,22 @@ export class GustoService {
 
   async currentUser(userId: ModelId): Promise<GustoUser> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
+    console.log('oauthToken: ' + Object.entries(oauthToken!))
+    if (!oauthToken) {
+      // TODO: throw a new type of gusto-specific
+      console.log('no oauthtoken available')
+      return Promise.reject(new GustoUnauthorizedException())
+    }
     return await this.get('v1/me', oauthToken!.accessToken!)
   }
 
   async companyById(userId: ModelId, id: number): Promise<GustoCompany> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
+    if (!oauthToken) {
+      // TODO: oauthToken
+      console.log('no oauthtoken available')
+      return Promise.reject(new GustoUnauthorizedException())
+    }
     return await this.get(`v1/companies/${id}`, oauthToken!.accessToken!)
   }
 
