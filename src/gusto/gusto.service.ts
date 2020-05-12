@@ -14,12 +14,12 @@ export class GustoService {
 
   async currentUser(userId: ModelId): Promise<GustoUser> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
-    return await this.get('v1/me', oauthToken!.accessToken!)
+    return await this.get('v1/me', oauthToken.accessToken!)
   }
 
   async companyById(userId: ModelId, id: number): Promise<GustoCompany> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
-    return await this.get(`v1/companies/${id}`, oauthToken!.accessToken!)
+    return await this.get(`v1/companies/${id}`, oauthToken.accessToken!)
   }
 
   async get(path: string, token: string) {

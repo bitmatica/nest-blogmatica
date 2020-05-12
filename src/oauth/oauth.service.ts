@@ -1,4 +1,4 @@
-import { HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
+import { ForbiddenException, HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
 import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
 import { ModelId } from '../core/model'
 import { Repository } from 'typeorm'
@@ -83,7 +83,7 @@ export class OAuthService {
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
     if (!token) {
-      throw new UnauthorizedException(`${provider} is not authorized`)
+      throw new ForbiddenException(`${provider} is not authorized`)
     } else if (token.isExpired()) {
       const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
       await this.saveAccessToken(token, response)
@@ -170,9 +170,7 @@ export class OAuthService {
   ): Promise<IAccessTokenResponse | undefined> {
     try {
       const codeOrRefreshToken = code ? { code } : { refresh_token: refreshToken }
-      console.log('codeOrRefreshToken: ' + codeOrRefreshToken.refresh_token)
       const grantType = code ? 'authorization_code' : 'refresh_token'
-      console.log('grantType: ' + grantType)
       const response = await this.httpService
         .post(
           uri,
@@ -191,27 +189,10 @@ export class OAuthService {
           },
         )
         .toPromise()
-      console.log(
-        'uri: ' +
-          this.httpService.axiosRef.getUri({
-            url: uri,
-            headers: {
-              'Content-Type': contentType,
-            },
-            params: {
-              codeOrRefreshToken,
-              client_id: clientId,
-              client_secret: clientSecret,
-              grant_type: grantType,
-              redirect_uri: redirectUri,
-            },
-          }),
-      )
-      console.log('getAccessToken result: ' + response)
       return response.data
     } catch (err) {
-      console.log('Unable to parse access_token from response: ' + err)
-      return err.response.data
+      console.error('Unable to parse access_token from response: ' + err)
+      return undefined
     }
   }
 }
