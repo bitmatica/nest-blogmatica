@@ -64,6 +64,9 @@ export class GustoCompanyLocation {
 
 @ObjectType()
 export class GustoRole {
+  @Field()
+  name: string
+
   @Field(type => [GustoCompany])
   companies: [GustoCompany]
 }
