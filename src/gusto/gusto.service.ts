@@ -3,7 +3,7 @@ import { ModelId } from '../core/model'
 import { OAuthService } from '../oauth/oauth.service'
 import { OAuthProvider } from '../oauth/oauthtoken.entity'
 import { config } from '@creditkarma/dynamic-config'
-import { GustoUser } from './gusto.resolver'
+import { GustoCompany, GustoUser } from './gusto.resolver'
 
 @Injectable()
 export class GustoService {
@@ -15,6 +15,11 @@ export class GustoService {
   async currentUser(userId: ModelId): Promise<GustoUser> {
     const oauthToken = await this.oauthService.getAccessToken(userId, OAuthProvider.GUSTO)
     return await this.get('v1/me', oauthToken!.accessToken!)
+  }
+
+  async companyById(userId: ModelId, id: string): Promise<GustoCompany> {
+    const oauthToken = await this.oauthService.getAccessToken(userId, OAuthProvider.GUSTO)
+    return await this.get(`v1/companies/${id}`, oauthToken!.accessToken!)
   }
 
   async get(path: string, token: string) {

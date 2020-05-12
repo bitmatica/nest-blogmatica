@@ -1,4 +1,4 @@
-import { Field, ObjectType, Query, Resolver } from '@nestjs/graphql'
+import { Args, Field, ObjectType, Query, Resolver } from '@nestjs/graphql'
 import { UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { GustoService } from './gusto.service'
@@ -90,5 +90,11 @@ export class GustoResolver {
   @Query(returns => GustoUser)
   currentUser(@CurrentUser() user: User) {
     return this.gustoService.currentUser(user.id)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Query(returns => GustoCompany)
+  companyById(@CurrentUser() user: User, @Args('id') id: string) {
+    return this.gustoService.companyById(user.id, id)
   }
 }
