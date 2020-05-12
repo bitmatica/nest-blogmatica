@@ -14,7 +14,7 @@ export class GustoService {
 
   async currentUser(userId: ModelId): Promise<GustoUser> {
     const oauthToken = await this.oauthService.getAccessToken(userId, OAuthProvider.GUSTO)
-    return this.get('v1/me', oauthToken!.accessToken!)
+    return await this.get('v1/me', oauthToken!.accessToken!)
   }
 
   async get(path: string, token: string) {

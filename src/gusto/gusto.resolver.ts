@@ -64,11 +64,14 @@ export class GustoCompanyLocation {
 
 @ObjectType()
 export class GustoRole {
-  @Field()
-  name: string
-
   @Field(type => [GustoCompany])
   companies: [GustoCompany]
+}
+
+@ObjectType()
+export class GustoRoles {
+  @Field()
+  payroll_admin: GustoRole
 }
 
 @ObjectType()
@@ -76,8 +79,8 @@ export class GustoUser {
   @Field()
   email: string
 
-  @Field(type => [GustoRole])
-  roles: [GustoRole]
+  @Field(type => GustoRoles)
+  roles: GustoRoles
 }
 
 @Resolver()
