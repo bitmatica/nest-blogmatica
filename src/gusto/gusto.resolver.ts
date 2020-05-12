@@ -94,7 +94,7 @@ export class GustoResolver {
 
   @UseGuards(JwtAuthGuard)
   @Query(returns => GustoCompany)
-  companyById(@CurrentUser() user: User, @Args('id') id: string) {
+  companyById(@CurrentUser() user: User, @Args('id') id: number) {
     return this.gustoService.companyById(user.id, id)
   }
 }

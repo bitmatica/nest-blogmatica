@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { ModelId } from '../core/model'
 import { User } from '../users/user.entity'
+import { create } from 'domain'
 
 export enum OAuthProvider {
   GUSTO = 'GUSTO',
@@ -16,9 +17,6 @@ export class OAuthToken {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column()
-  nonce: string // intended to be cryptographically secure (unguessable), perhaps unlike uuid
-
   @ManyToOne(type => User, { nullable: false, lazy: true })
   user: Promise<User>
 
@@ -30,6 +28,9 @@ export class OAuthToken {
     enum: OAuthProvider,
   })
   provider: OAuthProvider
+
+  @Column()
+  nonce: string // intended to be cryptographically secure (unguessable), perhaps unlike uuid
 
   @Column({ nullable: true })
   accessToken?: string
@@ -45,4 +46,19 @@ export class OAuthToken {
 
   @Column({ nullable: true })
   expiresIn?: number
+
+  setTokenCreatedAt(createdAt: number | undefined) {
+    this.tokenCreatedAt = createdAt ? createdAt : this.now_unix_seconds()
+  }
+
+  isExpired() {
+    if (this.tokenCreatedAt && this.expiresIn) {
+      return this.tokenCreatedAt + this.expiresIn < this.now_unix_seconds()
+    }
+    return true
+  }
+
+  now_unix_seconds() {
+    return Math.floor(Date.now() / 1000)
+  }
 }

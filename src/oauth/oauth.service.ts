@@ -53,7 +53,7 @@ export class OAuthService {
     )
   }
 
-  async getAndSaveAccessToken(
+  async getAccessTokenWithCode(
     provider: OAuthProvider,
     code: string,
     state: string,
@@ -68,23 +68,16 @@ export class OAuthService {
         code,
       ))!
       const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
-      if (!oauthRecord || oauthRecord.nonce !== decodedState.nonce) {
+      if (!oauthRecord || !oauthRecord.nonce || oauthRecord.nonce !== decodedState.nonce) {
         return Promise.reject(new UnauthorizedException())
       }
-      oauthRecord.accessToken = accessTokenResponse.access_token
-      oauthRecord.refreshToken = accessTokenResponse.refresh_token
-      oauthRecord.expiresIn = accessTokenResponse.expires_in
-      oauthRecord.tokenType = accessTokenResponse.token_type
-      oauthRecord.tokenCreatedAt = accessTokenResponse.created_at
-        ? accessTokenResponse.created_at
-        : this.now_unix_seconds()
-      return await this.oauthRepo.save(oauthRecord)
+      return await this.saveAccessToken(oauthRecord, accessTokenResponse)
     } catch (err) {
       return Promise.reject(err)
     }
   }
 
-  async getAccessToken(userId: string, provider: OAuthProvider) {
+  async getSavedAccessToken(userId: string, provider: OAuthProvider) {
     const queryBuilder = this.oauthRepo.createQueryBuilder('token')
     const token = await queryBuilder
       .select()
@@ -93,13 +86,27 @@ export class OAuthService {
       .andWhere('token.accessToken IS NOT NULL')
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
-
-    // TODO refresh token if expired or response is unauthorized
+    if (!token) {
+      return undefined
+    } else if (token.isExpired()) {
+      const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
+      await this.saveAccessToken(token, response)
+      return token
+    }
     return token
   }
 
-  now_unix_seconds() {
-    return Math.floor(Date.now() / 1000)
+  async saveAccessToken(oauthRecord: OAuthToken, accessTokenResponse: IAccessTokenResponse) {
+    oauthRecord.accessToken = accessTokenResponse.access_token
+    oauthRecord.refreshToken = accessTokenResponse.refresh_token
+    oauthRecord.expiresIn = accessTokenResponse.expires_in
+    oauthRecord.tokenType = accessTokenResponse.token_type
+    oauthRecord.setTokenCreatedAt(accessTokenResponse.created_at)
+    return await this.oauthRepo.save(oauthRecord)
+  }
+
+  async refreshAccessToken(provider: OAuthProvider, refreshToken: string) {
+    return await this.getAccessTokenWithConf(this.configPath(provider), undefined, refreshToken)
   }
 
   generateNonce() {
@@ -143,27 +150,31 @@ export class OAuthService {
     }&response_type=code${scope ? `&scope=${scope}` : ''}${state ? `&state=${state}` : ''}`
   }
 
-  async getAccessTokenWithConf(configPath: string, code: string) {
+  async getAccessTokenWithConf(configPath: string, code?: string, refreshToken?: string) {
     const conf = await config().get<any>(configPath)
     return this.fetchAccessToken(
       conf.accessTokenUri,
-      code,
       conf.clientId,
       conf.clientSecret,
       conf.redirectUri,
       conf.contentType,
+      code,
+      refreshToken,
     )
   }
 
   async fetchAccessToken(
     uri: string,
-    code: string,
     clientId: string,
     clientSecret: string,
     redirectUri: string,
     contentType: string,
+    code?: string,
+    refreshToken?: string,
   ): Promise<IAccessTokenResponse | undefined> {
     try {
+      const codeOrRefreshToken = code ? { code } : { refresh_token: refreshToken }
+      const grantType = code ? 'authorization_code' : 'refresh_token'
       const response = await this.httpService
         .post(
           uri,
@@ -173,10 +184,10 @@ export class OAuthService {
               'Content-Type': contentType,
             },
             params: {
-              code,
+              codeOrRefreshToken,
               client_id: clientId,
               client_secret: clientSecret,
-              grant_type: 'authorization_code',
+              grant_type: grantType,
               redirect_uri: redirectUri,
             },
           },
@@ -187,12 +198,6 @@ export class OAuthService {
     } catch (err) {
       console.log('Unable to parse access_token from response: ' + err)
       return err.response.data
-    }
-  }
-
-  bearerTokenHeader(token: string) {
-    return {
-      Authorization: `Bearer ${token}`,
     }
   }
 }

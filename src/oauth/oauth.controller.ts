@@ -14,7 +14,7 @@ export class OAuthController {
     @Res() response: Response,
   ) {
     try {
-      await this.oauthService.getAndSaveAccessToken(OAuthProvider.GUSTO, code, state)
+      await this.oauthService.getAccessTokenWithCode(OAuthProvider.GUSTO, code, state)
       const redirectUri = await this.oauthService.onSuccessRedirectPath(OAuthProvider.GUSTO)
       return response.redirect(redirectUri)
     } catch (err) {
