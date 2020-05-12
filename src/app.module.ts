@@ -12,8 +12,6 @@ import { ExtractJwt } from 'passport-jwt'
 import { JwtPayload } from './authentication/strategies/jwt.strategy'
 import { JwtService } from '@nestjs/jwt'
 import { jwtServiceOptions } from './authentication/constants'
-import { ServeStaticModule } from '@nestjs/serve-static'
-import { join } from 'path'
 import { OAuthModule } from './oauth/oauth.module'
 import { GustoModule } from './gusto/gusto.module'
 
@@ -63,10 +61,6 @@ import { GustoModule } from './gusto/gusto.module'
         }
       },
     }),
-    // ServeStaticModule.forRoot({
-    //   rootPath: join(__dirname, '..', 'client'),
-    //   exclude: ['/oauth*', '/graphql*', '/authCallback'],
-    // }),
     GustoModule,
   ],
 })
