@@ -5,6 +5,7 @@ import { GustoService } from './gusto.service'
 import { CurrentUser } from '../decorators/currentUser'
 import { User } from '../users/user.entity'
 
+// TODO: try quicktype for generating TS types from sample JSON response
 @ObjectType()
 export class GustoCompany {
   @Field()
