@@ -63,10 +63,10 @@ import { GustoModule } from './gusto/gusto.module'
         }
       },
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client'),
-      exclude: ['/oauth*', '/graphql*', '/authCallback'],
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', 'client'),
+    //   exclude: ['/oauth*', '/graphql*', '/authCallback'],
+    // }),
     GustoModule,
   ],
 })
