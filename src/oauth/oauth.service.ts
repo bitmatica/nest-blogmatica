@@ -53,11 +53,7 @@ export class OAuthService {
     )
   }
 
-  async getAccessTokenWithCode(
-    provider: OAuthProvider,
-    code: string,
-    state: string,
-  ): Promise<OAuthToken> {
+  async getAccessToken(provider: OAuthProvider, code: string, state: string): Promise<OAuthToken> {
     try {
       const decodedState = this.decodeState(state)
       if (!decodedState) {
@@ -77,7 +73,10 @@ export class OAuthService {
     }
   }
 
-  async getSavedAccessToken(userId: string, provider: OAuthProvider) {
+  async getSavedAccessToken(
+    userId: string,
+    provider: OAuthProvider,
+  ): Promise<OAuthToken | undefined> {
     const queryBuilder = this.oauthRepo.createQueryBuilder('token')
     const token = await queryBuilder
       .select()
@@ -86,14 +85,20 @@ export class OAuthService {
       .andWhere('token.accessToken IS NOT NULL')
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
+    console.log(Object.entries(token!))
     if (!token) {
       return undefined
     } else if (token.isExpired()) {
+      console.log('attempting to refresh token')
       const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
       await this.saveAccessToken(token, response)
       return token
     }
     return token
+  }
+
+  async refreshAccessToken(provider: OAuthProvider, refreshToken: string) {
+    return await this.getAccessTokenWithConf(this.configPath(provider), undefined, refreshToken)
   }
 
   async saveAccessToken(oauthRecord: OAuthToken, accessTokenResponse: IAccessTokenResponse) {
@@ -103,10 +108,6 @@ export class OAuthService {
     oauthRecord.tokenType = accessTokenResponse.token_type
     oauthRecord.setTokenCreatedAt(accessTokenResponse.created_at)
     return await this.oauthRepo.save(oauthRecord)
-  }
-
-  async refreshAccessToken(provider: OAuthProvider, refreshToken: string) {
-    return await this.getAccessTokenWithConf(this.configPath(provider), undefined, refreshToken)
   }
 
   generateNonce() {
@@ -174,7 +175,9 @@ export class OAuthService {
   ): Promise<IAccessTokenResponse | undefined> {
     try {
       const codeOrRefreshToken = code ? { code } : { refresh_token: refreshToken }
+      console.log('codeOrRefreshToken: ' + codeOrRefreshToken.refresh_token)
       const grantType = code ? 'authorization_code' : 'refresh_token'
+      console.log('grantType: ' + grantType)
       const response = await this.httpService
         .post(
           uri,
@@ -193,6 +196,21 @@ export class OAuthService {
           },
         )
         .toPromise()
+      console.log(
+        'uri: ' +
+          this.httpService.axiosRef.getUri({
+            headers: {
+              'Content-Type': contentType,
+            },
+            params: {
+              codeOrRefreshToken,
+              client_id: clientId,
+              client_secret: clientSecret,
+              grant_type: grantType,
+              redirect_uri: redirectUri,
+            },
+          }),
+      )
       console.log('getAccessToken result: ' + response)
       return response.data
     } catch (err) {
