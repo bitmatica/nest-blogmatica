@@ -73,7 +73,10 @@ export class OAuthService {
     }
   }
 
-  async getSavedAccessToken(userId: string, provider: OAuthProvider): Promise<OAuthToken> {
+  async getSavedAccessToken(
+    userId: string,
+    provider: OAuthProvider,
+  ): Promise<OAuthToken | undefined> {
     // TODO add in-memory cache to save db query for every oauth provider request
     const queryBuilder = this.oauthRepo.createQueryBuilder('token')
     const token = await queryBuilder
@@ -84,7 +87,7 @@ export class OAuthService {
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
     if (!token) {
-      throw new ForbiddenException(provider)
+      return undefined
     } else if (token.isExpired()) {
       const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
       await this.saveAccessToken(token, response)

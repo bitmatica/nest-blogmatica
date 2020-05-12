@@ -1,4 +1,4 @@
-import { HttpService, Injectable } from '@nestjs/common'
+import { ForbiddenException, HttpService, Injectable } from '@nestjs/common'
 import { ModelId } from '../core/model'
 import { OAuthService } from '../oauth/oauth.service'
 import { OAuthProvider } from '../oauth/oauthtoken.entity'
@@ -14,14 +14,23 @@ export class GustoService {
 
   async currentUser(userId: ModelId): Promise<GustoUser> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
+    // TODO can prob use a decorator/guard for this
+    if (!oauthToken) {
+      throw new ForbiddenException(OAuthProvider.GUSTO)
+    }
     return await this.get('v1/me', oauthToken.accessToken!)
   }
 
   async companyById(userId: ModelId, id: number): Promise<GustoCompany> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
+    // TODO can prob use a decorator/guard for this
+    if (!oauthToken) {
+      throw new ForbiddenException(OAuthProvider.GUSTO)
+    }
     return await this.get(`v1/companies/${id}`, oauthToken.accessToken!)
   }
 
+  // TODO: below code should prob go in some common place
   async get(path: string, token: string) {
     const url = await this.buildUri(path, OAuthProvider.GUSTO)
     return (await this.getWithBearerToken(url, token!)).data
