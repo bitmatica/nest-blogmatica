@@ -21,12 +21,6 @@ class IAccessTokenResponse {
   created_at?: number
 }
 
-class OAuthUnauthorizedException extends UnauthorizedException {
-  getStatus(): number {
-    return 403
-  }
-}
-
 @Injectable()
 export class OAuthService {
   constructor(
@@ -89,7 +83,7 @@ export class OAuthService {
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
     if (!token) {
-      throw new OAuthUnauthorizedException(`provider ${provider} is not authorized`)
+      throw new UnauthorizedException(`${provider} is not authorized`)
     } else if (token.isExpired()) {
       const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
       await this.saveAccessToken(token, response)
