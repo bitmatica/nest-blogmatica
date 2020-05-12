@@ -73,7 +73,7 @@ export class OAuthService {
     }
   }
 
-  async getSavedAccessToken(
+  async getOrRefreshSavedAccessToken(
     userId: string,
     provider: OAuthProvider,
   ): Promise<OAuthToken | undefined> {

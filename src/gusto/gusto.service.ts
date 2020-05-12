@@ -13,7 +13,10 @@ export class GustoService {
   ) {}
 
   async currentUser(userId: ModelId): Promise<GustoUser> {
-    const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
+    const oauthToken = await this.oauthService.getOrRefreshSavedAccessToken(
+      userId,
+      OAuthProvider.GUSTO,
+    )
     // TODO can prob use a decorator/guard for this
     if (!oauthToken) {
       throw new ForbiddenException(OAuthProvider.GUSTO)
@@ -22,7 +25,10 @@ export class GustoService {
   }
 
   async companyById(userId: ModelId, id: number): Promise<GustoCompany> {
-    const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
+    const oauthToken = await this.oauthService.getOrRefreshSavedAccessToken(
+      userId,
+      OAuthProvider.GUSTO,
+    )
     // TODO can prob use a decorator/guard for this
     if (!oauthToken) {
       throw new ForbiddenException(OAuthProvider.GUSTO)
