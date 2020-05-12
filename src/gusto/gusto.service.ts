@@ -18,7 +18,6 @@ export class GustoService {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
     console.log('oauthToken: ' + Object.entries(oauthToken!))
     if (!oauthToken) {
-      // TODO: throw a new type of gusto-specific
       console.log('no oauthtoken available')
       return Promise.reject(new GustoUnauthorizedException())
     }
@@ -28,7 +27,6 @@ export class GustoService {
   async companyById(userId: ModelId, id: number): Promise<GustoCompany> {
     const oauthToken = await this.oauthService.getSavedAccessToken(userId, OAuthProvider.GUSTO)
     if (!oauthToken) {
-      // TODO: oauthToken
       console.log('no oauthtoken available')
       return Promise.reject(new GustoUnauthorizedException())
     }

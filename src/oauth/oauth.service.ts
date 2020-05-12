@@ -85,8 +85,8 @@ export class OAuthService {
       .andWhere('token.accessToken IS NOT NULL')
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
-    console.log(Object.entries(token!))
     if (!token) {
+      console.log('no access token available')
       return undefined
     } else if (token.isExpired()) {
       console.log('attempting to refresh token')
