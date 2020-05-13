@@ -39,6 +39,10 @@ export class GustoService {
   // TODO: below code should prob go in some common place
   async get(path: string, token: string) {
     const url = await this.buildUri(path, OAuthProvider.GUSTO)
+    // TODO maybe the token has expired (edge case, if expiration check result has changed or token.created_at+token.expires_in is inaccurate).
+    //  If receive 401, refresh token and try again once.
+    //  If that fails, either refresh token is no longer valid or something is wrong with authorization server.
+    //  Maybe throw a forbidden to initiate another oauth flow.
     return (await this.getWithBearerToken(url, token!)).data
   }
 

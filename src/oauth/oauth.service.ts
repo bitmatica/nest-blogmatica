@@ -64,7 +64,12 @@ export class OAuthService {
         code,
       ))!
       const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
-      if (!oauthRecord || !oauthRecord.nonce || oauthRecord.nonce !== decodedState.nonce) {
+      if (
+        !oauthRecord ||
+        oauthRecord.accessToken || // If nonce has already been used to get an access token, can't use again
+        !oauthRecord.nonce ||
+        oauthRecord.nonce !== decodedState.nonce
+      ) {
         return Promise.reject(new UnauthorizedException())
       }
       return await this.saveAccessToken(oauthRecord, accessTokenResponse)
