@@ -1,45 +1,39 @@
-import { Controller, Get, HttpService, Query } from '@nestjs/common';
-
-class AccessTokenResponse {
-  access_token: string
-  token_type: string
-  expires_in: number
-  refresh_token: string
-}
-
-const CLIENT_ID = 'CLIENT_ID_OVERRIDE_ME'
-const CLIENT_SECRET = 'CLIENT_SECRET_OVERRIDE_ME'
-const REDIRECT_URI = 'http://gusto.apps.bitmatica.com/authCallback'
-const REDIRECT_URI_ESCAPED = 'http:%2F%2Fgusto.apps.bitmatica.com%2FauthCallback'
+import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common'
+import { OAuthProvider } from './oauthtoken.entity'
+import { OAuthService } from './oauth.service'
+import { Request, Response } from 'express'
+import { RestJwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 
 @Controller()
 export class OAuthController {
-  constructor(private httpService: HttpService) {}
+  constructor(private readonly oauthService: OAuthService) {}
 
-  @Get('gustoLogin')
-  root() {
-    return `<html><a href="https://api.gusto.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI_ESCAPED}&response_type=code">Authorize with Gusto</a></html>`
+  // Included in case a server-side redirect to oauth consent screen is preferred.
+  @UseGuards(RestJwtAuthGuard)
+  @Get('auth/:provider')
+  async authorizationUri(
+    @Param('provider') provider: OAuthProvider,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    const uri = await this.oauthService.generateAuthorizationUri(provider, request.user!.id)
+    response.redirect(uri)
   }
 
   @Get('authCallback')
-  async authCallback(
+  async gustoAuthCallback(
     @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() response: Response,
   ) {
-    const result = await this.httpService.post(
-      'https://api.gusto.com/oauth/token',
-      {},
-      {
-        params: {
-          code,
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
-          redirect_uri: REDIRECT_URI,
-          grant_type: 'authorization_code'
-        }
-      }
-    ).toPromise()
-
-    console.log(result)
-    // return result.data
+    try {
+      await this.oauthService.getAccessToken(OAuthProvider.GUSTO, code, state)
+      const redirectUri = await this.oauthService.onSuccessRedirectPath(OAuthProvider.GUSTO)
+      return response.redirect(redirectUri)
+    } catch (err) {
+      console.error(err)
+      const redirectUri = await this.oauthService.onFailedRedirectPath(OAuthProvider.GUSTO)
+      return response.redirect(redirectUri)
+    }
   }
 }

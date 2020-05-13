@@ -6,6 +6,7 @@ import {
   Mutation,
   ObjectType,
   Query,
+  ResolveField,
   Resolver,
 } from '@nestjs/graphql'
 import { Repository } from 'typeorm'
@@ -16,8 +17,10 @@ import { BaseModelResolver } from '../core/resolvers/model'
 import { MutationResponse } from '../core/resolvers/types'
 import { CurrentUser } from '../decorators/currentUser'
 import { User } from './user.entity'
-import { CanAuth } from '../core/can/decorators'
-import { ActionScope } from '../core/can'
+import { OAuthService } from '../oauth/oauth.service'
+import { UseGuards } from '@nestjs/common'
+import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
+import { OAuthProvider } from '../oauth/oauthtoken.entity'
 
 @InputType()
 export class CreateUserInput {
@@ -53,6 +56,7 @@ export class UsersResolver extends BaseModelResolver(User, {
   constructor(
     private readonly repo: Repository<User>,
     private readonly authenticationService: AuthenticationService,
+    private readonly oauthService: OAuthService,
   ) {
     super()
   }
@@ -119,5 +123,11 @@ export class UsersResolver extends BaseModelResolver(User, {
   @Query(returns => User, { nullable: true })
   async whoAmI(@CurrentUser() user: User) {
     return user
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ResolveField(returns => Boolean)
+  async gustoAccess(@CurrentUser() user: User): Promise<boolean> {
+    return !!(await this.oauthService.getOrRefreshSavedAccessToken(user.id, OAuthProvider.GUSTO))
   }
 }
