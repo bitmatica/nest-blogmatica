@@ -40,6 +40,8 @@ registerEnumType(OAuthProvider, {
 export class OAuthResolver {
   constructor(private readonly oauthService: OAuthService) {}
 
+  // An HTTP request with 302 redirect seems more standard, but providing this since it's easier to deal with GQL in FE.
+  // Not sure if doing a client-side redirect with GQL response is any less secure than server redirect.
   @UseGuards(JwtAuthGuard)
   @Mutation(returns => GenerateAuthorizationUriResponse)
   async generateAuthorizationUri(
@@ -47,7 +49,7 @@ export class OAuthResolver {
     @CurrentUser() user: User,
   ) {
     try {
-      const uri = await this.oauthService.generateAuthorizationUri(input, user.id)
+      const uri = await this.oauthService.generateAuthorizationUri(input.provider, user.id)
       return {
         success: true,
         message: 'Successfully generated authorization uri',
