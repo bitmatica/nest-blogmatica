@@ -14,6 +14,8 @@ import { JwtService } from '@nestjs/jwt'
 import { jwtServiceOptions } from './authentication/constants'
 import { OAuthModule } from './oauth/oauth.module'
 import { GustoModule } from './gusto/gusto.module'
+import { ServeStaticModule } from '@nestjs/serve-static'
+import { join } from 'path'
 
 @Module({
   imports: [
@@ -60,6 +62,10 @@ import { GustoModule } from './gusto/gusto.module'
           return baseContext
         }
       },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+      exclude: ['/oauth*', '/graphql*', '/authCallback'],
     }),
     GustoModule,
   ],
