@@ -1,4 +1,4 @@
-import { ForbiddenException, HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
+import { HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
 import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
 import { ModelId } from '../core/model'
 import { Repository } from 'typeorm'
@@ -28,21 +28,18 @@ export class OAuthService {
     private readonly httpService: HttpService,
   ) {}
 
-  async generateAuthorizationUri(
-    input: GenerateAuthorizationUriInput,
-    userId: ModelId,
-  ): Promise<string> {
+  async generateAuthorizationUri(provider: OAuthProvider, userId: ModelId): Promise<string> {
     const nonce = this.generateNonce()
     const oauthRecord = new OAuthToken()
     oauthRecord.userId = userId
     oauthRecord.nonce = nonce
-    oauthRecord.provider = input.provider
+    oauthRecord.provider = provider
     await this.oauthRepo.save(oauthRecord)
     const state = this.encodeState({
       id: oauthRecord.id,
       nonce,
     })
-    const conf = await config().get<any>(this.configPath(input.provider))
+    const conf = await config().get<any>(this.configPath(provider))
     return this.buildAuthorizationUri(
       conf.authorizationUri,
       conf.clientId,
