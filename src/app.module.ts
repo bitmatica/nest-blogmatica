@@ -9,10 +9,10 @@ import { GustoModule } from './gusto/gusto.module'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
-import { databaseConfigFactory } from './config/databaseFactory'
+import { databaseConfigFactory } from './config/databaseConfigFactory'
 import oauth from './config/oauth'
 import { UsersService } from './users/users.service'
-import { graphqlConfigFactory } from './config/graphqlFactory'
+import { graphqlConfigFactory } from './config/graphqlConfigFactory'
 
 @Module({
   imports: [
