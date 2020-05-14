@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
-import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
-import { ModelId } from '../core/model'
-import { Repository } from 'typeorm'
-import { Base64 } from 'js-base64'
-import { randomBytes } from 'crypto'
-import { InjectRepository } from '@nestjs/typeorm'
 import { ConfigService } from '@nestjs/config'
+import { InjectRepository } from '@nestjs/typeorm'
+import { randomBytes } from 'crypto'
+import { Base64 } from 'js-base64'
+import { Repository } from 'typeorm'
+import { IOAuthProviderConfig } from '../config/oauthConfig'
+import { ModelId } from '../core/model'
+import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
 
 interface IOAuthStateParam {
   id: string
@@ -39,7 +41,7 @@ export class OAuthService {
       id: oauthRecord.id,
       nonce,
     })
-    const conf = this.configService.get(this.configPath(provider))
+    const conf = await this.config(provider)
     return this.buildAuthorizationUri(
       conf.authorizationUri,
       conf.clientId,
@@ -56,10 +58,7 @@ export class OAuthService {
       if (!decodedState) {
         return Promise.reject(new UnauthorizedException())
       }
-      const accessTokenResponse = (await this.getAccessTokenWithConf(
-        this.configPath(provider),
-        code,
-      ))!
+      const accessTokenResponse = (await this.getAccessTokenWithConf(provider, code))!
       const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
       if (!oauthRecord || !oauthRecord.nonce || oauthRecord.nonce !== decodedState.nonce) {
         return Promise.reject(new UnauthorizedException())
@@ -94,7 +93,7 @@ export class OAuthService {
   }
 
   async refreshAccessToken(provider: OAuthProvider, refreshToken: string) {
-    return await this.getAccessTokenWithConf(this.configPath(provider), undefined, refreshToken)
+    return await this.getAccessTokenWithConf(provider, undefined, refreshToken)
   }
 
   async saveAccessToken(oauthRecord: OAuthToken, accessTokenResponse: IAccessTokenResponse) {
@@ -122,16 +121,20 @@ export class OAuthService {
     }
   }
 
-  configPath(provider: OAuthProvider) {
-    return `oauth.${provider.toLocaleLowerCase()}`
+  async config(provider: OAuthProvider): Promise<IOAuthProviderConfig> {
+    const config = await this.configService.get<IOAuthProviderConfig>(`oauth.${provider}`)
+    if (!config) {
+      throw new Error(`No config found for oauth provider: ${provider}`)
+    }
+    return config
   }
 
-  async onSuccessRedirectPath(provider: OAuthProvider) {
-    return (await this.configService.get<any>(this.configPath(provider))).onSuccessRedirectPath
+  async onSuccessRedirectPath(provider: OAuthProvider): Promise<string> {
+    return (await this.config(provider)).onSuccessRedirectPath
   }
 
-  async onFailedRedirectPath(provider: OAuthProvider) {
-    return (await this.configService.get<any>(this.configPath(provider))).onFailedRedirectPath
+  async onFailedRedirectPath(provider: OAuthProvider): Promise<string> {
+    return (await this.config(provider)).onFailedRedirectPath
   }
 
   buildAuthorizationUri(
@@ -147,8 +150,8 @@ export class OAuthService {
     }&response_type=code${scope ? `&scope=${scope}` : ''}${state ? `&state=${state}` : ''}`
   }
 
-  async getAccessTokenWithConf(configPath: string, code?: string, refreshToken?: string) {
-    const conf = await this.configService.get<any>(configPath)
+  async getAccessTokenWithConf(provider: OAuthProvider, code?: string, refreshToken?: string) {
+    const conf = await this.config(provider)
     return this.fetchAccessToken(
       conf.accessTokenUri,
       conf.clientId,

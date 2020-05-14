@@ -3,14 +3,12 @@ import { ModelId } from '../core/model'
 import { OAuthService } from '../oauth/oauth.service'
 import { OAuthProvider } from '../oauth/oauthtoken.entity'
 import { GustoCompany, GustoUser } from './gusto.resolver'
-import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class GustoService {
   constructor(
     private readonly oauthService: OAuthService,
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
   ) {}
 
   async currentUser(userId: ModelId): Promise<GustoUser> {
@@ -48,7 +46,7 @@ export class GustoService {
   }
 
   async buildUri(path: string, provider: OAuthProvider) {
-    const conf = await this.configService.get<any>(this.oauthService.configPath(provider))
+    const conf = await this.oauthService.config(provider)
     return `${conf.baseApiUri}${path}`
   }
 
