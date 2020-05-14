@@ -10,9 +10,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
 import { databaseConfigFactory } from './config/databaseConfigFactory'
-import oauth from './config/oauth'
+import oauthConfig from './config/oauthConfig'
 import { UsersService } from './users/users.service'
 import { graphqlConfigFactory } from './config/graphqlConfigFactory'
+import databaseConfig from './config/databaseConfig'
+import graphqlConfig from './config/graphqlConfig'
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { graphqlConfigFactory } from './config/graphqlConfigFactory'
     OAuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [oauth],
+      load: [oauthConfig, databaseConfig, graphqlConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

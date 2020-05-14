@@ -10,14 +10,8 @@ export const graphqlConfigFactory = async (
   configService: ConfigService,
   usersService: UsersService,
 ) => ({
-  playground: configService.get<boolean>(
-    'GRAPHQL_ENABLE_PLAYGROUND',
-    process.env.NODE_ENV != 'production',
-  ),
-  introspection: configService.get<boolean>(
-    'GRAPHQL_ENABLE_INTROSPECTION',
-    process.env.NODE_ENV != 'production',
-  ),
+  playground: configService.get<boolean>('graphql.playground'),
+  introspection: configService.get<boolean>('graphql.introspection'),
   installSubscriptionHandlers: true,
   autoSchemaFile: 'schema.gql',
   context: async ({ ...input }): Promise<IContext> => {

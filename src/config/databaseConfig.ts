@@ -1,12 +1,12 @@
-import { ConfigService } from '@nestjs/config'
+import { registerAs } from '@nestjs/config'
 
-export const databaseConfigFactory = async (configService: ConfigService) => ({
+export const config = {
   type: 'postgres' as 'postgres',
-  host: configService.get('database.host'),
-  port: configService.get<number>('database.port'),
-  username: configService.get('database.username'),
-  password: configService.get('database.password'),
-  database: configService.get('database.database'),
+  host: process.env.DATABASE_HOST || 'localhost',
+  port: process.env.DATABASE_PORT || 5432,
+  username: process.env.DATABASE_USER || 'blogmatica',
+  password: process.env.DATABASE_PASS || 'blogmatica_password',
+  database: process.env.DATABASE_DB || 'blogmatica',
   synchronize: false,
   migrationsRun: false,
   logging: true,
@@ -20,4 +20,6 @@ export const databaseConfigFactory = async (configService: ConfigService) => ({
   extra: {
     connectionLimit: 5,
   },
-})
+}
+
+export default registerAs('database', () => config)
