@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config'
 
-export const databaseFactory = async (configService: ConfigService) => ({
+export const databaseConfigFactory = async (configService: ConfigService) => ({
   type: 'postgres' as 'postgres',
   host: configService.get('DATABASE_HOST', 'localhost'),
   port: configService.get<number>('DATABASE_PORT', 5432),

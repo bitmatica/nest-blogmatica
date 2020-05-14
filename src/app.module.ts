@@ -3,21 +3,16 @@ import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { PostsModule } from './posts/posts.module'
 import { UsersModule } from './users/users.module'
-import { getConnection } from 'typeorm'
-import { User } from './users/user.entity'
 import { CommentsModule } from './comments/comments.module'
-import { IContext } from './core/context'
-import { ExtractJwt } from 'passport-jwt'
-import { JwtPayload } from './authentication/strategies/jwt.strategy'
-import { JwtService } from '@nestjs/jwt'
-import { jwtServiceOptions } from './authentication/constants'
 import { OAuthModule } from './oauth/oauth.module'
 import { GustoModule } from './gusto/gusto.module'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
-import { databaseFactory } from './config/database'
+import { databaseConfigFactory } from './config/databaseFactory'
 import oauth from './config/oauth'
+import { UsersService } from './users/users.service'
+import { graphqlConfigFactory } from './config/graphqlFactory'
 
 @Module({
   imports: [
@@ -32,44 +27,12 @@ import oauth from './config/oauth'
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: databaseFactory,
+      useFactory: databaseConfigFactory,
     }),
-    GraphQLModule.forRoot({
-      installSubscriptionHandlers: true,
-      autoSchemaFile: 'schema.gql',
-      context: async ({ req, res }): Promise<IContext> => {
-        const baseContext = { req, res }
-        try {
-          /*
-          - Check for presence of Authorization header.  If not there, only set req, res and return
-          - If Authorization header exists, validate token and find user.  If anything fails, throw "Unauthorized"
-          - If authentication passes, place user on context.req
-           */
-          const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req)
-          if (!token) {
-            return baseContext
-          }
-          const jwtService = new JwtService(jwtServiceOptions)
-          const payload: JwtPayload = jwtService.verify(token)
-          const user = await getConnection()
-            .getRepository(User)
-            .findOne({ id: payload.sub })
-          if (!user) {
-            return baseContext
-          }
-          return {
-            req: {
-              ...req,
-              user,
-            },
-            res,
-          }
-        } catch (err) {
-          // TODO throwing here leads to context creation failure.
-          //  Figure out how to throw an UnauthorizedException but let context creation succeed.
-          return baseContext
-        }
-      },
+    GraphQLModule.forRootAsync({
+      imports: [ConfigModule, UsersModule],
+      inject: [ConfigService, UsersService],
+      useFactory: graphqlConfigFactory,
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
