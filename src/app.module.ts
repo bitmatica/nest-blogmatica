@@ -17,6 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
 import { databaseFactory } from './config/database'
+import oauth from './config/oauth'
 
 @Module({
   imports: [
@@ -24,7 +25,10 @@ import { databaseFactory } from './config/database'
     UsersModule,
     PostsModule,
     OAuthModule,
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [oauth],
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
