@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
+import { TypeOrmModule } from '@nestjs/typeorm'
 // import * as databaseConfig from './database/config'
 import { PostsModule } from './posts/posts.module'
 import { UsersModule } from './users/users.module'
@@ -15,6 +15,8 @@ import { jwtServiceOptions } from './authentication/constants'
 import { OAuthModule } from './oauth/oauth.module'
 import { GustoModule } from './gusto/gusto.module'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ServeStaticModule } from '@nestjs/serve-static'
+import { join } from 'path'
 
 @Module({
   imports: [
@@ -86,6 +88,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
           return baseContext
         }
       },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+      exclude: ['/oauth*', '/graphql*', '/authCallback'],
     }),
     GustoModule,
   ],
