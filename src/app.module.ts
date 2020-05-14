@@ -36,7 +36,7 @@ import { graphqlConfigFactory } from './config/graphqlConfigFactory'
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
-      exclude: ['/oauth*', '/graphql*', '/authCallback'],
+      exclude: ['/auth*', '/graphql*', '/authCallback'],
     }),
     GustoModule,
   ],
