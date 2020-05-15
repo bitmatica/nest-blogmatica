@@ -21,6 +21,7 @@ import { OAuthService } from '../oauth/oauth.service'
 import { UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { OAuthProvider } from '../oauth/oauthtoken.entity'
+import { REFRESH_TOKEN_KEY } from '../authentication/constants'
 
 @InputType()
 export class CreateUserInput {
@@ -88,13 +89,17 @@ export class UsersResolver extends BaseModelResolver(User, {
   ) {
     try {
       const user = await this.authenticationService.validateUser(input.email, input.password)
-      const token = await this.authenticationService.login(user!)
-      // TODO generate/store refresh token
+
+      if (!user) {
+        throw Error("Invalid user")
+      }
+      const refreshToken = this.authenticationService.generateRefreshToken()
+      context.res.cookie(REFRESH_TOKEN_KEY, refreshToken, { httpOnly: false })
       return {
         success: true,
         message: 'Login successful!',
         model: user,
-        token: token,
+        token: this.authenticationService.getJwt(user),
       }
     } catch (err) {
       return {
@@ -106,7 +111,7 @@ export class UsersResolver extends BaseModelResolver(User, {
 
   @Mutation(returns => MutationResponse)
   async logout(@Context() context: IContext) {
-    // TODO clear refresh token
+    context.res.clearCookie(REFRESH_TOKEN_KEY)
     try {
       return {
         success: true,
@@ -120,6 +125,34 @@ export class UsersResolver extends BaseModelResolver(User, {
     }
   }
 
+  @Mutation(returns => MutationResponse)
+  async refreshToken(
+    @CurrentUser() user: User,
+    @Context() context: IContext
+  ) {
+    debugger
+    const token = context.req.cookies[REFRESH_TOKEN_KEY]
+
+    if (!this.authenticationService.isValidRefreshToken(token)) {
+      return {
+        success: false,
+        message: "Token refresh failed"
+      }
+    }
+
+    try {
+      return {
+        token: this.authenticationService.getJwt(user),
+        success: true,
+      }
+    } catch {
+      return {
+        success: false,
+        message: "Token refresh failed"
+      }
+    }
+  }
+
   @Query(returns => User, { nullable: true })
   async whoAmI(@CurrentUser() user: User) {
     return user
@@ -128,6 +161,6 @@ export class UsersResolver extends BaseModelResolver(User, {
   @UseGuards(JwtAuthGuard)
   @ResolveField(returns => Boolean)
   async gustoAccess(@CurrentUser() user: User): Promise<boolean> {
-    return !!(await this.oauthService.getOrRefreshSavedAccessToken(user.id, OAuthProvider.GUSTO))
+    return Boolean(await this.oauthService.getOrRefreshSavedAccessToken(user.id, OAuthProvider.GUSTO))
   }
 }

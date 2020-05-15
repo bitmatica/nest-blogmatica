@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Scope } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
 
-@Injectable()
+
+@Injectable({ scope: Scope.REQUEST })
 export class AuthenticationService {
+  REFRESH_TOKEN = "refresh token"
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
@@ -16,10 +19,17 @@ export class AuthenticationService {
       const correctPassword = await user.checkPassword(password)
       return correctPassword ? user : undefined
     }
-    return undefined
   }
 
-  async login(user: User): Promise<string> {
+  generateRefreshToken() {
+    return this.REFRESH_TOKEN
+  }
+
+  isValidRefreshToken(token: string) {
+    return token === this.REFRESH_TOKEN
+  }
+
+  getJwt(user: User): string {
     const payload = { username: user.email, sub: user.id }
     return this.jwtService.sign(payload)
   }

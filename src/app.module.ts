@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { PostsModule } from './posts/posts.module'
@@ -15,6 +15,7 @@ import { UsersService } from './users/users.service'
 import { graphqlConfigFactory } from './config/graphqlConfigFactory'
 import databaseConfig from './config/databaseConfig'
 import graphqlConfig from './config/graphqlConfig'
+import cookieParser from 'cookie-parser'
 
 @Module({
   imports: [
@@ -43,4 +44,11 @@ import graphqlConfig from './config/graphqlConfig'
     GustoModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(cookieParser())
+      .forRoutes({
+        path: '*', method: RequestMethod.ALL
+      })
+  }
+}
