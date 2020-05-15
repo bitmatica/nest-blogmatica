@@ -45,9 +45,8 @@ import cookieParser from 'cookie-parser'
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(cookieParser())
-      .forRoutes({
-        path: '*', method: RequestMethod.ALL
-      })
+    consumer.apply(cookieParser()).forRoutes({
+      path: '*', method: RequestMethod.ALL
+    })
   }
 }
