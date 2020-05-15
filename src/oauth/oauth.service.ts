@@ -32,16 +32,18 @@ export class OAuthService {
 
   async generateAuthorizationUri(provider: OAuthProvider, userId: ModelId): Promise<string> {
     const nonce = this.generateNonce()
+
     const oauthRecord = new OAuthToken()
     oauthRecord.userId = userId
     oauthRecord.nonce = nonce
     oauthRecord.provider = provider
     await this.oauthRepo.save(oauthRecord)
+
     const state = this.encodeState({
       id: oauthRecord.id,
       nonce,
     })
-    const conf = await this.config(provider)
+    const conf = this.config(provider)
     return this.buildAuthorizationUri(
       conf.authorizationUri,
       conf.clientId,
@@ -121,8 +123,8 @@ export class OAuthService {
     }
   }
 
-  async config(provider: OAuthProvider): Promise<IOAuthProviderConfig> {
-    const config = await this.configService.get<IOAuthProviderConfig>(`oauth.${provider}`)
+  config(provider: OAuthProvider): IOAuthProviderConfig {
+    const config = this.configService.get<IOAuthProviderConfig>(`oauth.${provider}`)
     if (!config) {
       throw new Error(`No config found for oauth provider: ${provider}`)
     }
@@ -130,11 +132,11 @@ export class OAuthService {
   }
 
   async onSuccessRedirectPath(provider: OAuthProvider): Promise<string> {
-    return (await this.config(provider)).onSuccessRedirectPath
+    return this.config(provider).onSuccessRedirectPath
   }
 
   async onFailedRedirectPath(provider: OAuthProvider): Promise<string> {
-    return (await this.config(provider)).onFailedRedirectPath
+    return this.config(provider).onFailedRedirectPath
   }
 
   buildAuthorizationUri(
@@ -151,7 +153,7 @@ export class OAuthService {
   }
 
   async getAccessTokenWithConf(provider: OAuthProvider, code?: string, refreshToken?: string) {
-    const conf = await this.config(provider)
+    const conf = this.config(provider)
     return this.fetchAccessToken(
       conf.accessTokenUri,
       conf.clientId,

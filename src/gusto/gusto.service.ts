@@ -46,7 +46,7 @@ export class GustoService {
   }
 
   async buildUri(path: string, provider: OAuthProvider) {
-    const conf = await this.oauthService.config(provider)
+    const conf = this.oauthService.config(provider)
     return `${conf.baseApiUri}${path}`
   }
 
