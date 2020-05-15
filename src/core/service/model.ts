@@ -75,7 +75,9 @@ export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> 
     }
 
     get(id: string, context: IContext, info: GraphQLResolveInfo): Promise<T | undefined> {
-      return constructQueryWithRelations(modelClass, info, context).getOne()
+      return constructQueryWithRelations(modelClass, info, context)
+        .andWhereInIds(id)
+        .getOne()
     }
 
     list(context: IContext, info: GraphQLResolveInfo): Promise<Array<T>> {
