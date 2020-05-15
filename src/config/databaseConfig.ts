@@ -1,4 +1,7 @@
 import { registerAs } from '@nestjs/config'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export const config = {
   type: 'postgres' as 'postgres',
