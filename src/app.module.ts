@@ -9,7 +9,6 @@ import { GustoModule } from './gusto/gusto.module'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
-import { databaseConfigFactory } from './config/databaseConfigFactory'
 import oauthConfig from './config/oauthConfig'
 import { UsersService } from './users/users.service'
 import { graphqlConfigFactory } from './config/graphqlConfigFactory'
@@ -30,7 +29,7 @@ import cookieParser from 'cookie-parser'
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: databaseConfigFactory,
+      useFactory: async (configService: ConfigService) => configService.get('database'),
     }),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule, UsersModule],
