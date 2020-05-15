@@ -5,11 +5,11 @@ dotenv.config()
 
 export const databaseConfig = {
   type: 'postgres' as 'postgres',
-  host: process.env.DATABASE_HOST || 'localhost',
-  port: process.env.DATABASE_PORT || 5432,
-  username: process.env.DATABASE_USER || 'blogmatica',
-  password: process.env.DATABASE_PASS || 'blogmatica_password',
-  database: process.env.DATABASE_DB || 'blogmatica',
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT,
+  username: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASS,
+  database: process.env.DATABASE_DB,
   synchronize: false,
   migrationsRun: false,
   logging: true,
