@@ -1,7 +1,7 @@
+import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import sourceMapSupport from 'source-map-support'
 import { AppModule } from './app.module'
-import { ConfigService } from '@nestjs/config'
 
 sourceMapSupport.install()
 
