@@ -3,10 +3,9 @@ import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
 import { ModelId } from '../core/model'
 import { Repository } from 'typeorm'
 import { Base64 } from 'js-base64'
-import { config } from '@creditkarma/dynamic-config'
 import { randomBytes } from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { GenerateAuthorizationUriInput } from './oauth.resolver'
+import { ConfigService } from '@nestjs/config'
 
 interface IOAuthStateParam {
   id: string
@@ -26,6 +25,7 @@ export class OAuthService {
   constructor(
     @InjectRepository(OAuthToken) private readonly oauthRepo: Repository<OAuthToken>,
     private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
   ) {}
 
   async generateAuthorizationUri(provider: OAuthProvider, userId: ModelId): Promise<string> {
@@ -39,7 +39,7 @@ export class OAuthService {
       id: oauthRecord.id,
       nonce,
     })
-    const conf = await config().get<any>(this.configPath(provider))
+    const conf = this.configService.get(this.configPath(provider))
     return this.buildAuthorizationUri(
       conf.authorizationUri,
       conf.clientId,
@@ -127,11 +127,11 @@ export class OAuthService {
   }
 
   async onSuccessRedirectPath(provider: OAuthProvider) {
-    return (await config().get<any>(this.configPath(provider))).onSuccessRedirectPath
+    return (await this.configService.get<any>(this.configPath(provider))).onSuccessRedirectPath
   }
 
   async onFailedRedirectPath(provider: OAuthProvider) {
-    return (await config().get<any>(this.configPath(provider))).onFailedRedirectPath
+    return (await this.configService.get<any>(this.configPath(provider))).onFailedRedirectPath
   }
 
   buildAuthorizationUri(
@@ -148,7 +148,7 @@ export class OAuthService {
   }
 
   async getAccessTokenWithConf(configPath: string, code?: string, refreshToken?: string) {
-    const conf = await config().get<any>(configPath)
+    const conf = await this.configService.get<any>(configPath)
     return this.fetchAccessToken(
       conf.accessTokenUri,
       conf.clientId,
