@@ -1,8 +1,10 @@
+import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
+import dotenv from 'dotenv'
 import sourceMapSupport from 'source-map-support'
 import { AppModule } from './app.module'
-import { ConfigService } from '@nestjs/config'
 
+dotenv.config()
 sourceMapSupport.install()
 
 async function bootstrap() {
