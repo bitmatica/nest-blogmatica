@@ -1,0 +1,13 @@
+{
+    "sqltools.connections": [
+        {
+            "database": "blogmatica",
+            "dialect": "PostgreSQL",
+            "name": "Blogmatica",
+            "password": "blogmatica_password",
+            "port": 5432,
+            "server": "localhost",
+            "username": "blogmatica"
+        }
+    ]
+}
