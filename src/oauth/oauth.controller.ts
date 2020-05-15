@@ -8,7 +8,7 @@ import { RestJwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 export class OAuthController {
   constructor(private readonly oauthService: OAuthService) {}
 
-  // Included in case a server-side redirect to oauth consent screen is preferred.
+  // Included in case a server-side redirect to oauth consent screen is preferred to graphql mutation (in oauth.resolver.ts)
   @UseGuards(RestJwtAuthGuard)
   @Get('auth/:provider')
   async authorizationUri(
