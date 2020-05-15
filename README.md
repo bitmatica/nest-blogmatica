@@ -86,7 +86,7 @@ BE App Framework
 - [x] Owned-record and other advanced authorization schemes
 - [x] Authentication (email/password, oauth2, store/revoke tokens)
 - [x] Resolver with REST data source
-- [x] Env config (@credit-karma/dynamic-config?)
+- [x] Env config (@nestjs/config)
 - [ ] Query pagination
 - [ ] Query filtering
 - [ ] Query sorting
