@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config'
 
-export const config = {
+export const databaseConfig = {
   type: 'postgres' as 'postgres',
   host: process.env.DATABASE_HOST || 'localhost',
   port: process.env.DATABASE_PORT || 5432,
@@ -21,5 +21,4 @@ export const config = {
     connectionLimit: 5,
   },
 }
-
-export default registerAs('database', () => config)
+export default registerAs('database', () => ({ ...databaseConfig }))
