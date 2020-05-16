@@ -1,12 +1,10 @@
-name: Greet Everyone
+name: Continuous Delivery
 # This workflow is triggered on pushes to the repository.
 on: [push]
 
 jobs:
   build:
-    # Job name is Greeting
-    name: Greeting
-    # This job runs on Linux
+    name: Build Docker Image and Push to Amazon ECR
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
