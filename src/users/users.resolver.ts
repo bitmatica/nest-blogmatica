@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common'
 import {
   Args,
   Context,
@@ -9,18 +10,18 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql'
+import md5 from 'md5'
 import { Repository } from 'typeorm'
 import { AuthenticationService } from '../authentication/authentication.service'
+import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { IContext } from '../core/context'
 import { Create } from '../core/resolvers/actions'
 import { BaseModelResolver } from '../core/resolvers/model'
 import { MutationResponse } from '../core/resolvers/types'
 import { CurrentUser } from '../decorators/currentUser'
-import { User } from './user.entity'
 import { OAuthService } from '../oauth/oauth.service'
-import { UseGuards } from '@nestjs/common'
-import { JwtAuthGuard } from '../authentication/guards/jwt-auth.guard'
 import { OAuthProvider } from '../oauth/oauthtoken.entity'
+import { User } from './user.entity'
 
 @InputType()
 export class CreateUserInput {
@@ -129,5 +130,11 @@ export class UsersResolver extends BaseModelResolver(User, {
   @ResolveField(returns => Boolean)
   async gustoAccess(@CurrentUser() user: User): Promise<boolean> {
     return !!(await this.oauthService.getOrRefreshSavedAccessToken(user.id, OAuthProvider.GUSTO))
+  }
+
+  @ResolveField()
+  profileImageUrl(user: User): string {
+    const hash = md5(user.email.trim().toLowerCase())
+    return `https://www.gravatar.com/avatar/${hash}`
   }
 }
