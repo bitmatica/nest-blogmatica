@@ -135,6 +135,6 @@ export class UsersResolver extends BaseModelResolver(User, {
   @ResolveField()
   profileImageUrl(user: User): string {
     const hash = md5(user.email.trim().toLowerCase())
-    return `https://www.gravatar.com/avatar/${hash}`
+    return `https://www.gravatar.com/avatar/${hash}?d=mp`
   }
 }
