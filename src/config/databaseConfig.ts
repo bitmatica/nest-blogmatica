@@ -12,7 +12,7 @@ export default registerAs('database', () => ({
   logging: true,
   entities: [__dirname + '/../**/*.entity.{js,ts}'],
   subscribers: [__dirname + '/../**/*.subscriber.{js,ts}'],
-  migrations: [__dirname + '/migrations/*.{js,ts}'],
+  migrations: [__dirname + '/../database/migrations/*.{js,ts}'],
   cli: {
     entitiesDir: 'src/**/models',
     migrationsDir: 'src/database/migrations',
