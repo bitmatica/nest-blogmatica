@@ -48,4 +48,4 @@ export class User extends BaseModel {
 
 Can.register(User)
   .do(ActionScope.Read, { as: UserScope.Authenticated })
-  .do(Can.everything(), { as: UserScope.Authenticated, to: RecordScope.All })
+  .do(ActionScope.All, { as: UserScope.Authenticated, to: RecordScope.All })

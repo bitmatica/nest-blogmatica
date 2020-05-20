@@ -38,3 +38,4 @@ Can.register(Post)
     as: UserScope.Authenticated,
     to: RecordScope.Owned('authorId'),
   })
+  .do(ActionScope.All)

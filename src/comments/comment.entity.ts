@@ -37,7 +37,7 @@ export class Comment extends BaseModel {
 
 Can.register(Comment)
   .do(ActionScope.Read)
-  .do(Can.everything(), {
+  .do(ActionScope.All, {
     as: UserScope.Authenticated,
     to: RecordScope.Owned('authorId'),
   })
