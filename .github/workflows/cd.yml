@@ -52,6 +52,10 @@ jobs:
           chmod u+x ./kustomize
           ./kustomize edit set image blogmaticaimage=$IMAGE_NAME
           ./kustomize build . | kubectl apply -f -
+#          # Verify deployment
+#          kubectl rollout status deployment/blogmatica
+#          # List Public IP of cluster
+#          kubectl get services -o wide
       - name: Logout of Amazon ECR
         if: always()
         run: docker logout ${{ steps.login-ecr.outputs.registry }}
