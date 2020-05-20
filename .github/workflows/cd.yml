@@ -29,8 +29,10 @@ jobs:
           ECR_REPOSITORY: nest-blogmatica
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $GITHUB_WORKSPACE
+          IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $IMAGE_NAME $GITHUB_WORKSPACE
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$IMAGE_NAME"
       - name: Setup kubeconfig
         id: setup-kubeconfig
         env:
