@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: blogmatica
-          image: blogmatica-template-image
+          image: blogmaticaimage
           ports:
             - containerPort: 3000
           env:
