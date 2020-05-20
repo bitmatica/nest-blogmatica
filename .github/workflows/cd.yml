@@ -1,9 +1,10 @@
 name: Continuous Delivery
 # This workflow is triggered on pushes to the repository.
 on:
-  push:
-    branches:
-      - master
+  [push]
+#  push:
+#    branches:
+#      - master
 
 jobs:
   build:
@@ -29,6 +30,25 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $GITHUB_WORKSPACE
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Setup kubeconfig
+        id: setup-kubeconfig
+        env:
+          AWS_REGION: us-east-1
+          EKS_CLUSTER_NAME: blogmatica-dev3
+        run: |
+          aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
+      - name: Deploy k8s yaml
+        id: deploy-k8s-yaml
+        env:
+          K8S_YAML_DIR: ./manifests
+          IMAGE_NAME: ${{ steps.build-image.outputs.image }}
+        run: |
+          # Setup kustomize
+          cd $K8S_YAML_DIR
+          curl -s -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+          chmod u+x ./kustomize
+          ./kustomize edit set image blogmatica=$IMAGE_NAME
+          ./kustomize build . | kubectl apply -f -
       - name: Logout of Amazon ECR
         if: always()
         run: docker logout ${{ steps.login-ecr.outputs.registry }}
