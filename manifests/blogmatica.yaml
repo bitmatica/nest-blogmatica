@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: blogmatica
+spec:
+  selector:
+    app: blogmatica
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blogmatica
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blogmatica
+  template:
+    metadata:
+      labels:
+        app: blogmatica
+    spec:
+      containers:
+        - name: blogmatica
+          image: 636934759355.dkr.ecr.us-east-1.amazonaws.com/nest-blogmatica:505159dc7436fed7d6cb72376e08a763beb0797b
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_HOST
+              value: blogmaticadevdbinstance.cvrqnimbp4de.us-east-1.rds.amazonaws.com
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USER
+              value: blogmatica
+            - name: DATABASE_PASS
+              value: blogmatica_password
+            - name: DATABASE_DB
+              value: blogmatica
+            - name: DATABASE_MIGRATIONS
+              value: true
+          imagePullPolicy: Always
