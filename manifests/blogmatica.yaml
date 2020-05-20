@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: blogmatica
-          image: 636934759355.dkr.ecr.us-east-1.amazonaws.com/nest-blogmatica:505159dc7436fed7d6cb72376e08a763beb0797b
+          image: 636934759355.dkr.ecr.us-east-1.amazonaws.com/nest-blogmatica:66af7f45a8bab664d040e82d532e03399c5b3092
           ports:
             - containerPort: 3000
           env:
@@ -41,5 +41,5 @@ spec:
             - name: DATABASE_DB
               value: blogmatica
             - name: DATABASE_MIGRATIONS
-              value: true
+              value: "true"
           imagePullPolicy: Always
