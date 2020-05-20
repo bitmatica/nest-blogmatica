@@ -44,7 +44,7 @@ jobs:
           IMAGE_NAME: ${{ steps.build-image.outputs.image }}
         run: |
           cd $K8S_YAML_DIR
-          sed "s/blogmaticaimage/$IMAGE_NAME/g" blogmatica.yaml
+          sed -i "" "s/blogmaticaimage/$IMAGE_NAME/g" blogmatica.yaml
           kubectl apply -f -
 
 
