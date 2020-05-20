@@ -34,8 +34,7 @@ export class Post extends BaseModel {
 
 Can.register(Post)
   .do(ActionScope.Read)
-  .do(ActionScope.Create, {
+  .do(ActionScope.All, {
     as: UserScope.Authenticated,
     to: RecordScope.Owned('authorId'),
   })
-  .do(ActionScope.All)
