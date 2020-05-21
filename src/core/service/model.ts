@@ -60,8 +60,15 @@ export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> 
         }
 
         Can.check(context, ActionScope.Delete, modelClass).assert(model, context)
+        const result = await this.repo.delete(id)
 
-        await this.repo.delete(model)
+        if (!result.affected) {
+          return {
+            success: false,
+            message: 'No records found to be deleted',
+          }
+        }
+
         return {
           success: true,
           message: `${modelClass.name} deleted.`,
