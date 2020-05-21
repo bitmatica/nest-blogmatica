@@ -27,7 +27,7 @@ export class Post extends BaseModel {
   @OneToMany(
     type => Comment,
     comment => comment.post,
-    { lazy: true },
+    { lazy: true, cascade: true },
   )
   comments: Promise<Array<Comment>>
 }
