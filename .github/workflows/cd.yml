@@ -50,8 +50,6 @@ jobs:
         run: |
           cd $K8S_YAML_DIR
           sed -i "s/\($ECR_REGISTRY\)\/\($ECR_REPOSITORY\):\(.*\)/\1\/\2:$IMAGE_TAG/g" blogmatica.yaml
-          git status
-          cat blogmatica.yaml
           kubectl apply -f .
       - name: Logout of Amazon ECR
         if: always()
