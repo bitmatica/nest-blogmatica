@@ -9,6 +9,7 @@ import databaseConfig from './config/databaseConfig'
 import graphqlConfig from './config/graphqlConfig'
 import { graphqlConfigFactory } from './config/graphqlConfigFactory'
 import oauthConfig from './config/oauthConfig'
+import { AdminModule } from './core/admin/admin.module'
 import { getOrThrow } from './core/utils'
 import { GustoModule } from './gusto/gusto.module'
 import { OAuthModule } from './oauth/oauth.module'
@@ -18,6 +19,7 @@ import { UsersService } from './users/users.service'
 
 @Module({
   imports: [
+    AdminModule,
     CommentsModule,
     UsersModule,
     PostsModule,
