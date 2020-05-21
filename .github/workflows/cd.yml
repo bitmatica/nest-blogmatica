@@ -44,20 +44,11 @@ jobs:
         id: deploy-k8s-yaml
         env:
           K8S_YAML_DIR: ./manifests
-          IMAGE_NAME: ${{ steps.build-image.outputs.image }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Setup kustomize
-          export KUBECONFIG=/home/runner/.kube/config
           cd $K8S_YAML_DIR
+          sed -i "s/\($ECR_REGISTRY\)\/\($ECR_REPOSITORY\):\(.*\)/\1\/\2:$IMAGE_TAG/g" blogmatica.yaml
           kubectl apply -f .
-#          curl -s -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
-#          chmod u+x ./kustomize
-#          ./kustomize edit set image blogmaticaimage=$IMAGE_NAME
-#          ./kustomize build . | kubectl apply -f -
-#          # Verify deployment
-#          kubectl rollout status deployment/blogmatica
-#          # List Public IP of cluster
-#          kubectl get services -o wide
       - name: Logout of Amazon ECR
         if: always()
         run: docker logout ${{ steps.login-ecr.outputs.registry }}

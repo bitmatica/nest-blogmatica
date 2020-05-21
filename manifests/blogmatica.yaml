@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: blogmatica
-          image: blogmaticaimage
+          image: 636934759355.dkr.ecr.us-east-1.amazonaws.com/nest-blogmatica:b189860e3fb36edf297a585b6d9359f6da537f9e
           ports:
             - containerPort: 3000
           env:
