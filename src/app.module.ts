@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { GraphQLModule } from '@nestjs/graphql'
 import { ServeStaticModule } from '@nestjs/serve-static'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
 import { join } from 'path'
 import { CommentsModule } from './comments/comments.module'
 import databaseConfig from './config/databaseConfig'
@@ -30,7 +30,10 @@ import { UsersService } from './users/users.service'
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) =>
-        getOrThrow(configService.get('database'), 'Database config was not found'),
+        getOrThrow(
+          configService.get<TypeOrmModuleOptions>('database'),
+          'Database config was not found',
+        ),
     }),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule, UsersModule],
