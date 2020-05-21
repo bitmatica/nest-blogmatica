@@ -1,10 +1,9 @@
 name: Continuous Delivery
 # This workflow is triggered on pushes to the repository.
 on:
-  [push]
-#  push:
-#    branches:
-#      - master
+  push:
+    branches:
+      - master
 
 jobs:
   build:
