@@ -25,12 +25,16 @@ export class AuthenticationService {
   async generateRefreshToken(user: User): Promise<string | undefined> {
     try {
       const session = new AuthSession()
-      session.refreshToken = randomBytes(48).toString('base64')
+      session.refreshToken = this.generateNonce()
       session.userId = user.id
       await this.sessionRepo.create(session)
 
       return session.refreshToken
     } catch {}
+  }
+
+  private generateNonce() {
+    return randomBytes(48).toString('base64')
   }
 
   async isValidRefreshToken(user: User, token: string): Promise<boolean> {

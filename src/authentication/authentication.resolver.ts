@@ -4,7 +4,7 @@ import { Repository } from 'typeorm'
 import { AuthenticationService } from '../authentication/authentication.service'
 import { REFRESH_TOKEN_KEY } from '../authentication/constants'
 import { IContext } from '../core/context'
-import { MutationResponse } from '../core/resolvers/types'
+import { ModelMutationResponse, MutationResponse } from '../core/resolvers/types'
 import { getOrThrow } from '../core/utils'
 import { CurrentUser } from '../decorators/currentUser'
 
@@ -18,7 +18,7 @@ export class UserLoginArgs {
 }
 
 @ObjectType()
-export class UserLoginResponse extends MutationResponse<User> {
+export class UserLoginResponse extends ModelMutationResponse<User> {
   @Field({ nullable: true, name: 'user' })
   model?: User
 
@@ -62,7 +62,7 @@ export class AuthenticationResolver {
   }
 
   @Mutation(returns => MutationResponse)
-  async logout(@Context() context: IContext) {
+  async logout(@Context() context: IContext): Promise<MutationResponse> {
     context.res.clearCookie(REFRESH_TOKEN_KEY)
     try {
       return {
@@ -77,7 +77,7 @@ export class AuthenticationResolver {
     }
   }
 
-  @Mutation(returns => MutationResponse)
+  @Mutation(returns => ModelMutationResponse)
   async refreshToken(@CurrentUser() user: User, @Context() context: IContext) {
     const token = context.req.cookies[REFRESH_TOKEN_KEY]
 

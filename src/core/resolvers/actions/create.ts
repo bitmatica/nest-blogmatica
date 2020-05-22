@@ -10,10 +10,10 @@ import {
   OmitType,
   Resolver,
 } from '@nestjs/graphql'
+import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage } from 'typeorm'
 import { ActionScope } from '../../can'
 import { CanAuth } from '../../can/decorators'
-import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { ICreateService, IServiceProvider } from '../../service/types'
@@ -23,7 +23,7 @@ import {
   IActionResolverBuilder,
   IActionResolverOptions,
   ICreateModelInput,
-  MutationResponse,
+  ModelMutationResponse,
 } from '../types'
 
 export interface ICreateResolver<T> {
@@ -31,7 +31,7 @@ export interface ICreateResolver<T> {
     input: ICreateModelInput<T>,
     context: IContext,
     info: GraphQLResolveInfo,
-  ): Promise<MutationResponse<T>> | MutationResponse<T>
+  ): Promise<ModelMutationResponse<T>> | ModelMutationResponse<T>
 }
 
 export class Create<T> implements IActionResolverBuilder {
@@ -64,9 +64,9 @@ export class Create<T> implements IActionResolverBuilder {
     return `create${modelClass.name}`
   }
 
-  static Response<T>(modelClass: Type<T>): Type<MutationResponse<T>> {
+  static Response<T>(modelClass: Type<T>): Type<ModelMutationResponse<T>> {
     @ObjectType(`${modelClass.name}CreationResponse`)
-    class ModelCreationResponse extends MutationResponse<T> {
+    class ModelCreationResponse extends ModelMutationResponse<T> {
       @Field(type => modelClass, {
         name: modelClass.name.toLocaleLowerCase(),
         nullable: true,
@@ -113,7 +113,7 @@ export class Create<T> implements IActionResolverBuilder {
         @(this.argDecorator) input: ICreateModelInput<T>,
         @Context() context: IContext,
         @Info() info: GraphQLResolveInfo,
-      ): Promise<MutationResponse<T>> | MutationResponse<T> {
+      ): Promise<ModelMutationResponse<T>> | ModelMutationResponse<T> {
         return this.service.create(input, context, info)
       }
     }
