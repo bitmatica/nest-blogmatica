@@ -26,6 +26,12 @@ export class UserLoginResponse extends ModelMutationResponse<User> {
   token?: string
 }
 
+@ObjectType()
+export class RefreshTokenResponse extends MutationResponse {
+  @Field({ nullable: true })
+  token?: string
+}
+
 @Resolver()
 export class AuthenticationResolver {
   constructor(
@@ -77,8 +83,11 @@ export class AuthenticationResolver {
     }
   }
 
-  @Mutation(returns => ModelMutationResponse)
-  async refreshToken(@CurrentUser() user: User, @Context() context: IContext) {
+  @Mutation(returns => RefreshTokenResponse)
+  async refreshToken(
+    @CurrentUser() user: User,
+    @Context() context: IContext,
+  ): Promise<RefreshTokenResponse> {
     const token = context.req.cookies[REFRESH_TOKEN_KEY]
 
     if (!(await this.authenticationService.isValidRefreshToken(user, token))) {
@@ -90,8 +99,9 @@ export class AuthenticationResolver {
 
     try {
       return {
-        token: this.authenticationService.getAccessToken(user),
         success: true,
+        message: 'Success',
+        token: this.authenticationService.getAccessToken(user),
       }
     } catch {
       return {
