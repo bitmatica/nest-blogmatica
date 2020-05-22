@@ -42,10 +42,10 @@ import { UsersService } from './users/users.service'
       inject: [ConfigService, UsersService],
       useFactory: graphqlConfigFactory,
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client'),
-      exclude: ['/auth*', '/graphql*', '/authCallback'],
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', 'client'),
+    //   exclude: ['/auth*', '/graphql*', '/authCallback'],
+    // }),
     GustoModule,
   ],
 })
