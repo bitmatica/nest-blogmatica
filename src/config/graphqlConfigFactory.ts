@@ -29,7 +29,7 @@ export const graphqlConfigFactory = async (
       }
       const jwtService = new JwtService(jwtServiceOptions)
       const payload: JwtPayload = jwtService.verify(token)
-      const user = usersService.getById(payload.sub)
+      const user = await usersService.getById(payload.sub)
       if (!user) {
         return baseContext
       }

@@ -91,10 +91,6 @@ export class Can {
     ]
   }
 
-  static everything(options?: IAllScopesOptions): Array<ActionScope> {
-    return this.global.everything(options)
-  }
-
   static register<T>(classType: Type<T>, permissions?: Array<Permission<T>>): PermissionGroup<T> {
     const permissionGroup = new PermissionGroup(classType, permissions)
     this.global.registerPermissions(classType, permissionGroup)
@@ -119,11 +115,6 @@ export class Can {
         ).length
       }),
     )
-  }
-
-  everything(options?: IAllScopesOptions): Array<ActionScope> {
-    const except = options?.except || []
-    return this.defaultActionScopes.filter(scope => except.indexOf(scope) < 0)
   }
 
   registerPermissions<T>(classType: Type<T>, permissionGroup: PermissionGroup<T>) {

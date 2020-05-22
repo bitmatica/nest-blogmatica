@@ -21,7 +21,7 @@ export class User extends BaseModel {
   @OneToMany(
     type => Post,
     post => post.author,
-    { lazy: true },
+    { lazy: true, cascade: true },
   )
   posts: Promise<Array<Post>>
 
@@ -29,7 +29,7 @@ export class User extends BaseModel {
   @OneToMany(
     type => Comment,
     comment => comment.author,
-    { lazy: true },
+    { lazy: true, cascade: true },
   )
   comments: Promise<Array<Comment>>
 
@@ -48,4 +48,4 @@ export class User extends BaseModel {
 
 Can.register(User)
   .do(ActionScope.Read, { as: UserScope.Authenticated })
-  .do(Can.everything(), { as: UserScope.Authenticated, to: RecordScope.All })
+  .do(ActionScope.All, { as: UserScope.Authenticated, to: RecordScope.All })

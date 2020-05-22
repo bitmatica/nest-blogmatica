@@ -27,14 +27,14 @@ export class Post extends BaseModel {
   @OneToMany(
     type => Comment,
     comment => comment.post,
-    { lazy: true },
+    { lazy: true, cascade: true },
   )
   comments: Promise<Array<Comment>>
 }
 
 Can.register(Post)
   .do(ActionScope.Read)
-  .do(ActionScope.Create, {
+  .do(ActionScope.All, {
     as: UserScope.Authenticated,
     to: RecordScope.Owned('authorId'),
   })
