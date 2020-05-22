@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql'
+import { Repository } from 'typeorm'
 import { IContext } from '../context'
 import { ICreateModelInput, IUpdateModelInput, ModelMutationResponse } from '../resolvers/types'
 
@@ -39,7 +40,12 @@ export interface IDeleteService<T> {
   ): Promise<ModelMutationResponse<T>> | ModelMutationResponse<T>
 }
 
-export type IBaseService<T> = ICreateService<T> &
+export type IRepositoryProvider<T> = {
+  repo: Repository<T>
+}
+
+export type IBaseService<T> = IRepositoryProvider<T> &
+  ICreateService<T> &
   IGetService<T> &
   IListService<T> &
   IUpdateService<T> &

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { InjectRepository } from '@nestjs/typeorm'
 import { randomBytes } from 'crypto'
 import { Repository } from 'typeorm'
 import { User } from '../users/user.entity'
@@ -11,7 +12,7 @@ export class AuthenticationService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
-    private readonly sessionRepo: Repository<AuthSession>,
+    @InjectRepository(AuthSession) private readonly sessionRepo: Repository<AuthSession>,
   ) {}
 
   async validateUser(username: string, password: string): Promise<User | undefined> {

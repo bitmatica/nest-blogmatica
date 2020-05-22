@@ -5,6 +5,7 @@ import { ServeStaticModule } from '@nestjs/serve-static'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
 import cookieParser from 'cookie-parser'
 import { join } from 'path'
+import { AuthenticationModule } from './authentication/authentication.module'
 import { CommentsModule } from './comments/comments.module'
 import databaseConfig from './config/databaseConfig'
 import graphqlConfig from './config/graphqlConfig'
@@ -25,6 +26,7 @@ import { UsersService } from './users/users.service'
     UsersModule,
     PostsModule,
     OAuthModule,
+    AuthenticationModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [oauthConfig, databaseConfig, graphqlConfig],
@@ -53,7 +55,8 @@ import { UsersService } from './users/users.service'
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(cookieParser()).forRoutes({
-      path: '*', method: RequestMethod.ALL,
+      path: '*',
+      method: RequestMethod.ALL,
     })
   }
 }

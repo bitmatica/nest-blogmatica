@@ -1,12 +1,13 @@
 import { Args, Context, Field, InputType, Mutation, ObjectType, Resolver } from '@nestjs/graphql'
+import { InjectRepository } from '@nestjs/typeorm'
 import { User } from 'src/users/user.entity'
 import { Repository } from 'typeorm'
-import { AuthenticationService } from '../authentication/authentication.service'
-import { REFRESH_TOKEN_KEY } from '../authentication/constants'
 import { IContext } from '../core/context'
 import { ModelMutationResponse, MutationResponse } from '../core/resolvers/types'
 import { getOrThrow } from '../core/utils'
 import { CurrentUser } from '../decorators/currentUser'
+import { AuthenticationService } from './authentication.service'
+import { REFRESH_TOKEN_KEY } from './constants'
 
 @InputType()
 export class UserLoginArgs {
@@ -35,7 +36,7 @@ export class RefreshTokenResponse extends MutationResponse {
 @Resolver()
 export class AuthenticationResolver {
   constructor(
-    private readonly repo: Repository<User>,
+    @InjectRepository(User) private readonly repo: Repository<User>,
     private readonly authenticationService: AuthenticationService,
   ) {}
 
