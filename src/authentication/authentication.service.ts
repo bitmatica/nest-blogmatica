@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { InjectRepository } from '@nestjs/typeorm'
+import { randomBytes } from 'crypto'
+import { Repository } from 'typeorm'
 import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
-
+import { AuthSession } from './authSession.entity'
 
 @Injectable()
 export class AuthenticationService {
-  REFRESH_TOKEN = "refresh token"
-
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    @InjectRepository(AuthSession) private readonly sessionRepo: Repository<AuthSession>,
   ) {}
 
   async validateUser(username: string, password: string): Promise<User | undefined> {
@@ -21,15 +23,31 @@ export class AuthenticationService {
     }
   }
 
-  generateRefreshToken() {
-    return this.REFRESH_TOKEN
+  async generateRefreshToken(user: User): Promise<string | undefined> {
+    try {
+      const session = new AuthSession()
+      session.refreshToken = this.generateNonce()
+      session.userId = user.id
+      await this.sessionRepo.create(session)
+
+      return session.refreshToken
+    } catch {}
   }
 
-  isValidRefreshToken(token: string) {
-    return token === this.REFRESH_TOKEN
+  private generateNonce() {
+    return randomBytes(48).toString('base64')
   }
 
-  getJwt(user: User): string {
+  async isValidRefreshToken(user: User, token: string): Promise<boolean> {
+    const session = await this.sessionRepo.findOne({
+      refreshToken: token,
+      userId: user.id,
+    })
+    // TODO: Expire refresh tokens after a certain amount of time
+    return Boolean(session)
+  }
+
+  getAccessToken(user: User): string {
     const payload = { username: user.email, sub: user.id }
     return this.jwtService.sign(payload)
   }

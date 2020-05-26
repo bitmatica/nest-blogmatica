@@ -5,18 +5,18 @@ import { Repository } from 'typeorm'
 import { ActionScope, Can } from '../can'
 import { IContext } from '../context'
 import { constructQueryWithRelations } from '../resolvers/helpers/relations'
-import { ICreateModelInput, IUpdateModelInput, MutationResponse } from '../resolvers/types'
+import { ICreateModelInput, IUpdateModelInput, ModelMutationResponse } from '../resolvers/types'
 import { IBaseService } from './types'
 
 export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> {
   class BaseService implements IBaseService<T> {
-    constructor(@InjectRepository(modelClass) private repo: Repository<T>) {}
+    constructor(@InjectRepository(modelClass) public repo: Repository<T>) {}
 
     async create(
       input: ICreateModelInput<T>,
       context: IContext,
       info?: GraphQLResolveInfo,
-    ): Promise<MutationResponse<T>> {
+    ): Promise<ModelMutationResponse<T>> {
       try {
         const model = new modelClass()
         Object.assign(model, { ...input })
@@ -49,7 +49,7 @@ export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> 
       id: string,
       context: IContext,
       info?: GraphQLResolveInfo,
-    ): Promise<MutationResponse<T>> {
+    ): Promise<ModelMutationResponse<T>> {
       try {
         const model = await this.repo.findOne(id)
         if (!model) {
@@ -96,7 +96,7 @@ export function BaseModelService<T>(modelClass: Type<T>): Type<IBaseService<T>> 
       input: IUpdateModelInput<T>,
       context: IContext,
       info?: GraphQLResolveInfo,
-    ): Promise<MutationResponse<T>> {
+    ): Promise<ModelMutationResponse<T>> {
       try {
         const model = await this.repo.findOne(id)
         if (!model) {

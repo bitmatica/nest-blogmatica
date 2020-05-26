@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common'
 import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../core/context'
-import { ICreateModelInput, MutationResponse } from '../core/resolvers/types'
+import { ICreateModelInput, ModelMutationResponse } from '../core/resolvers/types'
 import { BaseModelService } from '../core/service/model'
 import { Post } from './post.entity'
 
@@ -11,7 +11,7 @@ export class PostsService extends BaseModelService(Post) {
     input: ICreateModelInput<Post>,
     context: IContext,
     info?: GraphQLResolveInfo,
-  ): Promise<MutationResponse<Post>> | MutationResponse<Post> {
+  ): Promise<ModelMutationResponse<Post>> | ModelMutationResponse<Post> {
     const user = context.req.user
     if (!user) {
       throw new ForbiddenException()

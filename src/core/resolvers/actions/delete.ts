@@ -9,11 +9,11 @@ import { IContext } from '../../context'
 import { IDeleteService, IServiceProvider } from '../../service/types'
 import { IdInput } from '../decorators'
 import {
-  DeletionResponse,
   IActionOptions,
   IActionResolverBuilder,
   IActionResolverOptions,
-  IDeletionResponse,
+  IMutationResponse,
+  MutationResponse,
 } from '../types'
 
 export interface IDeleteResolver<T> {
@@ -21,7 +21,7 @@ export interface IDeleteResolver<T> {
     id: string,
     context: IContext,
     info: GraphQLResolveInfo,
-  ): Promise<DeletionResponse> | DeletionResponse
+  ): Promise<MutationResponse> | MutationResponse
 }
 
 export class Delete<T> implements IActionResolverBuilder {
@@ -48,8 +48,8 @@ export class Delete<T> implements IActionResolverBuilder {
     return `delete${modelClass.name}`
   }
 
-  static Response<T>(modelClass: Type<T>): Type<IDeletionResponse> {
-    return DeletionResponse
+  static Response<T>(modelClass: Type<T>): Type<IMutationResponse> {
+    return MutationResponse
   }
 
   static Resolver<T>(modelClass: Type<T>, opts?: IActionResolverOptions): MethodDecorator {
@@ -64,13 +64,14 @@ export class Delete<T> implements IActionResolverBuilder {
     class DeleteModelResolverClass extends innerClass implements IDeleteResolver<T> {
       @InjectRepository(this.modelClass)
       repo: Repository<T>
+
       @CanAuth(this.modelClass, ActionScope.Delete)
       @(this.resolverDecorator)
       delete(
         @IdInput id: string,
         @Context() context: IContext,
         @Info() info: GraphQLResolveInfo,
-      ): Promise<DeletionResponse> | DeletionResponse {
+      ): Promise<MutationResponse> | MutationResponse {
         return this.service.delete(id, context, info)
       }
     }
