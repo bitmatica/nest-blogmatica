@@ -86,12 +86,12 @@ export class AuthenticationResolver {
 
   @Mutation(returns => RefreshTokenResponse)
   async refreshToken(
-    @CurrentUser() user: User,
+    @CurrentUser() user: User | undefined,
     @Context() context: IContext,
   ): Promise<RefreshTokenResponse> {
     const token = context.req.cookies[REFRESH_TOKEN_KEY]
 
-    if (!(await this.authenticationService.isValidRefreshToken(user, token))) {
+    if (!user || !(await this.authenticationService.isValidRefreshToken(user, token))) {
       return {
         success: false,
         message: 'Token refresh failed',
