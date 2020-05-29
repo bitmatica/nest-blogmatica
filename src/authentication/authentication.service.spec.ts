@@ -6,6 +6,7 @@ import { AuthenticationService } from './authentication.service'
 import { jwtConstants } from './constants'
 import { JwtStrategy } from './strategies/jwt.strategy'
 import { AppModule } from '../app.module'
+import { User } from '../users/user.entity'
 
 describe('AuthService', () => {
   let service: AuthenticationService
@@ -25,7 +26,9 @@ describe('AuthService', () => {
     service = module.get<AuthenticationService>(AuthenticationService)
   })
 
-  it('should be defined', () => {
+  it('should be defined', async () => {
+    jest.spyOn(service, 'login').mockImplementation(() => Promise.resolve('logged in'))
     expect(service).toBeDefined()
+    expect(await service.login(new User())).toBe('logged in')
   })
 })
