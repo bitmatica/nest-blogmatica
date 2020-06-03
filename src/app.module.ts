@@ -1,7 +1,10 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
+import cookieParser from 'cookie-parser'
+import { AuthenticationModule } from './authentication/authentication.module'
+import { GraphQLModule } from '@nestjs/graphql'
+import { AuthenticationService } from './authentication/authentication.service'
 import { CommentsModule } from './comments/comments.module'
 import databaseConfig from './config/databaseConfig'
 import graphqlConfig from './config/graphqlConfig'
@@ -22,6 +25,7 @@ import { UsersService } from './users/users.service'
     UsersModule,
     PostsModule,
     OAuthModule,
+    AuthenticationModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [oauthConfig, databaseConfig, graphqlConfig],
@@ -36,11 +40,18 @@ import { UsersService } from './users/users.service'
         ),
     }),
     GraphQLModule.forRootAsync({
-      imports: [ConfigModule, UsersModule],
-      inject: [ConfigService, UsersService],
+      imports: [ConfigModule, UsersModule, AuthenticationModule],
+      inject: [ConfigService, UsersService, AuthenticationService],
       useFactory: graphqlConfigFactory,
     }),
     GustoModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(cookieParser()).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL,
+    })
+  }
+}

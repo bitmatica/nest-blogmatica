@@ -4,5 +4,7 @@ export const jwtConstants = {
 
 export const jwtServiceOptions = {
   secret: jwtConstants.secret,
-  signOptions: { expiresIn: '60m' },
+  signOptions: { expiresIn: '15m' },
 }
+
+export const REFRESH_TOKEN_KEY = "refreshCookie"

@@ -11,10 +11,10 @@ import {
   PartialType,
   Resolver,
 } from '@nestjs/graphql'
+import { GraphQLResolveInfo } from 'graphql'
 import { getMetadataArgsStorage } from 'typeorm'
 import { ActionScope } from '../../can'
 import { CanAuth } from '../../can/decorators'
-import { GraphQLResolveInfo } from 'graphql'
 import { IContext } from '../../context'
 import { BASE_MODEL_FIELDS } from '../../model'
 import { IServiceProvider, IUpdateService } from '../../service/types'
@@ -24,9 +24,9 @@ import {
   IActionResolverArgsOptions,
   IActionResolverBuilder,
   IActionResolverOptions,
-  IMutationResponse,
+  IModelMutationResponse,
   IUpdateModelInput,
-  MutationResponse,
+  ModelMutationResponse,
 } from '../types'
 
 export interface IUpdateResolver<T> {
@@ -35,7 +35,7 @@ export interface IUpdateResolver<T> {
     input: IUpdateModelInput<T>,
     context: IContext,
     info: GraphQLResolveInfo,
-  ): Promise<MutationResponse<T>> | MutationResponse<T>
+  ): Promise<ModelMutationResponse<T>> | ModelMutationResponse<T>
 }
 
 export class Update<T> implements IActionResolverBuilder {
@@ -71,9 +71,9 @@ export class Update<T> implements IActionResolverBuilder {
     return `update${modelClass.name}`
   }
 
-  static Response<T>(modelClass: Type<T>): Type<IMutationResponse<T>> {
+  static Response<T>(modelClass: Type<T>): Type<IModelMutationResponse<T>> {
     @ObjectType(`${modelClass.name}UpdateResponse`)
-    class ModelUpdateResponse extends MutationResponse<T> {
+    class ModelUpdateResponse extends ModelMutationResponse<T> {
       @Field(type => modelClass, {
         name: modelClass.name.toLocaleLowerCase(),
         nullable: true,
@@ -124,7 +124,7 @@ export class Update<T> implements IActionResolverBuilder {
         @(this.arg) input: IUpdateModelInput<T>,
         @Context() context: IContext,
         @Info() info: GraphQLResolveInfo,
-      ): Promise<IMutationResponse<T>> | IMutationResponse<T> {
+      ): Promise<IModelMutationResponse<T>> | IModelMutationResponse<T> {
         return this.service.update(id, input, context, info)
       }
     }

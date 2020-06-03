@@ -17,13 +17,13 @@ import {
   IUpdateResolver,
 } from './actions'
 
-export interface IDeletionResponse {
+export interface IMutationResponse {
   success: boolean
   message: string
 }
 
 @ObjectType()
-export class DeletionResponse implements IDeletionResponse {
+export class MutationResponse implements IMutationResponse {
   @Field()
   success: boolean
 
@@ -31,7 +31,7 @@ export class DeletionResponse implements IDeletionResponse {
   message: string
 }
 
-export interface IMutationResponse<T> {
+export interface IModelMutationResponse<T> {
   success: boolean
 
   message: string
@@ -40,7 +40,7 @@ export interface IMutationResponse<T> {
 }
 
 @ObjectType()
-export abstract class MutationResponse<T> implements IMutationResponse<T> {
+export abstract class ModelMutationResponse<T> implements IModelMutationResponse<T> {
   @Field()
   success: boolean
 
