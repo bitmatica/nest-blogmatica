@@ -51,4 +51,9 @@ export class AuthenticationService {
     const payload = { username: user.email, sub: user.id }
     return this.jwtService.sign(payload)
   }
+
+  async getUserByRefreshToken(refreshToken: string): Promise<User | undefined> {
+    const session = await this.sessionRepo.findOne({ refreshToken })
+    return session?.user
+  }
 }
