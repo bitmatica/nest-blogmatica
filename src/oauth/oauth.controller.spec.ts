@@ -1,18 +1,25 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { OAuthController } from './oauth.controller';
+import { Test, TestingModule } from '@nestjs/testing'
+import { OAuthController } from './oauth.controller'
+import { OAuthService } from './oauth.service'
+import { AppModule } from '../app.module'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { OAuthToken } from './oauthtoken.entity'
+import { HttpModule } from '@nestjs/common'
+import { OAuthResolver } from './oauth.resolver'
+import { ConfigService } from '@nestjs/config'
 
 describe('Oauth Controller', () => {
-  let controller: OAuthController;
+  let controller: OAuthController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [OAuthController],
-    }).compile();
+      imports: [AppModule],
+    }).compile()
 
-    controller = module.get<OAuthController>(OAuthController);
-  });
+    controller = module.get<OAuthController>(OAuthController)
+  })
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+    expect(controller).toBeDefined()
+  })
+})

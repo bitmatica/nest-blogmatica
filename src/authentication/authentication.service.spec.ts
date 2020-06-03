@@ -5,6 +5,8 @@ import { UsersModule } from '../users/users.module'
 import { AuthenticationService } from './authentication.service'
 import { jwtConstants } from './constants'
 import { JwtStrategy } from './strategies/jwt.strategy'
+import { AppModule } from '../app.module'
+import { User } from '../users/user.entity'
 
 describe('AuthService', () => {
   let service: AuthenticationService
@@ -12,20 +14,21 @@ describe('AuthService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        UsersModule,
         PassportModule,
+        AppModule,
         JwtModule.register({
           secret: jwtConstants.secret,
           signOptions: { expiresIn: '60m' },
         }),
       ],
-      providers: [AuthenticationService, JwtStrategy],
     }).compile()
 
     service = module.get<AuthenticationService>(AuthenticationService)
   })
 
-  it('should be defined', () => {
+  it('should be defined', async () => {
+    jest.spyOn(service, 'login').mockImplementation(() => Promise.resolve('logged in'))
     expect(service).toBeDefined()
+    expect(await service.login(new User())).toBe('logged in')
   })
 })
