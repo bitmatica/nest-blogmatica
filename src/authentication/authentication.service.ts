@@ -56,4 +56,8 @@ export class AuthenticationService {
     const session = await this.sessionRepo.findOne({ refreshToken })
     return session?.user
   }
+
+  async deleteSession(userId: string): Promise<void> {
+    await this.sessionRepo.delete({ userId })
+  }
 }

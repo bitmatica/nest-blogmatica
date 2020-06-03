@@ -69,9 +69,15 @@ export class AuthenticationResolver {
   }
 
   @Mutation(returns => MutationResponse)
-  async logout(@Context() context: IContext): Promise<MutationResponse> {
-    context.res.clearCookie(REFRESH_TOKEN_KEY)
+  async logout(
+    @Context() context: IContext
+  ): Promise<MutationResponse> {
     try {
+      context.res.clearCookie(REFRESH_TOKEN_KEY)
+      const { user } = context.req
+      if (user) {
+        this.authenticationService.deleteSession(user.id)
+      }
       return {
         success: true,
         message: 'Logout successful!',
