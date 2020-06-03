@@ -29,7 +29,7 @@ export class AuthenticationService {
       session.refreshToken = this.generateNonce()
       session.userId = user.id
       await this.sessionRepo.create(session)
-
+      await this.sessionRepo.save(session)
       return session.refreshToken
     } catch {}
   }

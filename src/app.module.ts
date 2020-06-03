@@ -18,6 +18,7 @@ import { PostsModule } from './posts/posts.module'
 import { UsersModule } from './users/users.module'
 import { UsersService } from './users/users.service'
 import { GraphQLModule } from '@nestjs/graphql'
+import { AuthenticationService } from './authentication/authentication.service'
 
 @Module({
   imports: [
@@ -41,8 +42,8 @@ import { GraphQLModule } from '@nestjs/graphql'
         ),
     }),
     GraphQLModule.forRootAsync({
-      imports: [ConfigModule, UsersModule],
-      inject: [ConfigService, UsersService],
+      imports: [ConfigModule, UsersModule, AuthenticationModule],
+      inject: [ConfigService, UsersService, AuthenticationService],
       useFactory: graphqlConfigFactory,
     }),
     ServeStaticModule.forRoot({
