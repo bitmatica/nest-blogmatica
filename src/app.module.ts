@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { GraphQLModule } from '@nestjs/graphql'
-import { ServeStaticModule } from '@nestjs/serve-static'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
-import { join } from 'path'
 import { CommentsModule } from './comments/comments.module'
 import databaseConfig from './config/databaseConfig'
 import graphqlConfig from './config/graphqlConfig'
@@ -41,10 +39,6 @@ import { UsersService } from './users/users.service'
       imports: [ConfigModule, UsersModule],
       inject: [ConfigService, UsersService],
       useFactory: graphqlConfigFactory,
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client'),
-      exclude: ['/auth*', '/graphql*', '/authCallback'],
     }),
     GustoModule,
   ],
