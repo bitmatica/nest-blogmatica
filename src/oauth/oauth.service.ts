@@ -8,6 +8,7 @@ import { Repository } from 'typeorm'
 import { IOAuthProviderConfig } from '../config/oauthConfig'
 import { ModelId } from '../core/model'
 import { OAuthProvider, OAuthToken } from './oauthtoken.entity'
+import { generateNonce } from '../core/utils'
 
 interface IOAuthStateParam {
   id: string
@@ -31,7 +32,7 @@ export class OAuthService {
   ) {}
 
   async generateAuthorizationUri(provider: OAuthProvider, userId: ModelId): Promise<string> {
-    const nonce = this.generateNonce()
+    const nonce = generateNonce()
 
     const oauthRecord = new OAuthToken()
     oauthRecord.userId = userId
@@ -105,10 +106,6 @@ export class OAuthService {
     oauthRecord.tokenType = accessTokenResponse.token_type
     oauthRecord.setTokenCreatedAt(accessTokenResponse.created_at)
     return await this.oauthRepo.save(oauthRecord)
-  }
-
-  generateNonce() {
-    return randomBytes(48).toString('base64')
   }
 
   encodeState(input: IOAuthStateParam): string {

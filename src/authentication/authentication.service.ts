@@ -6,6 +6,7 @@ import { Repository } from 'typeorm'
 import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
 import { AuthSession } from './authSession.entity'
+import { generateNonce } from '../core/utils'
 
 @Injectable()
 export class AuthenticationService {
@@ -26,7 +27,7 @@ export class AuthenticationService {
   async generateRefreshToken(user: User): Promise<string | undefined> {
     try {
       const session = new AuthSession()
-      session.refreshToken = this.generateNonce()
+      session.refreshToken = generateNonce()
       session.userId = user.id
       await this.sessionRepo.create(session)
       await this.sessionRepo.save(session)
@@ -34,9 +35,6 @@ export class AuthenticationService {
     } catch {}
   }
 
-  private generateNonce() {
-    return randomBytes(48).toString('base64')
-  }
 
   async isValidRefreshToken(user: User, token: string): Promise<boolean> {
     const session = await this.sessionRepo.findOne({
