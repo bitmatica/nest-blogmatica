@@ -1,10 +1,10 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { ServeStaticModule } from '@nestjs/serve-static'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
 import cookieParser from 'cookie-parser'
-import { join } from 'path'
 import { AuthenticationModule } from './authentication/authentication.module'
+import { GraphQLModule } from '@nestjs/graphql'
+import { AuthenticationService } from './authentication/authentication.service'
 import { CommentsModule } from './comments/comments.module'
 import databaseConfig from './config/databaseConfig'
 import graphqlConfig from './config/graphqlConfig'
@@ -17,8 +17,6 @@ import { OAuthModule } from './oauth/oauth.module'
 import { PostsModule } from './posts/posts.module'
 import { UsersModule } from './users/users.module'
 import { UsersService } from './users/users.service'
-import { GraphQLModule } from '@nestjs/graphql'
-import { AuthenticationService } from './authentication/authentication.service'
 
 @Module({
   imports: [
@@ -45,10 +43,6 @@ import { AuthenticationService } from './authentication/authentication.service'
       imports: [ConfigModule, UsersModule, AuthenticationModule],
       inject: [ConfigService, UsersService, AuthenticationService],
       useFactory: graphqlConfigFactory,
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client'),
-      exclude: ['/auth*', '/graphql*', '/authCallback'],
     }),
     GustoModule,
   ],
