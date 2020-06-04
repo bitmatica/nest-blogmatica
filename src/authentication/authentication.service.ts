@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
-import { randomBytes } from 'crypto'
 import { Repository } from 'typeorm'
 import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
 import { AuthSession } from './authSession.entity'
-import { generateNonce } from '../core/utils'
+import { generateNonce, getDate } from '../core/utils'
+import { DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY } from './constants'
 
 @Injectable()
 export class AuthenticationService {
@@ -28,21 +28,20 @@ export class AuthenticationService {
     try {
       const session = new AuthSession()
       session.refreshToken = generateNonce()
+      session.expiry = getDate(DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY)
       session.userId = user.id
-      await this.sessionRepo.create(session)
+      this.sessionRepo.create(session)
       await this.sessionRepo.save(session)
       return session.refreshToken
     } catch {}
   }
-
 
   async isValidRefreshToken(user: User, token: string): Promise<boolean> {
     const session = await this.sessionRepo.findOne({
       refreshToken: token,
       userId: user.id,
     })
-    // TODO: Expire refresh tokens after a certain amount of time
-    return Boolean(session)
+    return Boolean(session && session.expiry > new Date())
   }
 
   getAccessToken(user: User): string {

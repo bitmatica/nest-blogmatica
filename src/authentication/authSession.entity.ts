@@ -12,4 +12,7 @@ export class AuthSession extends BaseModel {
 
   @Column()
   userId: ModelId
+
+  @Column({ type: 'timestamptz' })
+  expiry: Date
 }
