@@ -61,7 +61,7 @@ export class OAuthService {
       if (!decodedState) {
         return Promise.reject(new UnauthorizedException())
       }
-      const accessTokenResponse = (await this.getAccessTokenWithConf(provider, code))!
+      const accessTokenResponse = await this.getAccessTokenWithConf(provider, code)
       const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
       if (!oauthRecord || !oauthRecord.nonce || oauthRecord.nonce !== decodedState.nonce) {
         return Promise.reject(new UnauthorizedException())
@@ -85,17 +85,20 @@ export class OAuthService {
       .andWhere('token.accessToken IS NOT NULL')
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
+
     if (!token) {
       return undefined
-    } else if (token.isExpired()) {
-      const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
+    }
+
+    if (token.isExpired()) {
+      const response = await this.refreshAccessToken(provider, token.refreshToken)
       await this.saveAccessToken(token, response)
       return token
     }
     return token
   }
 
-  async refreshAccessToken(provider: OAuthProvider, refreshToken: string) {
+  async refreshAccessToken(provider: OAuthProvider, refreshToken?: string) {
     return await this.getAccessTokenWithConf(provider, undefined, refreshToken)
   }
 
@@ -143,13 +146,17 @@ export class OAuthService {
     percentEncodeRedirectUri: boolean,
     state?: string,
     scope?: string,
-  ) {
+  ): string {
     return `${authorizationUri}?client_id=${clientId}&redirect_uri=${
       percentEncodeRedirectUri ? encodeURIComponent(redirectUri) : redirectUri
     }&response_type=code${scope ? `&scope=${scope}` : ''}${state ? `&state=${state}` : ''}`
   }
 
-  async getAccessTokenWithConf(provider: OAuthProvider, code?: string, refreshToken?: string) {
+  async getAccessTokenWithConf(
+    provider: OAuthProvider,
+    code?: string,
+    refreshToken?: string,
+  ): Promise<IAccessTokenResponse> {
     const conf = this.config(provider)
     return this.fetchAccessToken(
       conf.accessTokenUri,
@@ -170,7 +177,7 @@ export class OAuthService {
     contentType: string,
     code?: string,
     refreshToken?: string,
-  ): Promise<IAccessTokenResponse | undefined> {
+  ): Promise<IAccessTokenResponse> {
     try {
       const codeOrRefreshToken = code ? { code } : { refresh_token: refreshToken }
       const grantType = code ? 'authorization_code' : 'refresh_token'
@@ -195,7 +202,7 @@ export class OAuthService {
       return response.data
     } catch (err) {
       console.error('Unable to parse access_token from response: ' + err)
-      return undefined
+      throw new Error('Unable to parse access_token from response: ' + err)
     }
   }
 }

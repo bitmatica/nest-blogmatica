@@ -17,10 +17,10 @@ export class GustoService {
       OAuthProvider.GUSTO,
     )
     // TODO can prob use a decorator/guard for this
-    if (!oauthToken) {
+    if (!oauthToken || !oauthToken.accessToken) {
       throw new ForbiddenException(OAuthProvider.GUSTO)
     }
-    return await this.get('v1/me', oauthToken.accessToken!)
+    return await this.get('v1/me', oauthToken.accessToken)
   }
 
   async companyById(userId: ModelId, id: number): Promise<GustoCompany> {
@@ -29,10 +29,10 @@ export class GustoService {
       OAuthProvider.GUSTO,
     )
     // TODO can prob use a decorator/guard for this
-    if (!oauthToken) {
+    if (!oauthToken || !oauthToken.accessToken) {
       throw new ForbiddenException(OAuthProvider.GUSTO)
     }
-    return await this.get(`v1/companies/${id}`, oauthToken.accessToken!)
+    return await this.get(`v1/companies/${id}`, oauthToken.accessToken)
   }
 
   // TODO: below code should prob go in some common place
@@ -42,7 +42,7 @@ export class GustoService {
     //  If receive 401, refresh token and try again once.
     //  If that fails, either refresh token is no longer valid or something is wrong with authorization server.
     //  Maybe throw a forbidden to initiate another oauth flow.
-    return (await this.getWithBearerToken(url, token!)).data
+    return (await this.getWithBearerToken(url, token)).data
   }
 
   async buildUri(path: string, provider: OAuthProvider) {
