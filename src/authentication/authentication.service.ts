@@ -30,21 +30,22 @@ export class AuthenticationService {
       session.refreshToken = this.generateRefreshToken()
       session.expiry = getDate(DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY)
       session.userId = user.id
-      this.sessionRepo.create(session)
+      await this.sessionRepo.create(session)
       await this.sessionRepo.save(session)
       return session.refreshToken
     } catch {}
   }
 
-  async isValidRefreshToken(user: User, token: string): Promise<boolean> {
-    const session = await this.sessionRepo.findOne({
-      refreshToken: token,
-      userId: user.id,
-    })
-    if (!session || session.expiry < new Date()) return false
+  async getSessionFromRefreshToken(refreshToken: string): Promise<AuthSession | undefined> {
+    const session = await this.sessionRepo.findOne({ refreshToken }, { relations: ["user"] })
+    if (!session || session.expiry < new Date()) return
+    return session
+  }
+
+  async replaceRefreshToken(session: AuthSession): Promise<string> {
     session.refreshToken = this.generateRefreshToken()
     await this.sessionRepo.save(session)
-    return true
+    return session.refreshToken
   }
 
   generateRefreshToken() {
@@ -61,7 +62,7 @@ export class AuthenticationService {
     return session?.user
   }
 
-  async deleteSession(userId: string): Promise<void> {
-    await this.sessionRepo.delete({ userId })
+  async deleteSession(refreshToken: string): Promise<void> {
+    await this.sessionRepo.softDelete({ refreshToken })
   }
 }

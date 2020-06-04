@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne } from 'typeorm'
+import { Column, Entity, ManyToOne, DeleteDateColumn } from 'typeorm'
 import { BaseModel, ModelId } from '../core/model'
 import { User } from '../users/user.entity'
 
@@ -15,4 +15,7 @@ export class AuthSession extends BaseModel {
 
   @Column({ type: 'timestamptz' })
   expiry: Date
+
+  @DeleteDateColumn()
+  deletedAt: Date
 }
