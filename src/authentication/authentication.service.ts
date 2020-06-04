@@ -24,10 +24,10 @@ export class AuthenticationService {
     }
   }
 
-  async generateRefreshToken(user: User): Promise<string | undefined> {
+  async createAuthSession(user: User): Promise<string | undefined> {
     try {
       const session = new AuthSession()
-      session.refreshToken = generateNonce()
+      session.refreshToken = this.generateRefreshToken()
       session.expiry = getDate(DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY)
       session.userId = user.id
       this.sessionRepo.create(session)
@@ -41,10 +41,17 @@ export class AuthenticationService {
       refreshToken: token,
       userId: user.id,
     })
-    return Boolean(session && session.expiry > new Date())
+    if (!session || session.expiry < new Date()) return false
+    session.refreshToken = this.generateRefreshToken()
+    await this.sessionRepo.save(session)
+    return true
   }
 
-  getAccessToken(user: User): string {
+  generateRefreshToken() {
+    return generateNonce()
+  }
+
+  generateAccessToken(user: User): string {
     const payload = { username: user.email, sub: user.id }
     return this.jwtService.sign(payload)
   }
