@@ -6,7 +6,7 @@ import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
 import { AuthSession } from './authSession.entity'
 import { generateNonce, getDate } from '../core/utils'
-import { DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY } from './constants'
+import { DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY, UPDATE_EXPIRY_ON_TOKEN_REFRESH, DAYS_AFTER_ACTIVITY_REFRESH_TOKEN_EXPIRY } from './constants'
 
 @Injectable()
 export class AuthenticationService {
@@ -44,6 +44,9 @@ export class AuthenticationService {
 
   async replaceRefreshToken(session: AuthSession): Promise<string> {
     session.refreshToken = this.generateRefreshToken()
+    if (UPDATE_EXPIRY_ON_TOKEN_REFRESH) {
+      session.expiry = getDate(DAYS_AFTER_ACTIVITY_REFRESH_TOKEN_EXPIRY)
+    }
     await this.sessionRepo.save(session)
     return session.refreshToken
   }
