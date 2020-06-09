@@ -54,12 +54,12 @@ export class PlaidService {
   async getAccessToken(userId: ModelId, itemId: string): Promise<string | undefined> {
     // TODO: cache accessToken in-memory to avoid decryption calls?
     const item = await this.plaidSessionRepo.findOne({ userId, itemId })
-    if (!item) {
-      return undefined
-    }
-    return await this.encryptionService.decrypt(
-      item.accessToken,
-      PlaidService.encryptionContext(userId, itemId),
+    return (
+      item &&
+      (await this.encryptionService.decrypt(
+        item.accessToken,
+        PlaidService.encryptionContext(userId, itemId),
+      ))
     )
   }
 
