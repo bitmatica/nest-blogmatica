@@ -28,6 +28,7 @@
     "postinstall": "yarn build"
   },
   "dependencies": {
+    "@aws-crypto/client-node": "^1.0.5",
     "@nestjs/common": "^7.0.0",
     "@nestjs/config": "^0.4.2",
     "@nestjs/core": "^7.0.0",
@@ -50,6 +51,7 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "pg": "^8.0.3",
+    "plaid": "^5.1.0",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.19",
     "typeorm": "^0.2.24"
