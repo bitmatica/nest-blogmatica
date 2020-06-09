@@ -17,6 +17,10 @@ import { OAuthModule } from './oauth/oauth.module'
 import { PostsModule } from './posts/posts.module'
 import { UsersModule } from './users/users.module'
 import { UsersService } from './users/users.service'
+import { EncryptionModule } from './encryption/encryption.module'
+import { PlaidModule } from './plaid/plaid.module'
+import plaidConfig from './config/plaidConfig'
+import kmsConfig from './config/kmsConfig'
 
 @Module({
   imports: [
@@ -28,7 +32,7 @@ import { UsersService } from './users/users.service'
     AuthenticationModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [oauthConfig, databaseConfig, graphqlConfig],
+      load: [oauthConfig, databaseConfig, graphqlConfig, plaidConfig, kmsConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -45,6 +49,8 @@ import { UsersService } from './users/users.service'
       useFactory: graphqlConfigFactory,
     }),
     GustoModule,
+    EncryptionModule,
+    PlaidModule,
   ],
 })
 export class AppModule {
