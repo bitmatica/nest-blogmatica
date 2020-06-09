@@ -7,6 +7,7 @@ import { Repository } from 'typeorm'
 import plaid, { Account, Client } from 'plaid'
 import { ConfigService } from '@nestjs/config'
 import { IPlaidConfig } from '../config/plaidConfig'
+import { getOrThrow } from '../core/utils'
 
 @Injectable()
 export class PlaidService {
@@ -16,10 +17,7 @@ export class PlaidService {
     private readonly configService: ConfigService,
     @InjectRepository(PlaidItem) private readonly plaidSessionRepo: Repository<PlaidItem>,
   ) {
-    const config = this.configService.get<IPlaidConfig>('plaid')
-    if (!config) {
-      throw new Error('Missing Plaid Config')
-    }
+    const config = getOrThrow(this.configService.get<IPlaidConfig>('plaid'))
     this.client = new plaid.Client(
       config.clientId,
       config.secret,
@@ -43,11 +41,7 @@ export class PlaidService {
   }
 
   async getPlaidAccounts(userId: ModelId, itemId: string): Promise<Array<Account>> {
-    const accessToken = await this.getAccessToken(userId, itemId)
-    if (!accessToken) {
-      return Promise.reject('Access token invalid')
-    }
-
+    const accessToken = getOrThrow(await this.getAccessToken(userId, itemId))
     return (await this.client.getAccounts(accessToken)).accounts
   }
 
@@ -69,11 +63,5 @@ export class PlaidService {
       userId,
       itemId,
     }
-  }
-
-  private getConfig(key: string): string {
-    const value = this.configService.get<string>(key)
-    if (!value) throw new Error(`Missing config: ${key}`)
-    return value
   }
 }
