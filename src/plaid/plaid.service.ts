@@ -23,7 +23,7 @@ export class PlaidService {
       config.secret,
       config.publicKey,
       plaid.environments[config.env],
-      { version: '2019-05-29', clientApp: 'Bitmatica' },
+      config.clientOptions,
     )
   }
 

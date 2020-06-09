@@ -1,3 +1,5 @@
+import { ClientOptions } from 'plaid'
+
 export default () => ({
   plaid: {
     clientId: process.env.PLAID_CLIENT_ID,
@@ -6,6 +8,10 @@ export default () => ({
     products: process.env.PLAID_PRODUCTS || 'transactions',
     countryCodes: process.env.PLAID_COUNTRY_CODES || 'US',
     env: process.env.PLAID_ENV,
+    clientOptions: {
+      version: '2019-05-29',
+      clientApp: 'App',
+    },
   },
 })
 
@@ -16,4 +22,5 @@ export interface IPlaidConfig {
   products: string
   countryCodes: string
   env: string
+  clientOptions: ClientOptions
 }
