@@ -8,3 +8,7 @@ export const jwtServiceOptions = {
 }
 
 export const REFRESH_TOKEN_KEY = "refreshCookie"
+
+export const DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY = 2
+export const UPDATE_EXPIRY_ON_TOKEN_REFRESH = false
+export const DAYS_AFTER_ACTIVITY_REFRESH_TOKEN_EXPIRY = 0

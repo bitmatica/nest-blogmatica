@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
-import { randomBytes } from 'crypto'
 import { Repository } from 'typeorm'
 import { User } from '../users/user.entity'
 import { UsersService } from '../users/users.service'
 import { AuthSession } from './authSession.entity'
-import { generateNonce } from '../core/utils'
+import { generateNonce, getDate } from '../core/utils'
+import { DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY, UPDATE_EXPIRY_ON_TOKEN_REFRESH, DAYS_AFTER_ACTIVITY_REFRESH_TOKEN_EXPIRY } from './constants'
 
 @Injectable()
 export class AuthenticationService {
@@ -24,10 +24,11 @@ export class AuthenticationService {
     }
   }
 
-  async generateRefreshToken(user: User): Promise<string | undefined> {
+  async createAuthSession(user: User): Promise<string | undefined> {
     try {
       const session = new AuthSession()
-      session.refreshToken = generateNonce()
+      session.refreshToken = this.generateRefreshToken()
+      session.expiry = getDate(DAYS_AFTER_LOGIN_REFRESH_TOKEN_EXPIRY)
       session.userId = user.id
       await this.sessionRepo.create(session)
       await this.sessionRepo.save(session)
@@ -35,17 +36,26 @@ export class AuthenticationService {
     } catch {}
   }
 
-
-  async isValidRefreshToken(user: User, token: string): Promise<boolean> {
-    const session = await this.sessionRepo.findOne({
-      refreshToken: token,
-      userId: user.id,
-    })
-    // TODO: Expire refresh tokens after a certain amount of time
-    return Boolean(session)
+  async getSessionFromRefreshToken(refreshToken: string): Promise<AuthSession | undefined> {
+    const session = await this.sessionRepo.findOne({ refreshToken }, { relations: ["user"] })
+    if (!session || session.expiry < new Date()) return
+    return session
   }
 
-  getAccessToken(user: User): string {
+  async replaceRefreshToken(session: AuthSession): Promise<string> {
+    session.refreshToken = this.generateRefreshToken()
+    if (UPDATE_EXPIRY_ON_TOKEN_REFRESH) {
+      session.expiry = getDate(DAYS_AFTER_ACTIVITY_REFRESH_TOKEN_EXPIRY)
+    }
+    await this.sessionRepo.save(session)
+    return session.refreshToken
+  }
+
+  generateRefreshToken() {
+    return generateNonce()
+  }
+
+  generateAccessToken(user: User): string {
     const payload = { username: user.email, sub: user.id }
     return this.jwtService.sign(payload)
   }
@@ -55,7 +65,7 @@ export class AuthenticationService {
     return session?.user
   }
 
-  async deleteSession(userId: string): Promise<void> {
-    await this.sessionRepo.delete({ userId })
+  async deleteSession(refreshToken: string): Promise<void> {
+    await this.sessionRepo.softDelete({ refreshToken })
   }
 }

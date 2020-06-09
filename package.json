@@ -23,6 +23,7 @@
     "db": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -f src/database/cli/config.ts ",
     "db:migration:generate": "yarn db migration:generate",
     "db:migration:create": "yarn db migration:create",
+    "db:migration:revert": "yarn db migration:revert",
     "db:migrate": "yarn db migration:run",
     "postinstall": "yarn build"
   },
