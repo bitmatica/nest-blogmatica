@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddPlaidItemTable1591667033349 implements MigrationInterface {
-  name = 'AddPlaidItemTable1591667033349'
+export class AddPlaidItemTable1591722384016 implements MigrationInterface {
+  name = 'AddPlaidItemTable1591722384016'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

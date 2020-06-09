@@ -10,7 +10,7 @@ export class PlaidItem extends BaseModel {
   itemId: string
 
   @Column({ type: 'bytea' })
-  accessToken: string
+  accessToken: Buffer
 
   @ManyToOne(type => User, { nullable: false, lazy: true, cascade: ['remove'] })
   user: Promise<User>
