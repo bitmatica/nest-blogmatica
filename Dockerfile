@@ -1,4 +1,4 @@
-FROM node:14.1.0-slim
+FROM node:lts-slim
 COPY . .
 RUN rm -rf node_modules && yarn
 RUN yarn build
