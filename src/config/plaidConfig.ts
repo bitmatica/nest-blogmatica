@@ -5,7 +5,7 @@ export default () => ({
     publicKey: process.env.PLAID_PUBLIC_KEY,
     products: process.env.PLAID_PRODUCTS || 'transactions',
     countryCodes: process.env.PLAID_COUNTRY_CODES || 'US',
-    env: process.env.PLAID_ENV || 'sandbox',
+    env: process.env.PLAID_ENV,
   },
 })
 
