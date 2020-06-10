@@ -98,7 +98,7 @@ BE App Framework
 - [ ] Unit tests
 - [ ] Integration tests
 - [ ] Forgot password flow (email sender?)
-- [ ] Encrypted db field (e.g. ssn)
+- [x] Encrypted db field (e.g. ssn)
 - [ ] ???
 
 BE Infra
