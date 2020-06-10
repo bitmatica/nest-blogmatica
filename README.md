@@ -113,10 +113,10 @@ FE App Framework
 - [x] GQL client lib (apollo)
 - [x] State management (mobx state tree?)
 - [ ] Hooks
-- [ ] Email/password authentication flow
+- [x] Email/password authentication flow
 - [ ] Oauth2 authentication flow
 - [ ] Collection views (posts/comments/users)
-- [ ] Styling framework
+- [x] Styling framework
 - [ ] Subscriptions (depends on BE scheme)
 - [ ] Testing
 
