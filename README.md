@@ -102,11 +102,11 @@ BE App Framework
 - [ ] ???
 
 BE Infra
-- [ ] Dockerize
-- [ ] RDMS (postgres)
-- [ ] Set up k8s on AWS (or heroku?)
-- [ ] CI/CD
-- [ ] ???
+- [x] Dockerize
+- [x] RDMS (postgres on AWS RDS)
+- [x] Set up k8s on AWS (EKS)
+- [x] CI/CD
+
 
 FE App Framework
 - [x] React
@@ -119,8 +119,7 @@ FE App Framework
 - [ ] Styling framework
 - [ ] Subscriptions (depends on BE scheme)
 - [ ] Testing
-- [ ] ???
 
 FE Infra
-- [ ] Static file server (s3? cdn?)
-- [ ] CI/CD
+- [x] Static file server (s3? cdn?)
+- [x] CI/CD
