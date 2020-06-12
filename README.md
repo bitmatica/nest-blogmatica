@@ -31,33 +31,62 @@
 ## Installation
 
 ```bash
-$ npm install
+$ yarn
 ```
+## Local Development
+This app currently uses AWS KMS for encryption and requires that the AWS CLI is installed/configured.
+After installing the AWS CLI, configure it to use your credentials:
+```shell
+$ aws configure
+AWS Access Key ID [None]: <YOUR_AWS_ACCESS_KEY_ID>
+AWS Secret Access Key [None]: <YOUR_AWS_SECRET_ACCESS_KEY>
+Default region name [None]: <YOUR_AWS_REGION>
+Default output format [None]: json
+```
+Next start the database:
+```bash
+# Start database
+docker-compose up
+```
+
+Sample app config is available in `.env.example`.  Copy this to a new file that is ignored by version control:  
+  
+```bash
+# Copy config to a file that's ignored by version control
+cp .env.example .env
+```
+
+Finally, run the app:
+```bash
+# watch mode
+yarn dev
+```
+If you see errors about missing config values, ask your team members for any missing secrets.
 
 ## Running the app
 
 ```bash
 # development
-$ npm run start
+$ yarn start
 
 # watch mode
-$ npm run start:dev
+$ yarn dev
 
 # production mode
-$ npm run start:prod
+$ yarn start:prod
 ```
 
 ## Test
 
 ```bash
 # unit tests
-$ npm run test
+$ yarn test
 
 # e2e tests
-$ npm run test:e2e
+$ yarn test:e2e
 
 # test coverage
-$ npm run test:cov
+$ yarn test:cov
 ```
 
 ## Support
