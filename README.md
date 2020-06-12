@@ -128,7 +128,6 @@ BE App Framework
 - [ ] Integration tests
 - [ ] Forgot password flow (email sender?)
 - [x] Encrypted db field (e.g. ssn)
-- [ ] ???
 
 BE Infra
 - [x] Dockerize
