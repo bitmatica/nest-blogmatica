@@ -3,19 +3,19 @@ export interface ILazyInitializer<T> {
 }
 
 export class Lazy<T> {
-  private instance: T | null = null;
-  private initializer: ILazyInitializer<T>;
+  private instance: T | null = null
+  private initializer: ILazyInitializer<T>
 
   constructor(initializer: ILazyInitializer<T>) {
-      this.initializer = initializer;
+      this.initializer = initializer
   }
 
   public get value(): T {
       if (this.instance == null) {
-          this.instance = this.initializer();
+          this.instance = this.initializer()
       }
 
-      return this.instance;
+      return this.instance
   }
 }
 
@@ -24,18 +24,18 @@ export interface IAsyncLazyInitializer<T> {
 }
 
 export class AsyncLazy<T> {
-  private instance: T | null = null;
-  private initializer: IAsyncLazyInitializer<T>;
+  private instance: T | null = null
+  private initializer: IAsyncLazyInitializer<T>
 
   constructor(initializer: IAsyncLazyInitializer<T>) {
-      this.initializer = initializer;
+      this.initializer = initializer
   }
 
   public async get(): Promise<T> {
       if (this.instance == null) {
-          this.instance = await this.initializer();
+          this.instance = await this.initializer()
       }
 
-      return this.instance;
+      return this.instance
   }
 }
