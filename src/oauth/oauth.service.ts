@@ -61,7 +61,7 @@ export class OAuthService {
         return Promise.reject(new UnauthorizedException())
       }
       const accessTokenResponse = await this.getAccessTokenWithConf(provider, code)
-      if (!accessTokenResponse) { throw new Error}
+      if (!accessTokenResponse) { throw new Error("no access token found") }
       const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
       if (!oauthRecord || !oauthRecord.nonce || oauthRecord.nonce !== decodedState.nonce) {
         return Promise.reject(new UnauthorizedException())
@@ -85,15 +85,11 @@ export class OAuthService {
       .andWhere('token.accessToken IS NOT NULL')
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
-    if (!token) {
+    if (!token?.refreshToken) {
       return undefined
     } else if (token.isExpired()) {
-      if (!token?.refreshToken) {
-        throw new Error("invalid token")
-      }
       const refreshToken = await this.refreshAccessToken(provider, token.refreshToken)
       await this.saveAccessToken(token, refreshToken)
-      return token
     }
     return token
   }
