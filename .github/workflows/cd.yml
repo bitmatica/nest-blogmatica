@@ -45,8 +45,6 @@ jobs:
         run: |
           git config --global user.email "github-actions@bitmatica.com"
           git config --global user.name "github actions"
-#          git clone https://github.com/bitmatica/cloud_infrastructure.git
-#          cd cloud_infrastructure/blogmatica/dev
           cd $GITHUB_WORKSPACE/cloud_infrastructure/blogmatica/dev
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" > backend_version.txt
           git add backend_version.txt
