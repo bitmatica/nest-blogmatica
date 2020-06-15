@@ -16,7 +16,8 @@ export class OAuthController {
     @Req() request: Request,
     @Res() response: Response,
   ) {
-    const uri = await this.oauthService.generateAuthorizationUri(provider, request.user!.id)
+    if (!request.user) { throw new Error("no user to authorize") }
+    const uri = await this.oauthService.generateAuthorizationUri(provider, request.user.id)
     response.redirect(uri)
   }
 

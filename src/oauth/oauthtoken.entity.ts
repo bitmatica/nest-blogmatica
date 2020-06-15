@@ -47,17 +47,17 @@ export class OAuthToken {
   expiresIn?: number
 
   setTokenCreatedAt(createdAt: number | undefined) {
-    this.tokenCreatedAt = createdAt ? createdAt : this.now_unix_seconds()
+    this.tokenCreatedAt = createdAt ? createdAt : this.nowUnixSeconds()
   }
 
   isExpired() {
     if (this.tokenCreatedAt && this.expiresIn) {
-      return this.tokenCreatedAt + this.expiresIn < this.now_unix_seconds()
+      return this.tokenCreatedAt + this.expiresIn < this.nowUnixSeconds()
     }
     return true
   }
 
-  now_unix_seconds() {
+  nowUnixSeconds() {
     return Math.floor(Date.now() / 1000)
   }
 }

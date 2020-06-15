@@ -2,7 +2,6 @@
 import { HttpService, Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
-import { randomBytes } from 'crypto'
 import { Base64 } from 'js-base64'
 import { Repository } from 'typeorm'
 import { IOAuthProviderConfig } from '../config/oauthConfig'
@@ -61,7 +60,8 @@ export class OAuthService {
       if (!decodedState) {
         return Promise.reject(new UnauthorizedException())
       }
-      const accessTokenResponse = (await this.getAccessTokenWithConf(provider, code))!
+      const accessTokenResponse = await this.getAccessTokenWithConf(provider, code)
+      if (!accessTokenResponse) { throw new Error("no access token found") }
       const oauthRecord = await this.oauthRepo.findOne({ id: decodedState.id })
       if (!oauthRecord || !oauthRecord.nonce || oauthRecord.nonce !== decodedState.nonce) {
         return Promise.reject(new UnauthorizedException())
@@ -85,18 +85,19 @@ export class OAuthService {
       .andWhere('token.accessToken IS NOT NULL')
       .addOrderBy('token.tokenCreatedAt', 'DESC', 'NULLS LAST')
       .getOne()
-    if (!token) {
+    if (!token?.refreshToken) {
       return undefined
     } else if (token.isExpired()) {
-      const response = (await this.refreshAccessToken(provider, token.refreshToken!))!
-      await this.saveAccessToken(token, response)
-      return token
+      const refreshToken = await this.refreshAccessToken(provider, token.refreshToken)
+      await this.saveAccessToken(token, refreshToken)
     }
     return token
   }
 
   async refreshAccessToken(provider: OAuthProvider, refreshToken: string) {
-    return await this.getAccessTokenWithConf(provider, undefined, refreshToken)
+    const accessToken = await this.getAccessTokenWithConf(provider, undefined, refreshToken)
+    if (!accessToken) { throw new Error("error getting accessToken") }
+    return accessToken
   }
 
   async saveAccessToken(oauthRecord: OAuthToken, accessTokenResponse: IAccessTokenResponse) {
