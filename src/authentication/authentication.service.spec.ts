@@ -1,12 +1,9 @@
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { Test, TestingModule } from '@nestjs/testing'
-import { UsersModule } from '../users/users.module'
 import { AuthenticationService } from './authentication.service'
 import { jwtConstants } from './constants'
-import { JwtStrategy } from './strategies/jwt.strategy'
 import { AppModule } from '../app.module'
-import { User } from '../users/user.entity'
 
 describe('AuthService', () => {
   let service: AuthenticationService
@@ -27,8 +24,8 @@ describe('AuthService', () => {
   })
 
   it('should be defined', async () => {
-    jest.spyOn(service, 'login').mockImplementation(() => Promise.resolve('logged in'))
+    jest.spyOn(service, 'deleteSession').mockImplementation(() => Promise.resolve())
     expect(service).toBeDefined()
-    expect(await service.login(new User())).toBe('logged in')
+    expect(await service.deleteSession("token")).toBe('logged in')
   })
 })

@@ -5,31 +5,6 @@ import { GustoService } from './gusto.service'
 import { CurrentUser } from '../decorators/currentUser'
 import { User } from '../users/user.entity'
 
-// TODO: try quicktype for generating TS types from sample JSON response
-@ObjectType()
-export class GustoCompany {
-  @Field()
-  id: string
-
-  @Field()
-  name: string
-
-  @Field()
-  trade_name: string
-
-  @Field()
-  ein: string
-
-  @Field()
-  entity_type: string
-
-  @Field()
-  company_status: string
-
-  @Field(type => [GustoCompanyLocation])
-  locations: [GustoCompanyLocation]
-}
-
 @ObjectType()
 export class GustoCompanyLocation {
   @Field()
@@ -61,6 +36,31 @@ export class GustoCompanyLocation {
 
   @Field()
   country: string
+}
+
+// TODO: try quicktype for generating TS types from sample JSON response
+@ObjectType()
+export class GustoCompany {
+  @Field()
+  id: string
+
+  @Field()
+  name: string
+
+  @Field()
+  trade_name: string
+
+  @Field()
+  ein: string
+
+  @Field()
+  entity_type: string
+
+  @Field()
+  company_status: string
+
+  @Field(type => [GustoCompanyLocation])
+  locations: [GustoCompanyLocation]
 }
 
 @ObjectType()
