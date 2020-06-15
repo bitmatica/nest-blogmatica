@@ -50,6 +50,7 @@ jobs:
           git add backend_version.txt
           git commit -m "Update $ECR_REPOSITORY dev version to $IMAGE_TAG"
           git push origin master
+          echo "Dev version updated in terraform.  See https://github.com/bitmatica/cloud_infrastructure/actions for deploy progress"
       - name: Logout of Amazon ECR
         if: always()
         run: docker logout ${{ steps.login-ecr.outputs.registry }}
