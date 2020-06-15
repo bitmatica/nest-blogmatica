@@ -8,27 +8,30 @@ import plaid, { Account, Client } from 'plaid'
 import { ConfigService } from '@nestjs/config'
 import { IPlaidConfig } from '../config/plaidConfig'
 import { getOrThrow } from '../core/utils'
+import { AsyncLazy } from '../core/utils/Lazy'
 
 @Injectable()
 export class PlaidService {
-  private readonly client: Client
+  private readonly client: AsyncLazy<Client>
   constructor(
     private readonly encryptionService: EncryptionService,
     private readonly configService: ConfigService,
     @InjectRepository(PlaidItem) private readonly plaidSessionRepo: Repository<PlaidItem>,
   ) {
+
     const config = getOrThrow(this.configService.get<IPlaidConfig>('plaid'))
-    this.client = new plaid.Client(
+    this.client = new AsyncLazy<Client>(async () => await new plaid.Client(
       config.clientId,
       config.secret,
       config.publicKey,
       plaid.environments[config.env],
       { version: '2019-05-29', clientApp: 'Bitmatica' },
-    )
+    ))
   }
 
   async exchangePublicToken(userId: ModelId, publicToken: string): Promise<string> {
-    const response = await this.client.exchangePublicToken(publicToken)
+    const client = await this.client.get()
+    const response = await client.exchangePublicToken(publicToken)
     const item = new PlaidItem()
     item.userId = userId
     item.itemId = response.item_id
@@ -42,7 +45,9 @@ export class PlaidService {
 
   async getPlaidAccounts(userId: ModelId, itemId: string): Promise<Array<Account>> {
     const accessToken = getOrThrow(await this.getAccessToken(userId, itemId))
-    return (await this.client.getAccounts(accessToken)).accounts
+    const client = await this.client.get()
+    const accounts = await client.getAccounts(accessToken)
+    return accounts.accounts
   }
 
   async getAccessToken(userId: ModelId, itemId: string): Promise<string | undefined> {
