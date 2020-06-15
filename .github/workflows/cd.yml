@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: bitmatica/cloud_infrastructure
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN_GITHUB }}
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
           path: cloud_infrastructure
       - name: Update Dev Environment with new Image Tag
         env:
