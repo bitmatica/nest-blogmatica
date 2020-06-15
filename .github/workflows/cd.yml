@@ -45,6 +45,9 @@ jobs:
           IMAGE_URI: ${{ steps.build-push-image.outputs.IMAGE_URI }}
           TERRAFORM_REPO_NAME: ${{ secrets.TERRAFORM_REPO_NAME }}
         run: |
+          echo "github.organization: $github.organization"
+          echo "github.org: $github.org"
+          echo "github.repository: $github.repository"
           git config --global user.email "github-actions@bitmatica.com"
           git config --global user.name "github actions"
           cd $GITHUB_WORKSPACE/$TERRAFORM_REPO_NAME/blogmatica/dev
