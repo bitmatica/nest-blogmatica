@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        with:
+          path: main
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -27,8 +29,14 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $GITHUB_WORKSPACE
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $GITHUB_WORKSPACE/main
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Checkout cloud_infrastructure
+        uses: actions/checkout@v2
+        with:
+          repository: bitmatica/cloud_infrastructure
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN_GITHUB }}
+          path: cloud_infrastructure
       - name: Update Dev Environment with new Image Tag
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -37,8 +45,9 @@ jobs:
         run: |
           git config --global user.email "github-actions@bitmatica.com"
           git config --global user.name "github actions"
-          git clone https://github.com/bitmatica/cloud_infrastructure.git
-          cd cloud_infrastructure/blogmatica/dev
+#          git clone https://github.com/bitmatica/cloud_infrastructure.git
+#          cd cloud_infrastructure/blogmatica/dev
+          cd $GITHUB_WORKSPACE/cloud_infrastructure/blogmatica/dev
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" > backend_version.txt
           git add backend_version.txt
           git commit -m "Update $ECR_REPOSITORY dev version to $IMAGE_TAG"
