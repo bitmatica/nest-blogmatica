@@ -46,7 +46,7 @@ jobs:
           git config --global user.email "github-actions@bitmatica.com"
           git config --global user.name "github actions"
           cd $GITHUB_WORKSPACE/cloud_infrastructure/blogmatica/dev
-          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" > backend_version.txt
+          echo -n "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" > backend_version.txt
           git add backend_version.txt
           git commit -m "Update $ECR_REPOSITORY dev version to $IMAGE_TAG"
           git push origin master
