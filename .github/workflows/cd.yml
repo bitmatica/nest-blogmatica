@@ -37,25 +37,25 @@ jobs:
       - name: Checkout Terraform Repo
         uses: actions/checkout@v2
         with:
-          repository: bitmatica/${{ secrets.TERRAFORM_REPO_NAME }}
+          repository: ${{ secrets.TERRAFORM_REPO_ORG }}/${{ secrets.TERRAFORM_REPO_NAME }}
           ssh-key: ${{ secrets.TERRAFORM_DEPLOY_KEY }}
           path: ${{ secrets.TERRAFORM_REPO_NAME }}
       - name: Update Dev Environment with new Image Tag
         env:
           IMAGE_URI: ${{ steps.build-push-image.outputs.IMAGE_URI }}
           TERRAFORM_REPO_NAME: ${{ secrets.TERRAFORM_REPO_NAME }}
+          TERRAFORM_REPO_ORG: ${{ secrets.TERRAFORM_REPO_ORG }}
         run: |
           echo "github.organization: $github.organization"
           echo "github.org: $github.org"
           echo "github.repository: $github.repository"
-          git config --global user.email "github-actions@bitmatica.com"
+          git config --global user.email "github-actions@$TERRAFORM_REPO_ORG.com"
           git config --global user.name "github actions"
-          cd $GITHUB_WORKSPACE/$TERRAFORM_REPO_NAME/blogmatica/dev
-          echo -n "$IMAGE_URI" > backend_version.txt
-          git add backend_version.txt
+          echo -n "$IMAGE_URI" > $GITHUB_WORKSPACE/$TERRAFORM_REPO_NAME/$TERRAFORM_REPO_VERSION_PATH
+          git add $TERRAFORM_REPO_VERSION_PATH
           git commit -m "Update dev version to $IMAGE_URI"
           git push origin master
-          echo "Dev version updated in terraform.  See https://github.com/bitmatica/$TERRAFORM_REPO_NAME/actions for deploy progress"
+          echo "Dev version updated in terraform.  See https://github.com/$TERRAFORM_REPO_ORG/$TERRAFORM_REPO_NAME/actions for deploy progress"
       - name: Logout of Amazon ECR
         if: always()
         run: docker logout ${{ steps.login-ecr.outputs.registry }}
