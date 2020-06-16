@@ -45,12 +45,12 @@ jobs:
           IMAGE_URI: ${{ steps.build-push-image.outputs.IMAGE_URI }}
           TERRAFORM_REPO_NAME: ${{ secrets.TERRAFORM_REPO_NAME }}
           TERRAFORM_REPO_ORG: ${{ secrets.TERRAFORM_REPO_ORG }}
+          TERRAFORM_REPO_VERSION_PATH: ${{ secrets.TERRAFORM_REPO_VERSION_PATH }}
         run: |
           git config --global user.email "github-actions@$TERRAFORM_REPO_ORG.com"
           git config --global user.name "github actions"
-          echo "path: $GITHUB_WORKSPACE/$TERRAFORM_REPO_NAME/$TERRAFORM_REPO_VERSION_PATH"
-          echo -n "$IMAGE_URI" > "$GITHUB_WORKSPACE/$TERRAFORM_REPO_NAME/$TERRAFORM_REPO_VERSION_PATH"
-          git add $TERRAFORM_REPO_VERSION_PATH
+          echo -n "$IMAGE_URI" > $GITHUB_WORKSPACE/$TERRAFORM_REPO_NAME/$TERRAFORM_REPO_VERSION_PATH
+          git add $GITHUB_WORKSPACE/$TERRAFORM_REPO_NAME/$TERRAFORM_REPO_VERSION_PATH
           git commit -m "Update dev version to $IMAGE_URI"
           git push origin master
           echo "Dev version updated in terraform.  See https://github.com/$TERRAFORM_REPO_ORG/$TERRAFORM_REPO_NAME/actions for deploy progress"
